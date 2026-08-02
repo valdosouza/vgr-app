@@ -1,0 +1,21 @@
+# packages/vgr_validators — shared validators for the app: mirrors
+# src/shared/validation in vgr-api — keep the rules IDENTICAL on both
+# sides (API = source of truth). No widgets, no easy_localization, no
+# API calls: pure functions + mask TextInputFormatter (flutter/services).
+name: vgr_validators
+description: Shared validators and masks for the vgr-app (mirrors the API)
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

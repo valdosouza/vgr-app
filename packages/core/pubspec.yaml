@@ -1,0 +1,37 @@
+# packages/core — shared between mobile/web/desktop (mirrors setes-app).
+# Core features (auth, session...) are COMPLETE (domain + data + presentation)
+# and reused by apps as flutter_modular modules.
+name: core
+description: Shared core of the vgr-app (auth, session, http, helpers)
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Design system: core presentation only uses Vgr* widgets
+  vgr_widgets:
+    path: ../vgr_widgets
+  # DI and routing
+  flutter_modular: ^5.0.3
+  # State management
+  bloc: ^8.1.4
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.8
+  # Either<Failure, T> in repositories/usecases
+  dartz: ^0.10.1
+  # HTTP
+  http: ^1.6.0
+  # i18n — translation keys live in the app's assets
+  easy_localization: ^3.0.7
+  shared_preferences: ^2.5.3
+  logger: ^2.6.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

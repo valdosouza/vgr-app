@@ -1,0 +1,13 @@
+# vgr-app — monorepo (mirrors the setes-app structure, decision 15 in VGR-plano.md)
+# Native pub workspace (Dart 3.6+): a single resolve for all packages.
+name: vgr_app_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+workspace:
+  - packages/core
+  - packages/vgr_widgets
+  - packages/vgr_validators
+  - apps/mobile
