@@ -53,6 +53,12 @@
 
 **OfferRewardUsecase / AllocateRewardUsecase**
 - [ ] Should only be invokable when IdentityBloc.currentUserId equals the report's reporterId (checked before repository call)
+- [ ] Should return Left(UnregisteredReporterFailure) without calling the repository when the current user's AnonymityMode is anonymous (decision 33)
+
+**AuthenticateWithProviderUsecase**
+- [ ] Should return Right(void) and update IdentityBloc when the native SDK flow succeeds, for each of Google, Apple, Facebook
+- [ ] Should return Left(Failure) without updating IdentityBloc when the native SDK flow is cancelled or fails
+- [ ] Should return Right(void) when a valid OTP code is submitted for the phone/WhatsApp method (decision 31)
 
 ### 1.4 Blocs (buildable + one-shot states)
 
@@ -76,6 +82,11 @@
 **RewardBloc**
 - [ ] Should expose allocation-enabled state only when IdentityBloc reports currentUserId == report.reporterId
 - [ ] Should emit a one-shot ActionSuccess state when RewardAllocationSubmitted resolves successfully
+- [ ] Should emit a one-shot RewardOfferBlockedAnonymousReporter state, prompting login, when an anonymous user attempts to offer a Reward (decision 33)
+
+**IdentityBloc**
+- [ ] Should emit an updated IdentityState reflecting Role=reporter/helper and the chosen AnonymityMode after ProviderLoginCompleted
+- [ ] Should default to Anonymous on app start before any login action occurs
 
 ## 2. Integration Tests
 
@@ -135,12 +146,29 @@
   - When: the user logs a Direction Sighting and the mocked API returns an updated estimate
   - Then: the probability bar re-renders with the new values before the loading indicator disappears
 
+- [ ] **Should log in and update IdentityBloc when a user taps the Google/Apple/Facebook button**
+  - Given: LoginPage is open with the native SDK mocked to succeed
+  - When: the user taps one of the three social buttons
+  - Then: ProviderLoginCompleted is emitted and the app navigates past LoginPage
+
+- [ ] **Should log in via phone/WhatsApp OTP**
+  - Given: LoginPage is open and the user has requested an OTP code
+  - When: the user enters the correct code
+  - Then: IdentityBloc updates and the app navigates past LoginPage
+
+- [ ] **Should warn an anonymous Helper that they won't be reward-eligible before they submit a Help Offer**
+  - Given: HelpOfferFormPage is open for a Report with an active Reward, current user is Anonymous
+  - When: the page renders
+  - Then: a reward-ineligibility notice is visible, and the submit control remains enabled (decision 34)
+
 ### 3.2 Alternative and Error Flows
 
 - [ ] Should show a form-level error when SubmitReportUsecase returns Left(Failure) for a validation error
 - [ ] Should show an empty-state illustration when NearbyReportsFeedBloc emits FeedEmpty
 - [ ] Should show a standardized error message when the API returns 404 for a Report that no longer exists
 - [ ] Should keep RewardBloc's allocation controls hidden (not merely disabled) for any non-Reporter viewer
+- [ ] Should show a login prompt (not a raw error) when an anonymous user taps "Offer Reward" (decision 33)
+- [ ] Should show a clear error when the social SDK flow is cancelled or fails, without leaving LoginPage in a stuck loading state
 
 ### 3.3 Security Scenarios
 
