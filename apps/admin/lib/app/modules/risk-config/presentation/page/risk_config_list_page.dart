@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../bloc/risk_config_bloc.dart';
 import '../bloc/risk_config_event.dart';
@@ -12,37 +13,33 @@ class RiskConfigListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('riskConfig.title'.tr())),
+    return VgrScaffold(
+      title: 'riskConfig.title'.tr(),
+      padded: false,
       body: BlocBuilder<RiskConfigBloc, RiskConfigState>(
         builder: (context, state) {
           return switch (state) {
-            RiskConfigLoading() => const Center(child: CircularProgressIndicator()),
-            RiskConfigError(:final message) => Center(child: Text(message)),
-            RiskConfigLoaded(:final items) => ListView(
+            RiskConfigLoading() => const VgrLoading(),
+            RiskConfigError(:final message) => VgrCenter(child: VgrText.error(message)),
+            RiskConfigLoaded(:final items) => VgrListView(
                 children: [
                   for (final item in items)
-                    ListTile(
-                      title: Text(item.category),
-                      trailing: DropdownButton<RiskTier>(
+                    VgrListTile(
+                      title: item.category,
+                      trailing: VgrDropdown<RiskTier>(
                         key: Key('risk-tier-dropdown-${item.category}'),
                         value: item.tier,
-                        items: [
+                        options: [
                           for (final tier in RiskTier.values)
-                            DropdownMenuItem(value: tier, child: Text(tier.name)),
+                            VgrOption(value: tier, label: tier.name),
                         ],
                         // can() wired per privilege (decisions 71/72 — UX
                         // only; the API enforces regardless).
-                        onChanged: !SessionAccess.instance
-                                .can('risk_config', Privileges.update)
+                        onChanged: !SessionAccess.instance.can('risk_config', Privileges.update)
                             ? null
-                            : (tier) {
-                                if (tier != null) {
-                                  context.read<RiskConfigBloc>().add(
-                                        TierEdited(category: item.category, tier: tier),
-                                      );
-                                }
-                              },
+                            : (tier) => context
+                                .read<RiskConfigBloc>()
+                                .add(TierEdited(category: item.category, tier: tier)),
                       ),
                     ),
                 ],

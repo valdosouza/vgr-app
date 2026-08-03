@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/field_definition_entity.dart';
 import '../bloc/category_form_bloc.dart';
@@ -13,42 +14,43 @@ class CategoryFormListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('categoryForms.title'.tr())),
+    final canEdit = SessionAccess.instance.can('category_forms', Privileges.update);
+
+    return VgrScaffold(
+      title: 'categoryForms.title'.tr(),
+      padded: false,
       body: BlocBuilder<CategoryFormBloc, CategoryFormState>(
         builder: (context, state) {
           return switch (state) {
-            CategoryFormLoading() => const Center(child: CircularProgressIndicator()),
-            CategoryFormError(:final message) => Center(child: Text(message)),
-            CategoryFormLoaded(:final schemas) => ListView(
+            CategoryFormLoading() => const VgrLoading(),
+            CategoryFormError(:final message) => VgrCenter(child: VgrText.error(message)),
+            CategoryFormLoaded(:final schemas) => VgrListView(
                 children: [
                   for (final schema in schemas)
-                    ExpansionTile(
-                      title: Text(schema.category),
+                    VgrExpansionTile(
+                      title: schema.category,
                       children: [
                         for (final field in schema.fields)
-                          ListTile(
-                            title: Text(field.name),
-                            subtitle: Text(
-                              '${field.type.name} · ${field.required ? 'categoryForms.required'.tr() : 'categoryForms.optional'.tr()}',
-                            ),
+                          VgrListTile(
+                            title: field.name,
+                            subtitle: '${field.type.name} · '
+                                '${field.required ? 'categoryForms.required'.tr() : 'categoryForms.optional'.tr()}',
                           ),
-                        TextButton(
+                        VgrTextButton(
                           key: Key('add-field-${schema.category}'),
-                          onPressed: !SessionAccess.instance
-                                  .can('category_forms', Privileges.update)
+                          label: 'categoryForms.addField'.tr(),
+                          onPressed: !canEdit
                               ? null
                               : () => context.read<CategoryFormBloc>().add(
-                                FieldAdded(
-                                  category: schema.category,
-                                  field: const FieldDefinitionEntity(
-                                    name: 'newField',
-                                    type: FieldType.string,
-                                    required: false,
+                                    FieldAdded(
+                                      category: schema.category,
+                                      field: const FieldDefinitionEntity(
+                                        name: 'newField',
+                                        type: FieldType.string,
+                                        required: false,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                          child: Text('categoryForms.addField'.tr()),
                         ),
                       ],
                     ),

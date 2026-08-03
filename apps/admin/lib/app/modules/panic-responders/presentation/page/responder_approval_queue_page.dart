@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../bloc/responder_approval_bloc.dart';
 import '../bloc/responder_approval_event.dart';
@@ -12,40 +13,42 @@ class ResponderApprovalQueuePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('panicResponders.title'.tr())),
+    final canResolve = SessionAccess.instance.can('panic_responders', Privileges.update);
+
+    return VgrScaffold(
+      title: 'panicResponders.title'.tr(),
+      padded: false,
       body: BlocBuilder<ResponderApprovalBloc, ResponderApprovalState>(
         builder: (context, state) {
           return switch (state) {
-            ResponderApprovalLoading() => const Center(child: CircularProgressIndicator()),
-            ResponderApprovalError(:final message) => Center(child: Text(message)),
+            ResponderApprovalLoading() => const VgrLoading(),
+            ResponderApprovalError(:final message) => VgrCenter(child: VgrText.error(message)),
             ResponderApprovalLoaded(:final items) => items.isEmpty
-                ? Center(child: Text('panicResponders.noPending'.tr()))
-                : ListView(
+                ? VgrCenter(child: VgrText('panicResponders.noPending'.tr()))
+                : VgrListView(
                     children: [
                       for (final item in items)
-                        ListTile(
+                        VgrListTile(
                           key: Key('responder-request-${item.id}'),
-                          title: Text('panicResponders.user'.tr(args: ['${item.userId}'])),
-                          subtitle: Text(item.criteriaNotes ?? ''),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          title: 'panicResponders.user'.tr(args: ['${item.userId}']),
+                          subtitle: item.criteriaNotes ?? '',
+                          trailing: VgrRow(
                             children: [
-                              IconButton(
+                              VgrIconButton(
                                 key: Key('approve-${item.id}'),
-                                icon: const Icon(Icons.check),
-                                onPressed: !SessionAccess.instance
-                                        .can('panic_responders', Privileges.update)
+                                icon: VgrIconName.check,
+                                tooltip: 'crud.save'.tr(),
+                                onPressed: !canResolve
                                     ? null
                                     : () => context.read<ResponderApprovalBloc>().add(
                                           ResolveRequested(id: item.id, approved: true),
                                         ),
                               ),
-                              IconButton(
+                              VgrIconButton(
                                 key: Key('deny-${item.id}'),
-                                icon: const Icon(Icons.close),
-                                onPressed: !SessionAccess.instance
-                                        .can('panic_responders', Privileges.update)
+                                icon: VgrIconName.close,
+                                tooltip: 'crud.cancel'.tr(),
+                                onPressed: !canResolve
                                     ? null
                                     : () => context.read<ResponderApprovalBloc>().add(
                                           ResolveRequested(id: item.id, approved: false),

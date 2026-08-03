@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 /// Placeholder for interfaces cataloged in tb_interface whose screen has
 /// not been built yet (setes' pending rule).
@@ -9,17 +10,16 @@ class PendingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('home.pendingTitle'.tr())),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return VgrScaffold(
+      title: 'home.pendingTitle'.tr(),
+      body: VgrCenter(
+        child: VgrColumn(
           children: [
-            Text('home.pendingMessage'.tr()),
-            const SizedBox(height: 16),
-            ElevatedButton(
+            VgrText('home.pendingMessage'.tr()),
+            const VgrGap.md(),
+            VgrPrimaryButton(
+              label: 'home.backToMenu'.tr(),
               onPressed: () => Modular.to.navigate('/'),
-              child: Text('home.backToMenu'.tr()),
             ),
           ],
         ),

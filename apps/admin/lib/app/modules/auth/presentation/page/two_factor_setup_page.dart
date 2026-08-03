@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../domain/login_result.dart';
 import '../bloc/two_factor_bloc.dart';
 
 /// Mandatory TOTP enrollment (decision 114). Reached only from the login
@@ -45,105 +47,95 @@ class _TwoFactorSetupPageState extends State<TwoFactorSetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('auth.twoFactor.setupTitle'.tr())),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: BlocBuilder<TwoFactorBloc, TwoFactorState>(
-            builder: (context, state) => switch (state) {
-              TwoFactorLoading() => const Center(child: CircularProgressIndicator()),
-              TwoFactorError(:final message) => Text(
-                  message,
-                  key: const Key('two-factor-error'),
-                ),
-              TwoFactorSetupReady(:final setup, :final invalidCode) =>
-                _buildSetup(context, setup, invalidCode),
-              TwoFactorActivated(:final activation) => _buildRecoveryCodes(context, activation),
-            },
-          ),
+    return VgrScaffold(
+      title: 'auth.twoFactor.setupTitle'.tr(),
+      body: VgrScrollView(
+        child: BlocBuilder<TwoFactorBloc, TwoFactorState>(
+          builder: (context, state) => switch (state) {
+            TwoFactorLoading() => const VgrLoading(),
+            TwoFactorError(:final message) => VgrText.error(
+                message,
+                key: const Key('two-factor-error'),
+              ),
+            TwoFactorSetupReady(:final setup, :final invalidCode) =>
+              _buildSetup(context, setup, invalidCode),
+            TwoFactorActivated(:final activation) => _buildRecoveryCodes(context, activation),
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSetup(BuildContext context, setup, bool invalidCode) {
-    return Column(
+  Widget _buildSetup(BuildContext context, TwoFactorSetup setup, bool invalidCode) {
+    return VgrColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text('auth.twoFactor.setupHint'.tr()),
-        const SizedBox(height: 16),
-        SelectableText(
+        VgrText('auth.twoFactor.setupHint'.tr()),
+        const VgrGap.md(),
+        VgrSelectableText(
           setup.secret,
           key: const Key('two-factor-secret'),
-          style: Theme.of(context).textTheme.headlineSmall,
+          role: VgrTextRole.headline,
         ),
-        TextButton.icon(
+        VgrTextButton(
           key: const Key('two-factor-copy-secret'),
+          icon: VgrIconName.copy,
+          label: 'auth.twoFactor.copySecret'.tr(),
           onPressed: () => Clipboard.setData(ClipboardData(text: setup.secret)),
-          icon: const Icon(Icons.copy),
-          label: Text('auth.twoFactor.copySecret'.tr()),
         ),
-        const SizedBox(height: 8),
-        SelectableText(setup.otpauthUri, key: const Key('two-factor-uri')),
-        const SizedBox(height: 24),
-        TextField(
+        const VgrGap.sm(),
+        VgrSelectableText(setup.otpauthUri, key: const Key('two-factor-uri')),
+        const VgrGap.lg(),
+        VgrTextField(
           key: const Key('two-factor-code-field'),
           controller: _codeController,
-          keyboardType: TextInputType.number,
+          label: 'auth.twoFactor.code'.tr(),
+          keyboard: VgrKeyboard.number,
           maxLength: 6,
-          decoration: InputDecoration(
-            labelText: 'auth.twoFactor.code'.tr(),
-            errorText: invalidCode ? 'auth.twoFactor.invalidCode'.tr() : null,
-          ),
+          errorText: invalidCode ? 'auth.twoFactor.invalidCode'.tr() : null,
         ),
-        ElevatedButton(
+        VgrPrimaryButton(
           key: const Key('two-factor-activate-button'),
+          label: 'auth.twoFactor.activate'.tr(),
           onPressed: () => context.read<TwoFactorBloc>().add(
                 TwoFactorCodeSubmitted(
                   enrollToken: widget.enrollToken,
                   code: _codeController.text,
                 ),
               ),
-          child: Text('auth.twoFactor.activate'.tr()),
         ),
       ],
     );
   }
 
-  Widget _buildRecoveryCodes(BuildContext context, activation) {
-    return Column(
+  Widget _buildRecoveryCodes(BuildContext context, TwoFactorActivation activation) {
+    return VgrColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'auth.twoFactor.recoveryCodesTitle'.tr(),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
+        VgrText.title('auth.twoFactor.recoveryCodesTitle'.tr()),
+        const VgrGap.sm(),
         // Shown exactly once — the API stores them hashed and cannot show
         // them again (decision 114).
-        Text('auth.twoFactor.recoveryCodesHint'.tr()),
-        const SizedBox(height: 16),
-        SelectableText(
+        VgrText('auth.twoFactor.recoveryCodesHint'.tr()),
+        const VgrGap.md(),
+        VgrSelectableText(
           activation.recoveryCodes.join('\n'),
           key: const Key('two-factor-recovery-codes'),
-          style: const TextStyle(fontFamily: 'monospace', height: 1.6),
+          monospace: true,
         ),
-        TextButton.icon(
+        VgrTextButton(
           key: const Key('two-factor-copy-codes'),
+          icon: VgrIconName.copy,
+          label: 'auth.twoFactor.copyCodes'.tr(),
           onPressed: () => Clipboard.setData(
             ClipboardData(text: activation.recoveryCodes.join('\n')),
           ),
-          icon: const Icon(Icons.copy),
-          label: Text('auth.twoFactor.copyCodes'.tr()),
         ),
-        const SizedBox(height: 24),
-        ElevatedButton(
+        const VgrGap.lg(),
+        VgrPrimaryButton(
           key: const Key('two-factor-confirm-saved-button'),
+          label: 'auth.twoFactor.confirmSaved'.tr(),
           onPressed: () => widget.onActivated(activation.jwt),
-          child: Text('auth.twoFactor.confirmSaved'.tr()),
         ),
       ],
     );

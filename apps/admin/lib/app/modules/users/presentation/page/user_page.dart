@@ -1,8 +1,9 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/user_entity.dart';
 import '../bloc/user_bloc.dart';
@@ -17,56 +18,44 @@ class UserPage extends StatelessWidget {
     final password = TextEditingController();
     var active = current == null || current.active == 'S';
 
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
-          title: Text('users.title'.tr()),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  key: const Key('user-name-field'),
-                  controller: name,
-                  decoration: InputDecoration(labelText: 'users.name'.tr()),
-                ),
-                TextField(
-                  key: const Key('user-email-field'),
-                  controller: email,
-                  decoration: InputDecoration(labelText: 'users.email'.tr()),
-                ),
-                TextField(
-                  key: const Key('user-password-field'),
-                  controller: password,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'users.password'.tr(),
-                    helperText: current == null ? null : 'users.passwordKeepHint'.tr(),
-                  ),
-                ),
-                SwitchListTile(
-                  key: const Key('user-active-switch'),
-                  value: active,
-                  onChanged: (value) => setState(() => active = value),
-                  title: Text('users.active'.tr()),
-                ),
-              ],
-            ),
+    final saved = await showVgrDialog<bool>(
+      context,
+      title: 'users.title'.tr(),
+      content: VgrStatefulContent(
+        builder: (context, refresh) => VgrScrollView(
+          child: VgrColumn(
+            children: [
+              VgrTextField(
+                key: const Key('user-name-field'),
+                controller: name,
+                label: 'users.name'.tr(),
+              ),
+              VgrTextField(
+                key: const Key('user-email-field'),
+                controller: email,
+                label: 'users.email'.tr(),
+                keyboard: VgrKeyboard.email,
+              ),
+              VgrTextField(
+                key: const Key('user-password-field'),
+                controller: password,
+                label: 'users.password'.tr(),
+                obscure: true,
+                helperText: current == null ? null : 'users.passwordKeepHint'.tr(),
+              ),
+              VgrSwitchTile(
+                key: const Key('user-active-switch'),
+                value: active,
+                label: 'users.active'.tr(),
+                onChanged: (value) => refresh(() => active = value),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text('crud.cancel'.tr()),
-            ),
-            ElevatedButton(
-              key: const Key('user-save-button'),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text('crud.save'.tr()),
-            ),
-          ],
         ),
       ),
+      confirmLabel: 'crud.save'.tr(),
+      cancelLabel: 'crud.cancel'.tr(),
+      confirmKey: const Key('user-save-button'),
     );
 
     if (saved == true && name.text.trim().isNotEmpty && email.text.trim().isNotEmpty) {
@@ -82,24 +71,15 @@ class UserPage extends StatelessWidget {
 
   Future<void> _confirmDelete(BuildContext context, UserEntity user) async {
     final bloc = context.read<UserBloc>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('crud.confirmDeleteTitle'.tr()),
-        content: Text('crud.confirmDeleteMessage'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('crud.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('crud.delete'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await showVgrConfirm(
+      context,
+      title: 'crud.confirmDeleteTitle'.tr(),
+      message: 'crud.confirmDeleteMessage'.tr(),
+      confirmLabel: 'crud.delete'.tr(),
+      cancelLabel: 'crud.cancel'.tr(),
+      destructive: true,
     );
-    if (confirmed == true) bloc.add(UserDeleted(user.id));
+    if (confirmed) bloc.add(UserDeleted(user.id));
   }
 
   @override
@@ -111,52 +91,49 @@ class UserPage extends StatelessWidget {
     // from editing user data.
     final canSeeGrants = SessionAccess.instance.can('user_privileges', Privileges.view);
 
-    return Scaffold(
-      appBar: AppBar(title: Text('users.title'.tr())),
-      floatingActionButton: !canInsert
+    return VgrScaffold(
+      title: 'users.title'.tr(),
+      padded: false,
+      floatingAction: !canInsert
           ? null
-          : FloatingActionButton(
+          : VgrFloatingAddButton(
               key: const Key('user-new-button'),
               onPressed: () => _openForm(context),
               tooltip: 'crud.new'.tr(),
-              child: const Icon(Icons.add),
             ),
       body: BlocConsumer<UserBloc, UserState>(
         listenWhen: (_, next) => next is UserLoaded && next.actionError != null,
         listener: (context, state) {
-          final message = failureText((state as UserLoaded).actionError!);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+          showVgrMessage(context, failureText((state as UserLoaded).actionError!));
         },
         builder: (context, state) {
           return switch (state) {
-            UserLoading() => const Center(child: CircularProgressIndicator()),
-            UserError(:final message) => Center(child: Text(message)),
-            UserLoaded(:final items) => ListView(
+            UserLoading() => const VgrLoading(),
+            UserError(:final message) => VgrCenter(child: VgrText.error(message)),
+            UserLoaded(:final items) => VgrListView(
                 children: [
                   for (final user in items)
-                    ListTile(
+                    VgrListTile(
                       key: Key('user-${user.id}'),
-                      leading: Icon(
-                        user.active == 'S' ? Icons.person : Icons.person_off,
-                      ),
-                      title: Text(user.name.isEmpty ? user.email : user.name),
-                      subtitle: Text(user.email),
+                      leadingIcon: VgrIconName.person,
+                      title: user.name.isEmpty ? user.email : user.name,
+                      subtitle: user.email,
                       onTap: !canUpdate ? null : () => _openForm(context, current: user),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      trailing: VgrRow(
                         children: [
                           if (canSeeGrants)
-                            IconButton(
+                            VgrIconButton(
                               key: Key('user-privileges-${user.id}'),
+                              icon: VgrIconName.security,
                               tooltip: 'users.privilegesOf'.tr(args: [user.name]),
-                              icon: const Icon(Icons.lock_open),
                               onPressed: () =>
                                   Modular.to.pushNamed('/users/privileges', arguments: user),
                             ),
                           if (canDelete)
-                            IconButton(
+                            VgrIconButton(
                               key: Key('user-delete-${user.id}'),
-                              icon: const Icon(Icons.delete_outline),
+                              icon: VgrIconName.delete,
+                              tooltip: 'crud.delete'.tr(),
                               onPressed: () => _confirmDelete(context, user),
                             ),
                         ],

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 import 'package:vgr_admin/app/modules/users/domain/entity/user_entity.dart';
 import 'package:vgr_admin/app/modules/users/domain/repository/user_repository.dart';
 import 'package:vgr_admin/app/modules/users/presentation/bloc/user_privileges_bloc.dart';
@@ -83,7 +84,7 @@ void main() {
 
     verify(() => repository.syncPrivileges(2, 1, [3])).called(1);
 
-    final viewCell = tester.widget<CheckboxListTile>(
+    final viewCell = tester.widget<VgrCheckboxTile>(
       find.byKey(const Key('grant-risk_config-VIEW')),
     );
     expect(viewCell.value, isTrue);

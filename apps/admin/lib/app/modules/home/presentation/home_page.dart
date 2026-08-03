@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../interface_routes.dart';
 
@@ -49,44 +50,41 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('home.title'.tr()),
-        actions: const [LanguageSelector(persist: true)],
-      ),
+    return VgrScaffold(
+      title: 'home.title'.tr(),
+      actions: const [LanguageSelector(persist: true)],
+      padded: false,
       body: BlocBuilder<MenuBloc, MenuState>(
         builder: (context, state) {
           return switch (state) {
-            MenuLoading() => const Center(child: CircularProgressIndicator()),
-            MenuError(:final message) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+            MenuLoading() => const VgrLoading(),
+            MenuError(:final message) => VgrCenter(
+                child: VgrColumn(
                   children: [
-                    Text(message),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
+                    VgrText.error(message),
+                    const VgrGap.md(),
+                    VgrPrimaryButton(
                       key: const Key('menu-retry-button'),
-                      onPressed: () =>
-                          context.read<MenuBloc>().add(const MenuRequested()),
-                      child: Text('home.retry'.tr()),
+                      label: 'home.retry'.tr(),
+                      onPressed: () => context.read<MenuBloc>().add(const MenuRequested()),
                     ),
                   ],
                 ),
               ),
             MenuLoaded(:final tree) => tree.isEmpty
-                ? Center(child: Text('home.emptyMenu'.tr()))
-                : ListView(
+                ? VgrCenter(child: VgrText('home.emptyMenu'.tr()))
+                : VgrListView(
                     children: [
                       for (final module in tree)
-                        ExpansionTile(
+                        VgrExpansionTile(
                           key: Key('menu-module-${module.id ?? module.description}'),
                           initiallyExpanded: true,
-                          title: Text(_moduleLabel(module)),
+                          title: _moduleLabel(module),
                           children: [
                             for (final screen in module.interfaces)
-                              ListTile(
+                              VgrListTile(
                                 key: Key('menu-interface-${screen.i18nKey}'),
-                                title: Text(_interfaceLabel(screen)),
+                                title: _interfaceLabel(screen),
                                 onTap: () => navigateToInterface(screen),
                               ),
                           ],

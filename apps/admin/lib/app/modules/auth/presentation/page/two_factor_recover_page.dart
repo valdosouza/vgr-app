@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/repository/auth_repository.dart';
 
@@ -66,47 +67,43 @@ class _TwoFactorRecoverPageState extends State<TwoFactorRecoverPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('auth.twoFactor.recoverTitle'.tr())),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('auth.twoFactor.recoverHint'.tr()),
-            const SizedBox(height: 16),
-            TextField(
-              key: const Key('recover-email-field'),
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'auth.email'.tr()),
-            ),
-            TextField(
-              key: const Key('recover-password-field'),
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: 'auth.password'.tr()),
-            ),
-            TextField(
-              key: const Key('recover-code-field'),
-              controller: _codeController,
-              decoration: InputDecoration(labelText: 'auth.twoFactor.recoveryCode'.tr()),
-            ),
-            const SizedBox(height: 16),
-            if (_error != null) Text(_error!, key: const Key('recover-error')),
-            ElevatedButton(
-              key: const Key('recover-submit-button'),
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                  : Text('auth.twoFactor.recoverAction'.tr()),
-            ),
-            TextButton(
-              key: const Key('recover-back-to-login-link'),
-              onPressed: () => Modular.to.navigate('/login'),
-              child: Text('auth.backToLogin'.tr()),
-            ),
-          ],
-        ),
+    return VgrScaffold(
+      title: 'auth.twoFactor.recoverTitle'.tr(),
+      body: VgrColumn(
+        children: [
+          VgrText('auth.twoFactor.recoverHint'.tr()),
+          const VgrGap.md(),
+          VgrTextField(
+            key: const Key('recover-email-field'),
+            controller: _emailController,
+            label: 'auth.email'.tr(),
+            keyboard: VgrKeyboard.email,
+          ),
+          VgrTextField(
+            key: const Key('recover-password-field'),
+            controller: _passwordController,
+            label: 'auth.password'.tr(),
+            obscure: true,
+          ),
+          VgrTextField(
+            key: const Key('recover-code-field'),
+            controller: _codeController,
+            label: 'auth.twoFactor.recoveryCode'.tr(),
+          ),
+          const VgrGap.md(),
+          if (_error != null) VgrText.error(_error!, key: const Key('recover-error')),
+          VgrPrimaryButton(
+            key: const Key('recover-submit-button'),
+            label: 'auth.twoFactor.recoverAction'.tr(),
+            busy: _loading,
+            onPressed: _submit,
+          ),
+          VgrTextButton(
+            key: const Key('recover-back-to-login-link'),
+            label: 'auth.backToLogin'.tr(),
+            onPressed: () => Modular.to.navigate('/login'),
+          ),
+        ],
       ),
     );
   }

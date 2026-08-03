@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/fee_rule_entity.dart';
 import '../bloc/monetization_config_bloc.dart';
@@ -13,17 +14,21 @@ class MonetizationConfigListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('monetization.title'.tr())),
+    return VgrScaffold(
+      title: 'monetization.title'.tr(),
+      padded: false,
       body: BlocBuilder<MonetizationConfigBloc, MonetizationConfigState>(
         builder: (context, state) {
           return switch (state) {
-            MonetizationConfigLoading() => const Center(child: CircularProgressIndicator()),
-            MonetizationConfigError(:final message) => Center(child: Text(message)),
-            MonetizationConfigLoaded(:final rules, :final isHighTier) => ListView(
+            MonetizationConfigLoading() => const VgrLoading(),
+            MonetizationConfigError(:final message) => VgrCenter(child: VgrText.error(message)),
+            MonetizationConfigLoaded(:final rules, :final isHighTier) => VgrListView(
                 children: [
                   for (final rule in rules)
-                    _FeeRuleRow(rule: rule, isHighTier: rule.category != null && isHighTier(rule.category!)),
+                    _FeeRuleRow(
+                      rule: rule,
+                      isHighTier: rule.category != null && isHighTier(rule.category!),
+                    ),
                 ],
               ),
           };
@@ -65,46 +70,47 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(_label),
-      subtitle: Row(
+    return VgrListTile(
+      title: _label,
+      subtitleWidget: VgrRow(
         children: [
-          SizedBox(
+          VgrFixedWidth(
             width: 80,
-            child: TextField(
+            child: VgrTextField(
               key: Key('fee-percent-field-$_key'),
               controller: _feePercentController,
-              decoration: InputDecoration(labelText: 'monetization.feePercent'.tr()),
+              label: 'monetization.feePercent'.tr(),
             ),
           ),
-          Checkbox(
+          VgrCheckbox(
             key: Key('peer-to-peer-checkbox-$_key'),
             value: _peerToPeerAllowed,
+            // Decision 58: a high-tier Category can never allow
+            // peer-to-peer — disabled here, and refused by the API too.
             onChanged: widget.isHighTier
                 ? null
-                : (value) => setState(() => _peerToPeerAllowed = value ?? false),
+                : (value) => setState(() => _peerToPeerAllowed = value),
           ),
-          Text('monetization.allowPeerToPeer'.tr()),
+          VgrText('monetization.allowPeerToPeer'.tr()),
         ],
       ),
-      trailing: ElevatedButton(
+      trailing: VgrPrimaryButton(
         key: Key('save-button-$_key'),
-        onPressed: !SessionAccess.instance
-                .can('monetization_config', Privileges.update)
+        label: 'monetization.save'.tr(),
+        onPressed: !SessionAccess.instance.can('monetization_config', Privileges.update)
             ? null
             : () {
-          final feePercent = double.tryParse(_feePercentController.text);
-          if (feePercent == null) return;
-          context.read<MonetizationConfigBloc>().add(RuleEdited(
-                category: widget.rule.category,
-                feePercent: feePercent,
-                paymentModeAllowed: {
-                  PaymentMode.intermediated,
-                  if (_peerToPeerAllowed) PaymentMode.peerToPeer,
-                },
-              ));
-        },
-        child: Text('monetization.save'.tr()),
+                final feePercent = double.tryParse(_feePercentController.text);
+                if (feePercent == null) return;
+                context.read<MonetizationConfigBloc>().add(RuleEdited(
+                      category: widget.rule.category,
+                      feePercent: feePercent,
+                      paymentModeAllowed: {
+                        PaymentMode.intermediated,
+                        if (_peerToPeerAllowed) PaymentMode.peerToPeer,
+                      },
+                    ));
+              },
       ),
     );
   }

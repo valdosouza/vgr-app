@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../error/failure.dart';
 
@@ -24,41 +25,36 @@ class LegalBlockedView extends StatelessWidget {
     final reasonKey = 'legal.reasons.$reason';
     final reasonText = reasonKey.tr();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
+    return VgrPadding(
+      all: 24,
+      child: VgrColumn(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.gavel, size: 48),
-          const SizedBox(height: 16),
-          Text(
+          const VgrIcon(VgrIconName.legal, size: 48),
+          const VgrGap.md(),
+          VgrText.title(
             'legal.blockedTitle'.tr(),
             key: const Key('legal-blocked-title'),
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
+            align: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          Text(
+          const VgrGap.sm(),
+          VgrText(
             // Falls back to the generic sentence if the reason is one the
             // app does not know yet — new reasons must never render a key.
             reasonText == reasonKey ? 'legal.blockedGeneric'.tr() : reasonText,
             key: const Key('legal-blocked-reason'),
-            textAlign: TextAlign.center,
+            align: TextAlign.center,
           ),
           if (capability.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              capability,
-              key: const Key('legal-blocked-capability'),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            const VgrGap.sm(),
+            VgrText.caption(capability, key: const Key('legal-blocked-capability')),
           ],
           if (onRetry != null) ...[
-            const SizedBox(height: 24),
-            OutlinedButton(
+            const VgrGap.lg(),
+            VgrSecondaryButton(
               key: const Key('legal-blocked-retry'),
+              label: 'legal.retry'.tr(),
               onPressed: onRetry,
-              child: Text('legal.retry'.tr()),
             ),
           ],
         ],

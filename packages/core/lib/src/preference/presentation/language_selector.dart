@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../network/api_client.dart';
 import '../data/preference_repository_impl.dart';
@@ -26,10 +27,19 @@ class LanguageSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<Locale>(
+    return VgrMenuButton<Locale>(
       key: const Key('language-selector'),
-      icon: const Icon(Icons.language),
+      icon: VgrIconName.language,
       tooltip: 'app.language'.tr(),
+      entriesBuilder: (menuContext) => [
+        for (final (locale, label) in _options)
+          VgrMenuEntry(
+            key: Key('language-option-${locale.toStringWithSeparator(separator: '-')}'),
+            value: locale,
+            label: label,
+            selected: menuContext.locale == locale,
+          ),
+      ],
       onSelected: (locale) async {
         await context.setLocale(locale);
         if (!persist) return;
@@ -39,23 +49,6 @@ class LanguageSelector extends StatelessWidget {
           await repo.saveLocale(locale.toStringWithSeparator(separator: '-'));
         } catch (_) {}
       },
-      itemBuilder: (context) => [
-        for (final (locale, label) in _options)
-          PopupMenuItem(
-            key: Key('language-option-${locale.toStringWithSeparator(separator: '-')}'),
-            value: locale,
-            child: Row(
-              children: [
-                if (context.locale == locale)
-                  const Icon(Icons.check, size: 16)
-                else
-                  const SizedBox(width: 16),
-                const SizedBox(width: 8),
-                Text(label),
-              ],
-            ),
-          ),
-      ],
     );
   }
 }

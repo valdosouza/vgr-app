@@ -1,7 +1,8 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/system_module_entity.dart';
 import '../bloc/system_module_bloc.dart';
@@ -22,74 +23,59 @@ class SystemModulePage extends StatelessWidget {
     // Selection order IS the menu order — a List, not a Set.
     final selected = List<int>.from(current?.interfaceIds ?? const <int>[]);
 
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
-          title: Text('systemModules.title'.tr()),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  key: const Key('module-description-field'),
-                  controller: description,
-                  decoration: InputDecoration(labelText: 'systemModules.description'.tr()),
-                ),
-                TextField(
-                  key: const Key('module-i18nkey-field'),
-                  controller: i18nKey,
-                  decoration: InputDecoration(labelText: 'systemModules.i18nKey'.tr()),
-                ),
-                TextField(
-                  key: const Key('module-icon-field'),
-                  controller: imageIcon,
-                  decoration: InputDecoration(labelText: 'systemModules.imageIcon'.tr()),
-                ),
-                TextField(
-                  key: const Key('module-position-field'),
-                  controller: position,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'systemModules.position'.tr()),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('systemModules.interfaces'.tr()),
-                ),
-                for (final option in options)
-                  CheckboxListTile(
-                    key: Key('module-interface-${option.id}'),
-                    dense: true,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: selected.contains(option.id),
-                    onChanged: (value) => setState(() {
-                      value == true ? selected.add(option.id) : selected.remove(option.id);
-                    }),
-                    title: Text(trCatalog(
-                      prefix: 'menu.interfaces',
-                      key: option.i18nKey,
-                      fallback: option.description,
-                    )),
-                    // Shows the menu position of a checked screen.
-                    secondary: selected.contains(option.id)
-                        ? Text('${selected.indexOf(option.id) + 1}')
-                        : null,
+    final saved = await showVgrDialog<bool>(
+      context,
+      title: 'systemModules.title'.tr(),
+      confirmLabel: 'crud.save'.tr(),
+      cancelLabel: 'crud.cancel'.tr(),
+      confirmKey: const Key('module-save-button'),
+      content: VgrStatefulContent(
+        builder: (context, refresh) => VgrScrollView(
+          child: VgrColumn(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              VgrTextField(
+                key: const Key('module-description-field'),
+                controller: description,
+                label: 'systemModules.description'.tr(),
+              ),
+              VgrTextField(
+                key: const Key('module-i18nkey-field'),
+                controller: i18nKey,
+                label: 'systemModules.i18nKey'.tr(),
+              ),
+              VgrTextField(
+                key: const Key('module-icon-field'),
+                controller: imageIcon,
+                label: 'systemModules.imageIcon'.tr(),
+              ),
+              VgrTextField(
+                key: const Key('module-position-field'),
+                controller: position,
+                label: 'systemModules.position'.tr(),
+                keyboard: VgrKeyboard.number,
+              ),
+              const VgrGap.sm(),
+              VgrText('systemModules.interfaces'.tr()),
+              for (final option in options)
+                VgrCheckboxTile(
+                  key: Key('module-interface-${option.id}'),
+                  value: selected.contains(option.id),
+                  label: trCatalog(
+                    prefix: 'menu.interfaces',
+                    key: option.i18nKey,
+                    fallback: option.description,
                   ),
-              ],
-            ),
+                  // Shows the menu position of a checked screen.
+                  trailingText: selected.contains(option.id)
+                      ? '${selected.indexOf(option.id) + 1}'
+                      : null,
+                  onChanged: (value) => refresh(() {
+                    value ? selected.add(option.id) : selected.remove(option.id);
+                  }),
+                ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text('crud.cancel'.tr()),
-            ),
-            ElevatedButton(
-              key: const Key('module-save-button'),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text('crud.save'.tr()),
-            ),
-          ],
         ),
       ),
     );
@@ -110,24 +96,15 @@ class SystemModulePage extends StatelessWidget {
 
   Future<void> _confirmDelete(BuildContext context, SystemModuleEntity item) async {
     final bloc = context.read<SystemModuleBloc>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('crud.confirmDeleteTitle'.tr()),
-        content: Text('crud.confirmDeleteMessage'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('crud.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('crud.delete'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await showVgrConfirm(
+      context,
+      title: 'crud.confirmDeleteTitle'.tr(),
+      message: 'crud.confirmDeleteMessage'.tr(),
+      confirmLabel: 'crud.delete'.tr(),
+      cancelLabel: 'crud.cancel'.tr(),
+      destructive: true,
     );
-    if (confirmed == true) bloc.add(SystemModuleDeleted(item.id));
+    if (confirmed) bloc.add(SystemModuleDeleted(item.id));
   }
 
   @override
@@ -136,57 +113,55 @@ class SystemModulePage extends StatelessWidget {
     final canUpdate = SessionAccess.instance.can('system_modules', Privileges.update);
     final canDelete = SessionAccess.instance.can('system_modules', Privileges.delete);
 
-    return Scaffold(
-      appBar: AppBar(title: Text('systemModules.title'.tr())),
-      body: BlocConsumer<SystemModuleBloc, SystemModuleState>(
-        listenWhen: (_, next) => next is SystemModuleLoaded && next.actionError != null,
-        listener: (context, state) {
-          final message = failureText((state as SystemModuleLoaded).actionError!);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-        },
-        builder: (context, state) {
-          return switch (state) {
-            SystemModuleLoading() => const Center(child: CircularProgressIndicator()),
-            SystemModuleError(:final message) => Center(child: Text(message)),
-            SystemModuleLoaded(:final items, :final interfaceOptions) => Scaffold(
-                floatingActionButton: !canInsert
-                    ? null
-                    : FloatingActionButton(
-                        key: const Key('module-new-button'),
-                        onPressed: () => _openForm(context, options: interfaceOptions),
-                        tooltip: 'crud.new'.tr(),
-                        child: const Icon(Icons.add),
-                      ),
-                body: ListView(
-                  children: [
-                    for (final item in items)
-                      ListTile(
-                        key: Key('module-${item.id}'),
-                        title: Text(item.i18nKey != null
-                            ? trCatalog(
-                                prefix: 'menu.modules',
-                                key: item.i18nKey!,
-                                fallback: item.description,
-                              )
-                            : item.description),
-                        subtitle: Text('${item.interfaceIds.length}'),
-                        onTap: !canUpdate
-                            ? null
-                            : () => _openForm(context, options: interfaceOptions, current: item),
-                        trailing: !canDelete
-                            ? null
-                            : IconButton(
-                                key: Key('module-delete-${item.id}'),
-                                icon: const Icon(Icons.delete_outline),
-                                onPressed: () => _confirmDelete(context, item),
-                              ),
-                      ),
-                  ],
+    return BlocConsumer<SystemModuleBloc, SystemModuleState>(
+      listenWhen: (_, next) => next is SystemModuleLoaded && next.actionError != null,
+      listener: (context, state) {
+        showVgrMessage(context, failureText((state as SystemModuleLoaded).actionError!));
+      },
+      builder: (context, state) {
+        return VgrScaffold(
+          title: 'systemModules.title'.tr(),
+          padded: false,
+          floatingAction: !canInsert || state is! SystemModuleLoaded
+              ? null
+              : VgrFloatingAddButton(
+                  key: const Key('module-new-button'),
+                  onPressed: () => _openForm(context, options: state.interfaceOptions),
+                  tooltip: 'crud.new'.tr(),
                 ),
+          body: switch (state) {
+            SystemModuleLoading() => const VgrLoading(),
+            SystemModuleError(:final message) => VgrCenter(child: VgrText.error(message)),
+            SystemModuleLoaded(:final items, :final interfaceOptions) => VgrListView(
+                children: [
+                  for (final item in items)
+                    VgrListTile(
+                      key: Key('module-${item.id}'),
+                      title: item.i18nKey != null
+                          ? trCatalog(
+                              prefix: 'menu.modules',
+                              key: item.i18nKey!,
+                              fallback: item.description,
+                            )
+                          : item.description,
+                      subtitle: '${item.interfaceIds.length}',
+                      onTap: !canUpdate
+                          ? null
+                          : () => _openForm(context, options: interfaceOptions, current: item),
+                      trailing: !canDelete
+                          ? null
+                          : VgrIconButton(
+                              key: Key('module-delete-${item.id}'),
+                              icon: VgrIconName.delete,
+                              tooltip: 'crud.delete'.tr(),
+                              onPressed: () => _confirmDelete(context, item),
+                            ),
+                    ),
+                ],
               ),
-          };
-        },
-      ),
+          },
+        );
+      },
     );
   }
 }

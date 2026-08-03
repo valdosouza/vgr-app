@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 import 'package:vgr_admin/app/modules/monetization-config/domain/entity/fee_rule_entity.dart';
 import 'package:vgr_admin/app/modules/monetization-config/domain/repository/fee_rule_repository.dart';
 import 'package:vgr_admin/app/modules/monetization-config/presentation/bloc/monetization_config_bloc.dart';
@@ -68,8 +69,8 @@ void main() {
 
     await pumpPage(tester);
 
-    final trafficking = tester.widget<Checkbox>(find.byKey(const Key('peer-to-peer-checkbox-trafficking')));
-    final lostPet = tester.widget<Checkbox>(find.byKey(const Key('peer-to-peer-checkbox-lost_pet')));
+    final trafficking = tester.widget<VgrCheckbox>(find.byKey(const Key('peer-to-peer-checkbox-trafficking')));
+    final lostPet = tester.widget<VgrCheckbox>(find.byKey(const Key('peer-to-peer-checkbox-lost_pet')));
 
     expect(trafficking.onChanged, isNull);
     expect(lostPet.onChanged, isNotNull);

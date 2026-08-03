@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_widgets/vgr_widgets.dart';
 import 'package:vgr_admin/app/modules/panic-responders/domain/entity/responder_approval_entity.dart';
 import 'package:vgr_admin/app/modules/panic-responders/domain/repository/responder_approval_repository.dart';
 import 'package:vgr_admin/app/modules/panic-responders/presentation/bloc/responder_approval_bloc.dart';
@@ -32,8 +33,11 @@ void main() {
       ),
     );
 
-    final approve = tester.widget<IconButton>(find.byKey(const Key('approve-1')));
-    final deny = tester.widget<IconButton>(find.byKey(const Key('deny-1')));
+    // Asserts on the house widget, not on Flutter's IconButton — with the
+    // design system in place (decision 133) the screen's contract is Vgr*,
+    // and a test reaching past it would break on every implementation swap.
+    final approve = tester.widget<VgrIconButton>(find.byKey(const Key('approve-1')));
+    final deny = tester.widget<VgrIconButton>(find.byKey(const Key('deny-1')));
     expect(approve.onPressed, isNull);
     expect(deny.onPressed, isNull);
   });
