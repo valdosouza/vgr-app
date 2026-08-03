@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_admin/app/modules/auth/domain/login_result.dart';
 import 'package:vgr_admin/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/bloc/login_bloc.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/page/login_page.dart';
@@ -41,8 +42,8 @@ void main() {
   }
 
   testWidgets('submitting valid credentials updates IdentityBloc to admin', (tester) async {
-    when(() => authRepository.login('valdo@vgr.com.br', 'teste'))
-        .thenAnswer((_) async => const Right('fake.jwt.token'));
+    when(() => authRepository.login('valdo@vgr.com.br', 'teste', totpCode: any(named: 'totpCode')))
+        .thenAnswer((_) async => const Right(LoginSession('fake.jwt.token')));
 
     await pumpPage(tester);
 
@@ -55,7 +56,7 @@ void main() {
   });
 
   testWidgets('shows the error message on invalid credentials', (tester) async {
-    when(() => authRepository.login('valdo@vgr.com.br', 'wrong')).thenAnswer(
+    when(() => authRepository.login('valdo@vgr.com.br', 'wrong', totpCode: any(named: 'totpCode'))).thenAnswer(
       (_) async => const Left(Failure(message: 'Invalid email or password', statusCode: 401)),
     );
 

@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_admin/app/modules/auth/domain/login_result.dart';
 import 'package:vgr_admin/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/bloc/login_bloc.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/bloc/login_event.dart';
@@ -35,7 +36,7 @@ void main() {
   });
 
   test('emits [Loading, Success] and updates IdentityBloc to admin with the JWT on success', () async {
-    when(() => authRepository.login('valdo@vgr.com.br', 'teste')).thenAnswer((_) async => const Right('fake.jwt.token'));
+    when(() => authRepository.login('valdo@vgr.com.br', 'teste', totpCode: any(named: 'totpCode'))).thenAnswer((_) async => const Right(LoginSession('fake.jwt.token')));
 
     expectLater(
       bloc.stream,
@@ -53,7 +54,7 @@ void main() {
   });
 
   test('emits [Loading, Error] and leaves IdentityBloc untouched on failure', () async {
-    when(() => authRepository.login('valdo@vgr.com.br', 'wrong')).thenAnswer(
+    when(() => authRepository.login('valdo@vgr.com.br', 'wrong', totpCode: any(named: 'totpCode'))).thenAnswer(
       (_) async => const Left(Failure(message: 'Invalid email or password', statusCode: 401)),
     );
 

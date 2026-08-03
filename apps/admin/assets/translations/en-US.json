@@ -20,7 +20,41 @@
     "newPassword": "New password",
     "changePassword": "Change password",
     "passwordChanged": "Password changed. Sign in with the new password.",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "twoFactor": {
+      "setupTitle": "Set up two-factor authentication",
+      "setupHint": "Two-factor authentication is required for every panel user. Add the key below to your authenticator app (Google Authenticator, Authy, 1Password…), then enter the 6-digit code it shows.",
+      "copySecret": "Copy key",
+      "code": "6-digit code",
+      "activate": "Activate",
+      "verify": "Verify",
+      "invalidCode": "Invalid or expired code.",
+      "loginHint": "Enter the 6-digit code from your authenticator app.",
+      "useRecoveryCode": "I lost my device — use a recovery code",
+      "recoveryCodesTitle": "Save your recovery codes",
+      "recoveryCodesHint": "These 10 codes are shown only once and each works a single time. Store them somewhere safe: they are how you sign in if you lose your device.",
+      "copyCodes": "Copy codes",
+      "confirmSaved": "I saved my codes — continue",
+      "recoverTitle": "Sign in with a recovery code",
+      "recoverHint": "Enter your password and one unused recovery code. Two-factor authentication will be reset, and you will set it up again on the next sign-in.",
+      "recoveryCode": "Recovery code",
+      "recoverAction": "Sign in and reset 2FA"
+    }
+  },
+  "legal": {
+    "blockedTitle": "Unavailable in this jurisdiction",
+    "blockedGeneric": "This action is blocked here by a registered legal decision.",
+    "retry": "Try again",
+    "reasons": {
+      "unreviewed": "This action has not been legally reviewed for this country yet, so the system refuses to run it.",
+      "no_control": "The controls this action requires do not exist here yet.",
+      "legislation": "Local legislation does not allow this action.",
+      "self_preservation": "This action is blocked by a deliberate protection decision.",
+      "dependency": "Another capability this action depends on is not enabled here.",
+      "suspended": "Operations are temporarily suspended in this jurisdiction.",
+      "restricted": "Operations are restricted in this jurisdiction.",
+      "unavailable": "The legal rules cannot be verified right now — the action is blocked until they can."
+    }
   },
   "home": {
     "title": "VGR Admin",
@@ -93,6 +127,8 @@
       "BUSINESS_RULE": "The request violates a business rule.",
       "NOT_AVAILABLE": "This feature is not available yet.",
       "UNAUTHORIZED": "Invalid credentials or expired session.",
+      "TWO_FACTOR_REQUIRED": "Two-factor code required.",
+      "LEGAL_BLOCKED": "Action blocked in this jurisdiction by a legal decision.",
       "FORBIDDEN": "You do not have permission for this action.",
       "INTERNAL": "Internal error — try again later."
     },

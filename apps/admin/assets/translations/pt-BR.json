@@ -20,7 +20,41 @@
     "newPassword": "Nova senha",
     "changePassword": "Alterar senha",
     "passwordChanged": "Senha alterada. Entre com a nova senha.",
-    "backToLogin": "Voltar ao login"
+    "backToLogin": "Voltar ao login",
+    "twoFactor": {
+      "setupTitle": "Configurar autenticação em duas etapas",
+      "setupHint": "A autenticação em duas etapas é obrigatória para todo usuário do painel. Adicione a chave abaixo no seu aplicativo autenticador (Google Authenticator, Authy, 1Password…) e digite o código de 6 dígitos que ele mostrar.",
+      "copySecret": "Copiar chave",
+      "code": "Código de 6 dígitos",
+      "activate": "Ativar",
+      "verify": "Verificar",
+      "invalidCode": "Código inválido ou expirado.",
+      "loginHint": "Digite o código de 6 dígitos do seu aplicativo autenticador.",
+      "useRecoveryCode": "Perdi meu aparelho — usar código de recuperação",
+      "recoveryCodesTitle": "Guarde seus códigos de recuperação",
+      "recoveryCodesHint": "Estes 10 códigos aparecem uma única vez e cada um funciona apenas uma vez. Guarde em lugar seguro: é com eles que você entra se perder o aparelho.",
+      "copyCodes": "Copiar códigos",
+      "confirmSaved": "Guardei meus códigos — continuar",
+      "recoverTitle": "Entrar com código de recuperação",
+      "recoverHint": "Digite sua senha e um código de recuperação ainda não usado. A autenticação em duas etapas será zerada e você a configurará de novo no próximo acesso.",
+      "recoveryCode": "Código de recuperação",
+      "recoverAction": "Entrar e zerar 2FA"
+    }
+  },
+  "legal": {
+    "blockedTitle": "Indisponível nesta jurisdição",
+    "blockedGeneric": "Esta ação está bloqueada aqui por uma decisão legal registrada.",
+    "retry": "Tentar de novo",
+    "reasons": {
+      "unreviewed": "Esta ação ainda não passou por avaliação legal para este país, então o sistema se recusa a executá-la.",
+      "no_control": "Os controles que esta ação exige ainda não existem aqui.",
+      "legislation": "A legislação local não permite esta ação.",
+      "self_preservation": "Esta ação está bloqueada por uma decisão deliberada de proteção.",
+      "dependency": "Outra capacidade da qual esta ação depende não está habilitada aqui.",
+      "suspended": "As operações estão temporariamente suspensas nesta jurisdição.",
+      "restricted": "As operações estão restritas nesta jurisdição.",
+      "unavailable": "As regras legais não podem ser verificadas agora — a ação fica bloqueada até que possam."
+    }
   },
   "home": {
     "title": "VGR Admin",
@@ -93,6 +127,8 @@
       "BUSINESS_RULE": "A solicitação viola uma regra de negócio.",
       "NOT_AVAILABLE": "Esta funcionalidade ainda não está disponível.",
       "UNAUTHORIZED": "Credenciais inválidas ou sessão expirada.",
+      "TWO_FACTOR_REQUIRED": "Código de duas etapas obrigatório.",
+      "LEGAL_BLOCKED": "Ação bloqueada nesta jurisdição por decisão legal.",
       "FORBIDDEN": "Você não tem permissão para esta ação.",
       "INTERNAL": "Erro interno — tente novamente mais tarde."
     },

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_admin/app/modules/auth/domain/login_result.dart';
 import 'package:vgr_admin/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/bloc/login_bloc.dart';
 import 'package:vgr_admin/app/modules/auth/presentation/page/login_page.dart';
@@ -69,8 +70,8 @@ void main() {
     'submitting valid credentials navigates away from the login page',
     (tester) async {
       final authRepository = MockAuthRepository();
-      when(() => authRepository.login('valdo@vgr.com.br', 'teste'))
-          .thenAnswer((_) async => const Right('fake.jwt.token'));
+      when(() => authRepository.login('valdo@vgr.com.br', 'teste', totpCode: any(named: 'totpCode')))
+          .thenAnswer((_) async => const Right(LoginSession('fake.jwt.token')));
 
       final localPrefs = MockLocalPrefs();
       when(() => localPrefs.getRememberedEmail()).thenAnswer((_) async => null);

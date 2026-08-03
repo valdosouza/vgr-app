@@ -19,10 +19,18 @@ Map<String, dynamic>? decodeJwtPayload(String token) {
 
 /// True when the token is malformed or its `exp` has passed (30s slack so a
 /// token about to expire is not restored just to fail on the first call).
-bool isJwtExpired(String token) {
+bool isJwtExpired(String token) => _expiresWithin(token, const Duration(seconds: 30));
+
+/// True when the token is close enough to expiry that it should be renewed
+/// before the next call (decision 112: sessions are 15 minutes, so the app
+/// renews silently instead of asking the user to sign in again).
+bool shouldRenewJwt(String token, {Duration window = const Duration(minutes: 2)}) =>
+    _expiresWithin(token, window);
+
+bool _expiresWithin(String token, Duration slack) {
   final payload = decodeJwtPayload(token);
   final exp = payload?['exp'];
   if (exp is! num) return true;
   final expiry = DateTime.fromMillisecondsSinceEpoch(exp.toInt() * 1000);
-  return expiry.isBefore(DateTime.now().add(const Duration(seconds: 30)));
+  return expiry.isBefore(DateTime.now().add(slack));
 }
