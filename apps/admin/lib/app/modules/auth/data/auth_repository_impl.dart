@@ -19,4 +19,32 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(f);
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> recoveryPassword(String email) async {
+    try {
+      await _apiClient.post('/auth/recovery-password', {'email': email});
+      return const Right(unit);
+    } on Failure catch (f) {
+      return Left(f);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> changePassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    try {
+      await _apiClient.post('/auth/change-password', {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      });
+      return const Right(unit);
+    } on Failure catch (f) {
+      return Left(f);
+    }
+  }
 }

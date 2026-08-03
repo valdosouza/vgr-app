@@ -1,3 +1,5 @@
+import 'package:core/core.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,7 +14,7 @@ class MonetizationConfigListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Monetization Config')),
+      appBar: AppBar(title: Text('monetization.title'.tr())),
       body: BlocBuilder<MonetizationConfigBloc, MonetizationConfigState>(
         builder: (context, state) {
           return switch (state) {
@@ -58,7 +60,7 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
     super.dispose();
   }
 
-  String get _label => widget.rule.category ?? 'Global default';
+  String get _label => widget.rule.category ?? 'monetization.globalDefault'.tr();
   String get _key => widget.rule.category ?? 'global';
 
   @override
@@ -72,7 +74,7 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
             child: TextField(
               key: Key('fee-percent-field-$_key'),
               controller: _feePercentController,
-              decoration: const InputDecoration(labelText: 'Fee %'),
+              decoration: InputDecoration(labelText: 'monetization.feePercent'.tr()),
             ),
           ),
           Checkbox(
@@ -82,12 +84,15 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
                 ? null
                 : (value) => setState(() => _peerToPeerAllowed = value ?? false),
           ),
-          const Text('Allow peer-to-peer'),
+          Text('monetization.allowPeerToPeer'.tr()),
         ],
       ),
       trailing: ElevatedButton(
         key: Key('save-button-$_key'),
-        onPressed: () {
+        onPressed: !SessionAccess.instance
+                .can('monetization_config', Privileges.update)
+            ? null
+            : () {
           final feePercent = double.tryParse(_feePercentController.text);
           if (feePercent == null) return;
           context.read<MonetizationConfigBloc>().add(RuleEdited(
@@ -99,7 +104,7 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
                 },
               ));
         },
-        child: const Text('Save'),
+        child: Text('monetization.save'.tr()),
       ),
     );
   }

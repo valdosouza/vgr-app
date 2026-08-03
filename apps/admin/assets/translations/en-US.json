@@ -1,3 +1,154 @@
 {
-  "app_name": "VGR Admin"
+  "app": {
+    "name": "VGR Admin",
+    "language": "Language"
+  },
+  "auth": {
+    "loginTitle": "VGR Admin — Login",
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in",
+    "keepConnected": "Keep me signed in",
+    "rememberEmail": "Remember my email",
+    "forgotPassword": "Forgot my password",
+    "recoveryTitle": "Password recovery",
+    "recoveryHint": "Enter your email — if it exists, you will receive a 6-digit code valid for 15 minutes.",
+    "sendCode": "Send code",
+    "codeSent": "If the email exists, a code was sent. Check your inbox.",
+    "changeTitle": "Set new password",
+    "code": "6-digit code",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed. Sign in with the new password.",
+    "backToLogin": "Back to login"
+  },
+  "home": {
+    "title": "VGR Admin",
+    "retry": "Try again",
+    "emptyMenu": "No screens available for your user — ask an Admin for access.",
+    "pendingTitle": "Under construction",
+    "pendingMessage": "This screen is cataloged but not built yet.",
+    "backToMenu": "Back to menu"
+  },
+  "menu": {
+    "groups": {
+      "operations": "Operations",
+      "administration": "Administration"
+    },
+    "interfaces": {
+      "risk_config": "Risk Config",
+      "category_forms": "Category Forms",
+      "panic_responders": "Panic Responders",
+      "dual_control_access": "Dual Control Access",
+      "monetization_config": "Monetization Config",
+      "users": "Users",
+      "system_modules": "System Modules",
+      "interfaces": "Interfaces",
+      "privileges": "Privileges",
+      "user_privileges": "User Privileges",
+      "dual_control_approval": "Dual Control Approval"
+    },
+    "privileges": {
+      "VIEW": "View",
+      "INSERT": "Insert",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "PRINT": "Print"
+    }
+  },
+  "riskConfig": {
+    "title": "Risk Config"
+  },
+  "categoryForms": {
+    "title": "Category Forms",
+    "addField": "Add field",
+    "required": "required",
+    "optional": "optional"
+  },
+  "panicResponders": {
+    "title": "Panic Responders",
+    "noPending": "No pending requests",
+    "user": "User #{}"
+  },
+  "dualControl": {
+    "title": "Dual Control Access",
+    "granted": "Granted",
+    "legalBasis": "Legal basis: {}",
+    "approvers": "Approvers: {}",
+    "logEntryId": "AccountabilityLogEntry id",
+    "legalBasisField": "Legal basis",
+    "startRequest": "Start Request",
+    "approverId": "Approver id",
+    "approve": "Approve",
+    "approvals": "{} of 2 approvals"
+  },
+  "core": {
+    "errors": {
+      "VALIDATION_FAILED": "Validation failed — check the highlighted fields.",
+      "INVALID_ID": "Invalid identifier.",
+      "NOT_FOUND": "Record not found.",
+      "DUPLICATE": "This value already exists.",
+      "IN_USE": "This record is in use and cannot be deleted.",
+      "SELF_LOCKOUT": "You cannot remove your own administration access.",
+      "BUSINESS_RULE": "The request violates a business rule.",
+      "NOT_AVAILABLE": "This feature is not available yet.",
+      "UNAUTHORIZED": "Invalid credentials or expired session.",
+      "FORBIDDEN": "You do not have permission for this action.",
+      "INTERNAL": "Internal error — try again later."
+    },
+    "fieldErrors": {
+      "REQUIRED": "Required field.",
+      "TOO_SHORT": "Minimum of {min} characters.",
+      "TOO_LONG": "Maximum of {max} characters.",
+      "INVALID_EMAIL": "Invalid email.",
+      "INVALID_FORMAT": "Invalid format.",
+      "INVALID_OPTION": "Invalid option.",
+      "INVALID_VALUE": "Invalid value."
+    }
+  },
+  "crud": {
+    "new": "New",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDeleteTitle": "Confirm deletion",
+    "confirmDeleteMessage": "This action cannot be undone. Delete?"
+  },
+  "privileges": {
+    "title": "Privileges",
+    "description": "Identifier (UPPER_SNAKE_CASE)"
+  },
+  "interfacesScreen": {
+    "title": "Interfaces",
+    "description": "Description",
+    "i18nKey": "Stable key (lower_snake_case)",
+    "groupDefault": "Default group",
+    "position": "Position",
+    "privileges": "Screen privileges"
+  },
+  "systemModules": {
+    "title": "System Modules",
+    "description": "Description",
+    "i18nKey": "Translation key (optional)",
+    "imageIcon": "Icon (optional)",
+    "position": "Position",
+    "interfaces": "Screens in this module (menu order)"
+  },
+  "users": {
+    "title": "Users",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "passwordKeepHint": "Leave empty to keep the current password",
+    "active": "Active",
+    "privilegesOf": "Access privileges — {}",
+    "grantsSaved": "Privileges updated"
+  },
+  "monetization": {
+    "title": "Monetization Config",
+    "globalDefault": "Global default",
+    "feePercent": "Fee %",
+    "allowPeerToPeer": "Allow peer-to-peer",
+    "save": "Save"
+  }
 }

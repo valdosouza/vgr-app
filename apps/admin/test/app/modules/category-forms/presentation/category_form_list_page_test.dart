@@ -9,6 +9,7 @@ import 'package:vgr_admin/app/modules/category-forms/domain/repository/category_
 import 'package:vgr_admin/app/modules/category-forms/presentation/bloc/category_form_bloc.dart';
 import 'package:vgr_admin/app/modules/category-forms/presentation/bloc/category_form_event.dart';
 import 'package:vgr_admin/app/modules/category-forms/presentation/page/category_form_list_page.dart';
+import '../../../../helpers/session_access.dart';
 
 class MockCategoryFormRepository extends Mock implements CategoryFormRepository {}
 
@@ -25,6 +26,7 @@ void main() {
   });
 
   setUp(() {
+    grantAllPrivileges();
     repository = MockCategoryFormRepository();
   });
 

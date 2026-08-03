@@ -11,10 +11,14 @@ import 'package:vgr_admin/app/modules/monetization-config/presentation/bloc/mone
 import 'package:vgr_admin/app/modules/monetization-config/presentation/page/monetization_config_list_page.dart';
 import 'package:vgr_admin/app/modules/risk-config/domain/entity/risk_tier_config_entity.dart';
 import 'package:vgr_admin/app/modules/risk-config/domain/repository/risk_config_repository.dart';
+import '../../../../helpers/session_access.dart';
+
+import '../../../../helpers/pump_localized.dart';
 
 class MockFeeRuleRepository extends Mock implements FeeRuleRepository {}
 
 class MockRiskConfigRepository extends Mock implements RiskConfigRepository {}
+
 
 void main() {
   late MockFeeRuleRepository feeRuleRepository;
@@ -32,20 +36,19 @@ void main() {
   ];
 
   setUp(() {
+    grantAllPrivileges();
     feeRuleRepository = MockFeeRuleRepository();
     riskConfigRepository = MockRiskConfigRepository();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider(
-          create: (_) => MonetizationConfigBloc(feeRuleRepository, riskConfigRepository)..add(const FetchRequested()),
-          child: const MonetizationConfigListPage(),
-        ),
+    await pumpLocalized(
+      tester,
+      BlocProvider(
+        create: (_) => MonetizationConfigBloc(feeRuleRepository, riskConfigRepository)..add(const FetchRequested()),
+        child: const MonetizationConfigListPage(),
       ),
     );
-    await tester.pumpAndSettle();
   }
 
   testWidgets('renders the global default row and one row per configured Category', (tester) async {

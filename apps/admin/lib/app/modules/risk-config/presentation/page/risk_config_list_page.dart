@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,7 +13,7 @@ class RiskConfigListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Risk Config')),
+      appBar: AppBar(title: Text('riskConfig.title'.tr())),
       body: BlocBuilder<RiskConfigBloc, RiskConfigState>(
         builder: (context, state) {
           return switch (state) {
@@ -30,13 +31,18 @@ class RiskConfigListPage extends StatelessWidget {
                           for (final tier in RiskTier.values)
                             DropdownMenuItem(value: tier, child: Text(tier.name)),
                         ],
-                        onChanged: (tier) {
-                          if (tier != null) {
-                            context.read<RiskConfigBloc>().add(
-                                  TierEdited(category: item.category, tier: tier),
-                                );
-                          }
-                        },
+                        // can() wired per privilege (decisions 71/72 — UX
+                        // only; the API enforces regardless).
+                        onChanged: !SessionAccess.instance
+                                .can('risk_config', Privileges.update)
+                            ? null
+                            : (tier) {
+                                if (tier != null) {
+                                  context.read<RiskConfigBloc>().add(
+                                        TierEdited(category: item.category, tier: tier),
+                                      );
+                                }
+                              },
                       ),
                     ),
                 ],

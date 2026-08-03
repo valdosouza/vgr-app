@@ -1,3 +1,5 @@
+import 'package:core/core.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,7 +14,7 @@ class CategoryFormListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Category Forms')),
+      appBar: AppBar(title: Text('categoryForms.title'.tr())),
       body: BlocBuilder<CategoryFormBloc, CategoryFormState>(
         builder: (context, state) {
           return switch (state) {
@@ -27,11 +29,16 @@ class CategoryFormListPage extends StatelessWidget {
                         for (final field in schema.fields)
                           ListTile(
                             title: Text(field.name),
-                            subtitle: Text('${field.type.name} · ${field.required ? "required" : "optional"}'),
+                            subtitle: Text(
+                              '${field.type.name} · ${field.required ? 'categoryForms.required'.tr() : 'categoryForms.optional'.tr()}',
+                            ),
                           ),
                         TextButton(
                           key: Key('add-field-${schema.category}'),
-                          onPressed: () => context.read<CategoryFormBloc>().add(
+                          onPressed: !SessionAccess.instance
+                                  .can('category_forms', Privileges.update)
+                              ? null
+                              : () => context.read<CategoryFormBloc>().add(
                                 FieldAdded(
                                   category: schema.category,
                                   field: const FieldDefinitionEntity(
@@ -41,7 +48,7 @@ class CategoryFormListPage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                          child: const Text('Add field'),
+                          child: Text('categoryForms.addField'.tr()),
                         ),
                       ],
                     ),

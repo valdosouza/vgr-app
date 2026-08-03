@@ -8,26 +8,29 @@ import 'package:vgr_admin/app/modules/panic-responders/domain/repository/respond
 import 'package:vgr_admin/app/modules/panic-responders/presentation/bloc/responder_approval_bloc.dart';
 import 'package:vgr_admin/app/modules/panic-responders/presentation/bloc/responder_approval_event.dart';
 import 'package:vgr_admin/app/modules/panic-responders/presentation/page/responder_approval_queue_page.dart';
+import '../../../../helpers/session_access.dart';
+
+import '../../../../helpers/pump_localized.dart';
 
 class MockResponderApprovalRepository extends Mock implements ResponderApprovalRepository {}
+
 
 void main() {
   late MockResponderApprovalRepository repository;
 
   setUp(() {
+    grantAllPrivileges();
     repository = MockResponderApprovalRepository();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider(
-          create: (_) => ResponderApprovalBloc(repository)..add(const FetchRequested()),
-          child: const ResponderApprovalQueuePage(),
-        ),
+    await pumpLocalized(
+      tester,
+      BlocProvider(
+        create: (_) => ResponderApprovalBloc(repository)..add(const FetchRequested()),
+        child: const ResponderApprovalQueuePage(),
       ),
     );
-    await tester.pumpAndSettle();
   }
 
   testWidgets('lists 1 pending request with its free-text criteria notes', (tester) async {

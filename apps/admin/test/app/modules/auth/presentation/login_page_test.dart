@@ -10,20 +10,29 @@ import 'package:vgr_admin/app/modules/auth/presentation/page/login_page.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
+class MockLocalPrefs extends Mock implements LocalPrefs {}
+
 void main() {
   late MockAuthRepository authRepository;
   late IdentityBloc identityBloc;
+  late MockLocalPrefs localPrefs;
 
   setUp(() {
     authRepository = MockAuthRepository();
     identityBloc = IdentityBloc();
+    localPrefs = MockLocalPrefs();
+    when(() => localPrefs.getRememberedEmail()).thenAnswer((_) async => null);
+    when(() => localPrefs.getKeepConnected()).thenAnswer((_) async => false);
+    when(() => localPrefs.setKeepConnected(any())).thenAnswer((_) async {});
+    when(() => localPrefs.setSessionToken(any())).thenAnswer((_) async {});
+    when(() => localPrefs.setRememberedEmail(any())).thenAnswer((_) async {});
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: BlocProvider(
-          create: (_) => LoginBloc(authRepository, identityBloc),
+          create: (_) => LoginBloc(authRepository, identityBloc, localPrefs),
           child: const LoginPage(),
         ),
       ),

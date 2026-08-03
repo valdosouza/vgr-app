@@ -1,3 +1,154 @@
 {
-  "app_name": "VGR Admin"
+  "app": {
+    "name": "VGR Admin",
+    "language": "Idioma"
+  },
+  "auth": {
+    "loginTitle": "VGR Admin — Login",
+    "email": "E-mail",
+    "password": "Senha",
+    "login": "Entrar",
+    "keepConnected": "Manter conectado",
+    "rememberEmail": "Lembrar meu e-mail",
+    "forgotPassword": "Esqueci minha senha",
+    "recoveryTitle": "Recuperação de senha",
+    "recoveryHint": "Informe seu e-mail — se ele existir, você receberá um código de 6 dígitos válido por 15 minutos.",
+    "sendCode": "Enviar código",
+    "codeSent": "Se o e-mail existir, um código foi enviado. Verifique sua caixa de entrada.",
+    "changeTitle": "Definir nova senha",
+    "code": "Código de 6 dígitos",
+    "newPassword": "Nova senha",
+    "changePassword": "Alterar senha",
+    "passwordChanged": "Senha alterada. Entre com a nova senha.",
+    "backToLogin": "Voltar ao login"
+  },
+  "home": {
+    "title": "VGR Admin",
+    "retry": "Tentar novamente",
+    "emptyMenu": "Nenhuma tela disponível para o seu usuário — peça acesso a um Admin.",
+    "pendingTitle": "Em construção",
+    "pendingMessage": "Esta tela está catalogada, mas ainda não foi construída.",
+    "backToMenu": "Voltar ao menu"
+  },
+  "menu": {
+    "groups": {
+      "operations": "Operações",
+      "administration": "Administração"
+    },
+    "interfaces": {
+      "risk_config": "Configuração de Risco",
+      "category_forms": "Formulários por Categoria",
+      "panic_responders": "Respondedores de Pânico",
+      "dual_control_access": "Acesso por Duplo Controle",
+      "monetization_config": "Configuração de Monetização",
+      "users": "Usuários",
+      "system_modules": "Módulos do Sistema",
+      "interfaces": "Interfaces",
+      "privileges": "Privilégios",
+      "user_privileges": "Privilégios de Usuário",
+      "dual_control_approval": "Aprovação do Duplo Controle"
+    },
+    "privileges": {
+      "VIEW": "Visualizar",
+      "INSERT": "Inserir",
+      "UPDATE": "Alterar",
+      "DELETE": "Excluir",
+      "PRINT": "Imprimir"
+    }
+  },
+  "riskConfig": {
+    "title": "Configuração de Risco"
+  },
+  "categoryForms": {
+    "title": "Formulários por Categoria",
+    "addField": "Adicionar campo",
+    "required": "obrigatório",
+    "optional": "opcional"
+  },
+  "panicResponders": {
+    "title": "Respondedores de Pânico",
+    "noPending": "Nenhuma solicitação pendente",
+    "user": "Usuário nº {}"
+  },
+  "dualControl": {
+    "title": "Acesso por Duplo Controle",
+    "granted": "Concedido",
+    "legalBasis": "Base legal: {}",
+    "approvers": "Aprovadores: {}",
+    "logEntryId": "Id do AccountabilityLogEntry",
+    "legalBasisField": "Base legal",
+    "startRequest": "Iniciar Solicitação",
+    "approverId": "Id do aprovador",
+    "approve": "Aprovar",
+    "approvals": "{} de 2 aprovações"
+  },
+  "core": {
+    "errors": {
+      "VALIDATION_FAILED": "Validação falhou — confira os campos destacados.",
+      "INVALID_ID": "Identificador inválido.",
+      "NOT_FOUND": "Registro não encontrado.",
+      "DUPLICATE": "Este valor já existe.",
+      "IN_USE": "Este registro está em uso e não pode ser excluído.",
+      "SELF_LOCKOUT": "Você não pode remover o seu próprio acesso de administração.",
+      "BUSINESS_RULE": "A solicitação viola uma regra de negócio.",
+      "NOT_AVAILABLE": "Esta funcionalidade ainda não está disponível.",
+      "UNAUTHORIZED": "Credenciais inválidas ou sessão expirada.",
+      "FORBIDDEN": "Você não tem permissão para esta ação.",
+      "INTERNAL": "Erro interno — tente novamente mais tarde."
+    },
+    "fieldErrors": {
+      "REQUIRED": "Campo obrigatório.",
+      "TOO_SHORT": "Mínimo de {min} caracteres.",
+      "TOO_LONG": "Máximo de {max} caracteres.",
+      "INVALID_EMAIL": "E-mail inválido.",
+      "INVALID_FORMAT": "Formato inválido.",
+      "INVALID_OPTION": "Opção inválida.",
+      "INVALID_VALUE": "Valor inválido."
+    }
+  },
+  "crud": {
+    "new": "Novo",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "confirmDeleteTitle": "Confirmar exclusão",
+    "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir?"
+  },
+  "privileges": {
+    "title": "Privilégios",
+    "description": "Identificador (MAIUSCULA_COM_UNDERSCORE)"
+  },
+  "interfacesScreen": {
+    "title": "Interfaces",
+    "description": "Descrição",
+    "i18nKey": "Chave estável (minuscula_com_underscore)",
+    "groupDefault": "Grupo padrão",
+    "position": "Posição",
+    "privileges": "Privilégios da tela"
+  },
+  "systemModules": {
+    "title": "Módulos do Sistema",
+    "description": "Descrição",
+    "i18nKey": "Chave de tradução (opcional)",
+    "imageIcon": "Ícone (opcional)",
+    "position": "Posição",
+    "interfaces": "Telas deste módulo (ordem do menu)"
+  },
+  "users": {
+    "title": "Usuários",
+    "name": "Nome",
+    "email": "E-mail",
+    "password": "Senha",
+    "passwordKeepHint": "Deixe vazio para manter a senha atual",
+    "active": "Ativo",
+    "privilegesOf": "Privilégios de acesso — {}",
+    "grantsSaved": "Privilégios atualizados"
+  },
+  "monetization": {
+    "title": "Configuração de Monetização",
+    "globalDefault": "Padrão global",
+    "feePercent": "Taxa %",
+    "allowPeerToPeer": "Permitir ponta-a-ponta",
+    "save": "Salvar"
+  }
 }

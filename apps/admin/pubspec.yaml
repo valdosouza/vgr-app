@@ -31,6 +31,9 @@ dependencies:
   # i18n: JSON translations, runtime switch
   easy_localization: ^3.0.7
   intl: ^0.20.2
+  # Session persistence (decision 73) — LocalPrefs lives in core; declared
+  # here too because the test helper mocks SharedPreferences directly
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

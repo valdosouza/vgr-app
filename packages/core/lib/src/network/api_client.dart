@@ -55,6 +55,14 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> delete(String path, {String? token}) async {
+    final response = await _httpClient.delete(
+      Uri.parse('$baseUrl$path'),
+      headers: _headers(token),
+    );
+    return _decode(response);
+  }
+
   Map<String, String> _headers(String? token) {
     final effectiveToken = token ?? _token;
     return {
@@ -76,6 +84,11 @@ class ApiClient {
       message: decoded['error'] as String? ?? 'Request failed',
       statusCode: response.statusCode,
       code: decoded['code'] as String?,
+      fields: (decoded['fields'] as List<dynamic>?)
+          ?.map((f) => FieldFailure.fromJson(f as Map<String, dynamic>))
+          .toList(),
+      params: (decoded['params'] as Map<String, dynamic>?)
+          ?.map((k, v) => MapEntry(k, '$v')),
     );
   }
 }

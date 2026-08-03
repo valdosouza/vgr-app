@@ -11,6 +11,8 @@ import 'package:vgr_admin/app/modules/auth/presentation/page/login_page.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
+class MockLocalPrefs extends Mock implements LocalPrefs {}
+
 class _HomePage extends StatelessWidget {
   const _HomePage();
 
@@ -19,14 +21,16 @@ class _HomePage extends StatelessWidget {
 }
 
 class _TestModule extends Module {
-  _TestModule(this.authRepository);
+  _TestModule(this.authRepository, this.localPrefs);
 
   final AuthRepository authRepository;
+  final LocalPrefs localPrefs;
 
   @override
   List<Bind> get binds => [
         Bind.singleton((i) => IdentityBloc()),
         Bind.factory<AuthRepository>((i) => authRepository),
+        Bind.factory<LocalPrefs>((i) => localPrefs),
       ];
 
   @override
@@ -34,7 +38,11 @@ class _TestModule extends Module {
         ChildRoute(
           '/login',
           child: (_, __) => BlocProvider(
-            create: (_) => LoginBloc(Modular.get<AuthRepository>(), Modular.get<IdentityBloc>()),
+            create: (_) => LoginBloc(
+              Modular.get<AuthRepository>(),
+              Modular.get<IdentityBloc>(),
+              Modular.get<LocalPrefs>(),
+            ),
             child: const LoginPage(),
           ),
         ),
@@ -64,8 +72,15 @@ void main() {
       when(() => authRepository.login('valdo@vgr.com.br', 'teste'))
           .thenAnswer((_) async => const Right('fake.jwt.token'));
 
+      final localPrefs = MockLocalPrefs();
+      when(() => localPrefs.getRememberedEmail()).thenAnswer((_) async => null);
+      when(() => localPrefs.getKeepConnected()).thenAnswer((_) async => false);
+      when(() => localPrefs.setKeepConnected(any())).thenAnswer((_) async {});
+      when(() => localPrefs.setSessionToken(any())).thenAnswer((_) async {});
+      when(() => localPrefs.setRememberedEmail(any())).thenAnswer((_) async {});
+
       await tester.pumpWidget(
-        ModularApp(module: _TestModule(authRepository), child: const _TestApp()),
+        ModularApp(module: _TestModule(authRepository, localPrefs), child: const _TestApp()),
       );
       await tester.pumpAndSettle();
 

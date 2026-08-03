@@ -9,15 +9,24 @@ import 'package:vgr_admin/app/modules/auth/presentation/bloc/login_state.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
+class MockLocalPrefs extends Mock implements LocalPrefs {}
+
 void main() {
   late MockAuthRepository authRepository;
   late IdentityBloc identityBloc;
+  late MockLocalPrefs localPrefs;
   late LoginBloc bloc;
 
   setUp(() {
     authRepository = MockAuthRepository();
     identityBloc = IdentityBloc();
-    bloc = LoginBloc(authRepository, identityBloc);
+    localPrefs = MockLocalPrefs();
+    when(() => localPrefs.getRememberedEmail()).thenAnswer((_) async => null);
+    when(() => localPrefs.getKeepConnected()).thenAnswer((_) async => false);
+    when(() => localPrefs.setKeepConnected(any())).thenAnswer((_) async {});
+    when(() => localPrefs.setSessionToken(any())).thenAnswer((_) async {});
+    when(() => localPrefs.setRememberedEmail(any())).thenAnswer((_) async {});
+    bloc = LoginBloc(authRepository, identityBloc, localPrefs);
   });
 
   tearDown(() {

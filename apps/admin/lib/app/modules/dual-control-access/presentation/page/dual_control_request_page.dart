@@ -1,3 +1,5 @@
+import 'package:core/core.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,7 +31,7 @@ class _DualControlRequestPageState extends State<DualControlRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dual Control Access')),
+      appBar: AppBar(title: Text('dualControl.title'.tr())),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<DualControlAccessBloc, DualControlAccessState>(
@@ -58,9 +60,9 @@ class _DualControlRequestPageState extends State<DualControlRequestPage> {
               DualControlActionSuccess(:final entity) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Granted'),
-                    Text('Legal basis: ${entity.legalBasis}'),
-                    Text('Approvers: ${entity.approverIds.join(', ')}'),
+                    Text('dualControl.granted'.tr()),
+                    Text('dualControl.legalBasis'.tr(args: [entity.legalBasis])),
+                    Text('dualControl.approvers'.tr(args: [entity.approverIds.join(', ')])),
                   ],
                 ),
             };
@@ -92,23 +94,27 @@ class _RequestForm extends StatelessWidget {
         TextField(
           key: const Key('accountability-log-entry-id-field'),
           controller: accountabilityLogEntryIdController,
-          decoration: const InputDecoration(labelText: 'AccountabilityLogEntry id'),
+          decoration: InputDecoration(labelText: 'dualControl.logEntryId'.tr()),
         ),
         TextField(
           key: const Key('legal-basis-field'),
           controller: legalBasisController,
-          decoration: const InputDecoration(labelText: 'Legal basis'),
+          decoration: InputDecoration(labelText: 'dualControl.legalBasisField'.tr()),
         ),
         ElevatedButton(
           key: const Key('start-request-button'),
-          onPressed: () {
+          // Starting a request inserts it; approving (below) updates it.
+          onPressed: !SessionAccess.instance
+                  .can('dual_control_access', Privileges.insert)
+              ? null
+              : () {
             final id = int.tryParse(accountabilityLogEntryIdController.text);
             if (id == null || legalBasisController.text.isEmpty) return;
             context.read<DualControlAccessBloc>().add(
                   RequestSubmitted(accountabilityLogEntryId: id, legalBasis: legalBasisController.text),
                 );
           },
-          child: const Text('Start Request'),
+          child: Text('dualControl.startRequest'.tr()),
         ),
       ],
     );
@@ -126,20 +132,27 @@ class _ApprovalProgress extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Legal basis: ${entity.legalBasis}'),
-        Text('${entity.approverIds.length} of 2 approvals'),
+        Text('dualControl.legalBasis'.tr(args: [entity.legalBasis])),
+        Text('dualControl.approvals'.tr(args: ['${entity.approverIds.length}'])),
         TextField(
           key: const Key('approver-id-field'),
           controller: approverIdController,
-          decoration: const InputDecoration(labelText: 'Approver id'),
+          decoration: InputDecoration(labelText: 'dualControl.approverId'.tr()),
         ),
         ElevatedButton(
           key: const Key('add-approval-button'),
-          onPressed: () {
+          // Layered like the API (decisions 45/93): approving needs the
+          // screen's UPDATE and the approver kind-'R' resource.
+          onPressed: !SessionAccess.instance
+                      .can('dual_control_access', Privileges.update) ||
+                  !SessionAccess.instance
+                      .can('dual_control_approval', Privileges.update)
+              ? null
+              : () {
             if (approverIdController.text.isEmpty) return;
             context.read<DualControlAccessBloc>().add(ApprovalSubmitted(approverId: approverIdController.text));
           },
-          child: const Text('Approve'),
+          child: Text('dualControl.approve'.tr()),
         ),
       ],
     );

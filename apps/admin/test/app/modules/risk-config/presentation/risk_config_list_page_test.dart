@@ -9,6 +9,7 @@ import 'package:vgr_admin/app/modules/risk-config/domain/repository/risk_config_
 import 'package:vgr_admin/app/modules/risk-config/presentation/bloc/risk_config_bloc.dart';
 import 'package:vgr_admin/app/modules/risk-config/presentation/bloc/risk_config_event.dart';
 import 'package:vgr_admin/app/modules/risk-config/presentation/page/risk_config_list_page.dart';
+import '../../../../helpers/session_access.dart';
 
 class MockRiskConfigRepository extends Mock implements RiskConfigRepository {}
 
@@ -16,6 +17,7 @@ void main() {
   late MockRiskConfigRepository repository;
 
   setUp(() {
+    grantAllPrivileges();
     repository = MockRiskConfigRepository();
   });
 

@@ -8,26 +8,29 @@ import 'package:vgr_admin/app/modules/dual-control-access/domain/entity/dual_con
 import 'package:vgr_admin/app/modules/dual-control-access/domain/repository/dual_control_access_repository.dart';
 import 'package:vgr_admin/app/modules/dual-control-access/presentation/bloc/dual_control_access_bloc.dart';
 import 'package:vgr_admin/app/modules/dual-control-access/presentation/page/dual_control_request_page.dart';
+import '../../../../helpers/session_access.dart';
+
+import '../../../../helpers/pump_localized.dart';
 
 class MockDualControlAccessRepository extends Mock implements DualControlAccessRepository {}
+
 
 void main() {
   late MockDualControlAccessRepository repository;
 
   setUp(() {
+    grantAllPrivileges();
     repository = MockDualControlAccessRepository();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider(
-          create: (_) => DualControlAccessBloc(repository),
-          child: const DualControlRequestPage(),
-        ),
+    await pumpLocalized(
+      tester,
+      BlocProvider(
+        create: (_) => DualControlAccessBloc(repository),
+        child: const DualControlRequestPage(),
       ),
     );
-    await tester.pumpAndSettle();
   }
 
   testWidgets(
