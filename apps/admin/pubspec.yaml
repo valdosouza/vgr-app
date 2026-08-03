@@ -1,0 +1,45 @@
+# apps/admin — VGR administrative panel, Flutter web (decision 56)
+name: vgr_admin
+description: VGR — administrative panel (risk config, panic responder approval, dual-control decryption, monetization config)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  core:
+    path: ../../packages/core
+  vgr_widgets:
+    path: ../../packages/vgr_widgets
+  vgr_validators:
+    path: ../../packages/vgr_validators
+  # DI and routing
+  flutter_modular: ^5.0.3
+  # State management
+  bloc: ^8.1.4
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.8
+  # Either<Failure, T> in repositories/usecases
+  dartz: ^0.10.1
+  # i18n: JSON translations, runtime switch
+  easy_localization: ^3.0.7
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/translations/
+    - assets/images/

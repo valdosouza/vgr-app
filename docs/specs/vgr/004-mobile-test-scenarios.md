@@ -88,6 +88,20 @@
 - [ ] Should emit an updated IdentityState reflecting Role=reporter/helper and the chosen AnonymityMode after ProviderLoginCompleted
 - [ ] Should default to Anonymous on app start before any login action occurs
 
+**RateHelperUsecase**
+- [ ] Should return Right(void) when called by the Report's Reporter with a score 1-5
+- [ ] Should return Left(Failure) without calling the repository when called by anyone other than the Report's Reporter
+
+**TriggerPanicAlertUsecase / ConfigurePanicAlertUsecase**
+- [ ] Should return Right(void) when triggered with no prior configuration (cold path, decision 65)
+- [ ] Should persist both recipient types simultaneously when both are selected in PanicAlertConfigEntity (decision 64)
+
+**SendChatMessageUsecase**
+- [ ] Should return Right(void) and never include a raw UserId in the outgoing payload
+
+**SelectPaymentModeUsecase**
+- [ ] Should return Left(Failure) without calling the repository when peer_to_peer is selected for a high-tier Report
+
 ## 2. Integration Tests
 
 ### 2.1 Repositories
@@ -107,6 +121,14 @@
 **RewardRepositoryImpl**
 - [ ] Should convert a successful allocate call into Right(void)
 - [ ] Should convert a 409 (Report not yet Resolved) response into Left(Failure) with a message the UI can display verbatim
+
+**CategoryFormRepository / HelperRatingRepository**
+- [ ] Should convert a successful getSchema call into Right(CategoryFormSchemaEntity) with fields mapped in full
+- [ ] Should convert a successful rate call into Right(void)
+
+**PanicRepository / ChatRepository**
+- [ ] Should convert a successful trigger call into Right(void) regardless of whether a config was previously saved
+- [ ] Should convert a successful getThread call into Right(List<ChatMessageEntity>) with senderMask populated, never a raw name
 
 ### 2.2 Usecases (with real repository implementations, mocked ApiClient)
 
@@ -161,6 +183,41 @@
   - When: the page renders
   - Then: a reward-ineligibility notice is visible, and the submit control remains enabled (decision 34)
 
+- [ ] **Should render a Category's detail form dynamically from its schema**
+  - Given: CategoryFormSchema for "missing_person" is mocked with fields {name, age, lastSeenLocation}
+  - When: CategoryDetailFormPage is opened for that Category
+  - Then: exactly those 3 fields render, with no hardcoded per-category widget involved (decision 47)
+
+- [ ] **Should restrict a non-participant's view of a Resolved Report**
+  - Given: a Resolved Report where the current user has no HelpOffer on it
+  - When: ReportDetailPage is opened
+  - Then: only the closure status renders — no timeline, no ratings (decision 50)
+
+- [ ] **Should let the Reporter rate each Helper at finalization**
+  - Given: ReportDetailPage is open for a Report the current user reported, now Resolved, with 2 HelpOffers
+  - When: the Reporter taps a star rating on one HelpOffer
+  - Then: RateHelperUsecase is called and HelperRatingWidget shows the saved score, without ever showing the Helper's raw identity
+
+- [ ] **Should trigger a panic alert from the menu at any time**
+  - Given: the app is open on any screen
+  - When: the user opens the menu and taps the panic entry (decision 62)
+  - Then: TriggerPanicAlertUsecase is called immediately, with no navigation to the report-creation flow
+
+- [ ] **Should let an at-risk user activate persistent panic mode with both recipient types**
+  - Given: PanicConfigPage is open
+  - When: the user activates persistent mode and selects both "Responder pool" and "Trusted contact"
+  - Then: PanicAlertConfigEntity is saved with both recipients set (decision 64)
+
+- [ ] **Should send and display masked chat messages**
+  - Given: ChatThreadPage is open for a Report with an accepted HelpOffer, API mocked to return one message from the Helper
+  - When: the page renders and the Reporter sends a reply
+  - Then: the Helper's message shows under a masked label, and the Reporter's own message sends without exposing the Helper's identity
+
+- [ ] **Should hide the peer-to-peer payment option on a high-tier Report**
+  - Given: a Report whose Category has RiskTier=high and an active Reward
+  - When: PaymentModeSelector renders on that Report
+  - Then: only "intermediated" is shown, "peer-to-peer" is absent, not merely disabled
+
 ### 3.2 Alternative and Error Flows
 
 - [ ] Should show a form-level error when SubmitReportUsecase returns Left(Failure) for a validation error
@@ -175,6 +232,8 @@
 - [ ] Should never render AccountabilityLogEntry-shaped fields (IP, device metadata) anywhere in the UI, even in debug/error overlays
 - [ ] Should mask or omit sensitive form fields from any crash/log report generated client-side
 - [ ] Should prevent navigating to another user's HelpOffer detail page via a manually crafted deep link (route guard test)
+- [ ] Should never render a raw UserId or unmasked name anywhere in ChatThreadPage, including widget inspector/debug overlays
+- [ ] Should prevent a non-Reporter from reaching HelperRatingWidget's submit action via a manually crafted route
 
 ## Save
 

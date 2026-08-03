@@ -11,3 +11,4 @@ workspace:
   - packages/vgr_widgets
   - packages/vgr_validators
   - apps/mobile
+  - apps/admin

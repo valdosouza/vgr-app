@@ -16,6 +16,11 @@
 | IdentityBloc (in `packages/core`) | Integration | Holds current Role/AnonymityMode; shared across all feature modules | *see below* |
 | LoginPage (in `packages/core`) | Components | Google/Apple/Facebook sign-in buttons (decision 31); no email/password form in MVP | *see below* |
 | OfflineQueueService (in `packages/core`) | Integration | Persists pending Report/Sighting writes locally (decision 28) | *see below* |
+| CategoryDetailFormPage | Components | Renders form fields dynamically from CategoryFormSchema (decision 47) — no per-category hardcoded widget | *see below* |
+| HelperRatingWidget | Components | Reporter-only, shown at finalization; posts to HelperRating, never shows a Helper's raw identity (decision 48) | *see below* |
+| PanicMenuEntry / PanicConfigPage (in `packages/core`) | Components | Always in the app menu (decision 62); config screen lets user activate persistent mode + pick recipients (decisions 63-64) | *see below* |
+| ChatThreadPage | Components | Masked participant names/avatars; enforces RiskTier masking rules (decisions 54, 55, 60) | *see below* |
+| PaymentModeSelector | Components | Shown only when RiskTier allows a choice (decision 58) — hidden/forced to intermediated on high-tier Reports | *see below* |
 
 ```dart
 // design tokens — packages/vgr_widgets/lib/src/theme/vgr_tokens.dart
@@ -41,6 +46,18 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
   // holds Role + AnonymityMode, read by every feature module
 }
 ```
+```dart
+// packages/core — PanicConfigPage
+class PanicConfigPage extends StatelessWidget {
+  // toggles persistent activation; recipient checkboxes: responder pool, trusted contact (non-exclusive)
+}
+```
+```dart
+// presentation/page — ChatThreadPage
+class ChatThreadPage extends StatelessWidget {
+  final int reportId; // renders MaskedIdentity labels only, never a raw UserId/name
+}
+```
 
 ## Section 2 — Types / Interfaces
 
@@ -50,8 +67,14 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
 | HelpOfferEntity | domain/entity (help_offer module) | HelpType is a closed enum, not free text | *see below* |
 | DirectionEstimateEntity | domain/entity (direction_sighting module) | probabilityByDirection sums to 1.0 | *see below* |
 | RewardEntity | domain/entity (reward module) | Holds only opaque reportId reference, never category/tags | *see below* |
-| IdentityState | presentation/bloc (core) | One of: Anonymous, Reporter, Helper, Police *(Police unreachable pre-validation, decision 12)* | *see below* |
+| IdentityState | presentation/bloc (core) | One of: Anonymous, Reporter, Helper, Police, Admin *(Police unreachable pre-validation, decision 12; Admin amended — never participates in AnonymityMode/Report flows, gates admin app routes only)* | *see below* |
 | NearbyReportsFeedState | presentation/bloc (help_matching module) | Buildable: Loading/Loaded(paginated)/Empty/Error | *see below* |
+| CategoryFormSchemaEntity | domain/entity (report module) | Field list + validation rules per Category, fetched from admin config (decision 47) | *see below* |
+| HelperRatingEntity | domain/entity (identity module) | Score 1–5; never carries the rated Helper's raw identity | *see below* |
+| PanicAlertConfigEntity | domain/entity (core, panic) | recipients: Set<{pool, trustedContact}> — non-exclusive (decision 64) | *see below* |
+| ChatMessageEntity | domain/entity (messaging module) | senderMask: String — opaque, never a UserId | *see below* |
+| PaymentModeEntity | domain/entity (reward module) | intermediated \| peer_to_peer; peer_to_peer unavailable when RiskTier=high | *see below* |
+| ReportVisibilityState | presentation/bloc (report module) | full \| summaryOnly — resolved server-side via GetReportVisibility (decision 50) | *see below* |
 
 ```dart
 class ReportEntity extends Equatable {
@@ -75,6 +98,18 @@ class RewardEntity extends Equatable {
 sealed class NearbyReportsFeedState {}
 class FeedLoaded extends NearbyReportsFeedState { final List<ReportEntity> page; final bool hasMore; }
 ```
+```dart
+class PanicAlertConfigEntity extends Equatable {
+  final bool persistentActivation; final Set<AlertRecipientType> recipients;
+  const PanicAlertConfigEntity({required this.persistentActivation, required this.recipients});
+}
+```
+```dart
+class ChatMessageEntity extends Equatable {
+  final String senderMask; final String text; final DateTime sentAt;
+  const ChatMessageEntity({required this.senderMask, required this.text, required this.sentAt});
+}
+```
 
 ## Section 3 — Usecases / Blocs
 
@@ -87,6 +122,27 @@ class FeedLoaded extends NearbyReportsFeedState { final List<ReportEntity> page;
 | OfferRewardUsecase / AllocateRewardUsecase | Reporter-only actions gated by IdentityBloc.currentUser == report.reporterId; OfferRewardUsecase additionally requires the Reporter to be registered, not anonymous (decision 33) | RewardRepository, IdentityBloc | *see below* |
 | AuthenticateWithProviderUsecase | Signs in via Google/Apple/Facebook SDK and stores the resulting session (decision 31) | IdentityBloc, core.ApiClient | *see below* |
 | OfflineQueueService.flush | Dispatches queued writes once connectivity returns | ReportRepository, DirectionSightingRepository | *see below* |
+| FetchCategoryFormSchemaUsecase | Loads the current field schema for a Category before rendering the detail form | CategoryFormRepository | *see below* |
+| RateHelperUsecase | Reporter-only; posts a score against a HelpOffer at finalization | HelperRatingRepository, IdentityBloc | *see below* |
+| ConfigurePanicAlertUsecase | Saves persistent activation + recipient choice (pool and/or trusted contact) | PanicRepository | *see below* |
+| TriggerPanicAlertUsecase | Fires the alert — uses saved config if present, else defaults to the pool (decision 65) | PanicRepository | *see below* |
+| SendChatMessageUsecase | Posts a message on a Report's masked thread | ChatRepository | *see below* |
+| SelectPaymentModeUsecase | Reporter chooses intermediated vs peer-to-peer when RiskTier allows it (decision 58) | RewardRepository | *see below* |
+
+```dart
+class TriggerPanicAlertUsecase {
+  Future<Either<Failure, void>> call() async {
+    // reads saved PanicAlertConfigEntity; if none, backend defaults to responder pool (decision 65)
+  }
+}
+```
+```dart
+class RateHelperUsecase {
+  Future<Either<Failure, void>> call(int helpOfferId, int score) {
+    // guard: only callable by IdentityBloc.currentUser == report.reporterId, and only once per HelpOffer
+  }
+}
+```
 
 ```dart
 class SubmitReportUsecase {
@@ -120,6 +176,9 @@ class LogDirectionSightingUsecase {
 | RewardAllocationSubmitted | RewardBloc.allocate() called by Reporter | `{ rewardId, claimIds[] }` | RewardBloc (one-shot ActionSuccess/ActionFailure) |
 | RewardOfferBlockedAnonymousReporter | OfferRewardUsecase rejects an anonymous Reporter (decision 33) | `{ reportId }` | RewardBloc (prompts registration/login before offering) |
 | ProviderLoginCompleted | AuthenticateWithProviderUsecase resolves | `{ provider, userId }` | IdentityBloc (updates Role/AnonymityMode) |
+| PanicAlertTriggered | TriggerPanicAlertUsecase resolves | `{ alertId, recipients[] }` | PanicMenuEntry (confirmation feedback) |
+| ChatMessageReceived | New message arrives on an open ChatThread | `{ threadId, message }` | ChatThreadPage (appends to list) |
+| ReportVisibilityRestricted | Server returns summaryOnly for a Resolved Report | `{ reportId }` | ReportDetailPage (renders closed-status-only view) |
 
 ## Section 5 — Data Access Interfaces
 
@@ -130,6 +189,10 @@ class LogDirectionSightingUsecase {
 | DirectionSightingRepository | logSighting | `Either<Failure,DirectionEstimateEntity>` |
 | RewardRepository | offer, allocate, getByReport | `Either<Failure,int>`, `Either<Failure,void>`, `Either<Failure,RewardEntity>` |
 | OfflineQueueService (packages/core) | enqueue, flush, pendingCount | `void`, `Future<void>`, `int` |
+| CategoryFormRepository | getSchema(category) | `Either<Failure,CategoryFormSchemaEntity>` |
+| HelperRatingRepository | rate(helpOfferId, score) | `Either<Failure,void>` |
+| PanicRepository (packages/core) | saveConfig, getConfig, trigger | `Either<Failure,void>`, `Either<Failure,PanicAlertConfigEntity?>`, `Either<Failure,void>` |
+| ChatRepository | getThread(reportId), sendMessage, subscribe | `Either<Failure,List<ChatMessageEntity>>`, `Either<Failure,void>`, `Stream<ChatMessageEntity>` |
 
 ```dart
 abstract class ReportRepository {
@@ -161,7 +224,15 @@ abstract class ReportRepository {
   { "id": "17", "title": "Implement LoginPage with Google, Apple, and Facebook sign-in buttons", "description": "Builds the frictionless social-login screen in packages/core (decision 31), no email/password form.", "scope": ["packages/core/lib/src/identity/presentation/login_page.dart", "packages/core/lib/src/identity/domain/authenticate_with_provider_usecase.dart"], "acceptance": ["Tapping each provider button triggers that provider's native SDK flow", "A successful login emits ProviderLoginCompleted and updates IdentityBloc"], "depends_on": "15" },
   { "id": "18", "title": "Gate OfferReward UI behind Reporter registration", "description": "Prompts an anonymous Reporter to log in before they can offer a Reward (decision 33).", "scope": ["apps/mobile/lib/app/modules/reward/presentation/bloc/reward_bloc.dart", "apps/mobile/lib/app/modules/reward/presentation/page/"], "acceptance": ["Anonymous Reporter tapping 'Offer Reward' sees RewardOfferBlockedAnonymousReporter and a login prompt, not a raw error"], "depends_on": "17" },
   { "id": "19", "title": "Show reward-ineligibility notice to anonymous Helpers", "description": "Informs an anonymous Helper, before they submit a Help Offer on a Reward-bearing Report, that they won't be eligible for the Reward (decision 34).", "scope": ["apps/mobile/lib/app/modules/help_offer/presentation/page/help_offer_form_page.dart"], "acceptance": ["Notice is shown only when the target Report has an active Reward and the current user is anonymous", "Anonymous Helper can still submit the Help Offer after seeing the notice"], "depends_on": "10" },
-  { "id": "20", "title": "Add phone/WhatsApp OTP option to LoginPage", "description": "Adds the 4th confirmed login method (decision 31) to the social sign-in screen.", "scope": ["packages/core/lib/src/identity/presentation/login_page.dart"], "acceptance": ["User can request and submit an OTP code as an alternative to the three social buttons"], "depends_on": "17" }
+  { "id": "20", "title": "Add phone/WhatsApp OTP option to LoginPage", "description": "Adds the 4th confirmed login method (decision 31) to the social sign-in screen.", "scope": ["packages/core/lib/src/identity/presentation/login_page.dart"], "acceptance": ["User can request and submit an OTP code as an alternative to the three social buttons"], "depends_on": "17" },
+  { "id": "21", "title": "Implement CategoryFormSchemaEntity and dynamic CategoryDetailFormPage", "description": "Renders detail-form fields from the admin-configured schema instead of a hardcoded per-category widget (decision 47).", "scope": ["apps/mobile/lib/app/modules/report/domain/entity/category_form_schema_entity.dart", "apps/mobile/lib/app/modules/report/presentation/page/category_detail_form_page.dart"], "acceptance": ["Adding a field to a Category's schema server-side renders it client-side with no app update"], "depends_on": "06" },
+  { "id": "22", "title": "Implement ReportVisibilityState and post-closure restricted view", "description": "Shows only closure status for a Resolved Report when the current user has no HelpOffer on it (decision 50).", "scope": ["apps/mobile/lib/app/modules/report/presentation/bloc/report_bloc.dart", "apps/mobile/lib/app/modules/report/presentation/page/report_detail_page.dart"], "acceptance": ["Non-participant sees only status, no timeline/ratings, on a Resolved Report", "Linked Helper still sees full detail after resolution (decision 18)"], "depends_on": "08" },
+  { "id": "23", "title": "Implement HelperRatingEntity, RateHelperUsecase, and HelperRatingWidget", "description": "Lets the Reporter rate each Helper at finalization (decision 48).", "scope": ["apps/mobile/lib/app/modules/identity/domain/entity/helper_rating_entity.dart", "apps/mobile/lib/app/modules/identity/domain/usecase/rate_helper_usecase.dart", "apps/mobile/lib/app/modules/identity/presentation/helper_rating_widget.dart"], "acceptance": ["Rating widget never displays the Helper's raw identity, only their masked label"], "depends_on": "10" },
+  { "id": "24", "title": "Implement PanicMenuEntry, always available in the app menu", "description": "Adds the menu-accessible panic entry point, independent of the report-submission flow (decision 62).", "scope": ["packages/core/lib/src/panic/presentation/panic_menu_entry.dart"], "acceptance": ["Entry point is reachable from the app menu regardless of what screen the user is on", "Tapping it works with zero prior configuration (cold path, decision 65)"], "depends_on": "15" },
+  { "id": "25", "title": "Implement PanicConfigPage: persistent activation + recipient choice", "description": "Lets a user activate persistent panic mode and choose responder pool and/or a trusted contact (decisions 63-64).", "scope": ["packages/core/lib/src/panic/domain/entity/panic_alert_config_entity.dart", "packages/core/lib/src/panic/presentation/panic_config_page.dart"], "acceptance": ["Both recipient types can be selected together, neither is exclusive", "Config persists across app restarts"], "depends_on": "24" },
+  { "id": "26", "title": "Implement TriggerPanicAlertUsecase with continuous geolocation", "description": "Fires the alert using saved config, or defaults to the responder pool when unconfigured (decision 65).", "scope": ["packages/core/lib/src/panic/domain/usecase/trigger_panic_alert_usecase.dart"], "acceptance": ["Cold trigger (no saved config) still succeeds, routed to the pool", "Alert carries continuous location updates while the app can access them"], "depends_on": "25" },
+  { "id": "27", "title": "Implement ChatMessageEntity, ChatRepository, and ChatThreadPage", "description": "Builds the masked chat between Reporter and Helper on a Report (decision 54).", "scope": ["apps/mobile/lib/app/modules/messaging/"], "acceptance": ["Message list renders senderMask labels only, never a raw name/UserId", "High-tier Reports mask identity from other Helpers too (decision 55)"], "depends_on": "10" },
+  { "id": "28", "title": "Implement PaymentModeSelector gated by RiskTier", "description": "Lets the Reporter choose intermediated vs peer-to-peer payment when the Report's RiskTier allows it (decision 58).", "scope": ["apps/mobile/lib/app/modules/reward/presentation/page/payment_mode_selector.dart"], "acceptance": ["Selector is hidden (forced intermediated) on high-tier Reports", "Selector offers both options on low/medium-tier Reports"], "depends_on": "14" }
 ]
 ```
 

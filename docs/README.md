@@ -9,6 +9,10 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 |----------|-------------|----------|
 | [**ARCHITECTURE.md**](./adr/ARCHITECTURE.md) | Architecture, folder organization, and code patterns for the project. | **Mandatory** |
 | [**TESTS.md**](./adr/TESTS.md) | Testing strategies, patterns, and execution commands. | **Mandatory** |
+| [**identity.md**](./feature/identity.md) | Shared Role/AnonymityMode state (`packages/core`), consumed by mobile and admin. | Optional |
+| [**admin-panel.md**](./feature/admin-panel.md) | `apps/admin` structure and role-gating (decision 56). | Optional |
+| [**network.md**](./feature/network.md) | Shared `ApiClient`/`Failure` (`packages/core`), used by every repository. | Optional |
+| [**category-forms.md**](./feature/category-forms.md) | Admin editor for per-Category detail-field schema (decision 47). | Optional |
 
 ## Recommended Reading Order
 

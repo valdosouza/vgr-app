@@ -16,6 +16,10 @@
 | Geolocation Primitives | Provide raw device position and distance calculation as a generic service | Does not decide radius size or matching rules — that's Help Matching | Core Team (MVP) | GeoPosition |
 | Direction Prediction & Notifications *(deferred)* | Predict a fleeing subject's future position from Direction Sightings and push proactive alerts | Not built — explicitly out of MVP (decision 11) | Unassigned (future) | PredictedZone, PushAlert |
 | Police Validation *(deferred)* | Validate a Role upgrade to "police" | Not built — explicitly out of MVP (decision 12) | Unassigned (future) | ValidationRequest |
+| Payment Intermediation | Execute the Reward payout: hold Reporter funds via a licensed PSP, retain the platform fee, release to the Helper's registered payout method — or step aside for peer-to-peer, non-high-risk Reports | Does not decide reward amount or allocation (Reward & Incentives), does not run its own banking license — delegates to an external PSP | Core Team (MVP) | PaymentIntent, PSPSplit |
+| Panic Alert | Let any user trigger an always-available panic alert (menu-accessed), optionally pre-configured (persistent activation + recipient choice) for anticipated-risk users, routing to the Authorized Responder pool and/or a personal trusted contact | Does not dispatch to real authorities (deferred), does not decide Responder approval criteria (Admin Configuration) | Core Team (MVP) | PanicAlert, ResponderPoolMembership, TrustedContact |
+| Messaging | Own the masked chat thread between a Reporter and each Helper on a Report, enforcing the same anonymity rules as the Report's RiskTier | Does not decide anonymity rules itself — conforms to Identity & Trust and Admin Configuration | Core Team (MVP) | ChatThread, ChatMessage |
+| Admin Configuration | Own every runtime-editable registry an administrator manages: RiskTier per Category, category detail-form schemas, monetization fee rules, panic-responder approval, dual-control decryption access | Does not execute the business rules it configures — Help Matching, Report Management, Reward & Incentives, and Payment Intermediation each read from this config, never duplicate it | Core Team (MVP) | RiskTierConfig, CategoryFormSchema, FeeRule, ResponderApproval, DualControlAccessRequest |
 
 ## Section 2 — Context Map
 
@@ -69,6 +73,51 @@ Justification: Decision 11 explicitly defers this feature; modeling an integrati
 Pattern   : Separate Ways
 Direction : n/a — no integration exists today
 Justification: Decision 12 explicitly defers this feature.
+
+[Admin Configuration] → [Help Matching]
+Pattern   : Open Host Service
+Direction : upstream (Admin Configuration) → downstream (Help Matching)
+Justification: The severity filter (decision 49) and Dynamic Radius rules read the RiskTierConfig registry as a stable published contract, never duplicating the admin's configuration logic.
+
+[Admin Configuration] → [Report Management]
+Pattern   : Open Host Service
+Direction : upstream (Admin Configuration) → downstream (Report Management)
+Justification: Report Management reads RiskTierConfig (mandatory-anonymity/hidden-engagement behavior, decisions 40-41) and CategoryFormSchema (decision 47) — both admin-managed, never hardcoded.
+
+[Admin Configuration] → [Reward & Incentives]
+Pattern   : Open Host Service
+Direction : upstream (Admin Configuration) → downstream (Reward & Incentives)
+Justification: Fee rules (decision 39) and the peer-to-peer-vs-intermediated toggle (decision 58) are admin-configured, read by Reward & Incentives at allocation/payout time.
+
+[Reward & Incentives] → [Payment Intermediation]
+Pattern   : Customer-Supplier
+Direction : upstream (Reward & Incentives) → downstream (Payment Intermediation)
+Justification: Reward & Incentives decides WHAT is owed and to WHOM (allocation); Payment Intermediation decides HOW the money moves (PSP split, fee retention) — Reward & Incentives has negotiation power over the payout contract, Payment Intermediation never sees Report/Category context (inherits the ACL from decisions 30, 60).
+
+[Identity & Trust] → [Payment Intermediation]
+Pattern   : Conformist
+Direction : upstream (Identity & Trust) → downstream (Payment Intermediation)
+Justification: Payment Intermediation needs a Helper's registered payout identity (KYC) to release funds — it consumes Identity & Trust's registration record as-is; the Reporter never sees this identity (decision 60).
+
+[Identity & Trust] → [Panic Alert]
+Pattern   : Conformist
+Direction : upstream (Identity & Trust) → downstream (Panic Alert)
+Justification: "Authorized Responder" is a role-like membership built on Identity & Trust's user model; Panic Alert consumes it without redefining identity.
+
+[Admin Configuration] → [Panic Alert]
+Pattern   : Customer-Supplier
+Direction : upstream (Admin Configuration) → downstream (Panic Alert)
+Justification: Responder approval criteria (decision 52, still an open pending item) are set by Admin Configuration; Panic Alert negotiates what fields it needs from an approval decision, without owning the approval workflow itself.
+
+[Report Management] → [Messaging]
+Pattern   : Customer-Supplier
+Direction : upstream (Report Management) → downstream (Messaging)
+Justification: A chat thread only exists in the context of a specific Report/HelpOffer pair; Report Management has negotiation power over which minimal fields (reportId, participant roles) Messaging receives.
+
+[Identity & Trust] → [Messaging]
+Pattern   : Conformist
+Direction : upstream (Identity & Trust) → downstream (Messaging)
+Justification: Messaging masks participant identity following whatever anonymity mode Identity & Trust reports for that Report's RiskTier (decisions 40, 55) — it enforces the rule at the transport level, it doesn't reinterpret it.
 ```
 
 ## Section 3 — Core Domain Highlight
@@ -93,6 +142,14 @@ Investment: Moderate tactical DDD — Report as an Aggregate Root with a real Ti
 Context : Reward & Incentives
 Reason  : Core because the multi-type, Reporter-arbitrated reward model (decision 1, 30) is deliberately not a standard payout feature — but its internal complexity is currently bounded by two open legal-research items (decisions 25, 30) rather than by algorithm design.
 Investment: Moderate tactical DDD now (Reward, RewardClaim as Aggregates behind an ACL) — revisit investment level once legal research on informant-payment regulation lands.
+
+Context : Panic Alert
+Reason  : The two-tier accessibility model (menu-always-available vs. opt-in persistent activation) and the dual recipient routing (platform pool vs. personal trusted contact) directly protect users under active threat (protective-order holders, elderly, decisions 62-65) — a wrong design choice here has irreversible real-world consequences.
+Investment: Full tactical DDD — PanicAlert and ResponderPoolMembership as Aggregates with explicit invariants (an alert always resolves to at least one recipient); heavy scenario-based testing on the routing logic.
+
+Context : Payment Intermediation
+Reason  : The dual-rail design (standard PSP payout for identified Helpers, while anonymity toward the Reporter must survive a real money transfer, decision 60) is a genuine differentiator most reward-adjacent apps don't need to solve.
+Investment: Moderate-to-full tactical DDD — bounded today by the still-open PSP vendor selection (decision 59); the ACL boundary toward Reward & Incentives is the part that needs to be right from day one, since it's expensive to retrofit.
 ```
 
 ## Section 4 — Architectural Decisions
@@ -117,6 +174,18 @@ Consequences: + avoids inventing an artificial context with no real domain logic
 Decision    : Direction Prediction & Notifications and Police Validation are marked Separate Ways — no integration modeled with any existing context.
 Context     : Both are explicitly out of MVP scope (decisions 11, 12); designing their integration now would be speculative.
 Consequences: + zero design cost today; − when eventually built, will likely require revisiting Direction Sighting Aggregation's retention (history to predict from) and Identity & Trust's role model (adding a validated police tier) — flagged here so that revisit isn't a surprise.
+
+Decision    : Payment Intermediation is split out from Reward & Incentives into its own Bounded Context, not one aggregate inside Reward.
+Context     : Reward & Incentives answers "what is owed, to whom" (an allocation question); Payment Intermediation answers "how does the money actually move" (a PSP-integration question) — decision 59 leaves the PSP vendor open, so this boundary lets that choice change without touching allocation logic.
+Consequences: + PSP can be swapped later without redesigning Reward's domain model; − one more Customer-Supplier integration to maintain.
+
+Decision    : Admin Configuration is one Bounded Context covering four distinct registries (RiskTier, category forms, fee rules, responder approval, dual-control access), not four separate contexts.
+Context     : All four share the same underlying capability — an admin-editable registry read by other contexts at runtime, mirroring the tb_feature_flag pattern (decision 46) — splitting them would multiply the same Open Host Service pattern four times for no isolation benefit, since they change together (one admin panel, one team).
+Consequences: + one panel, one access-control model, one place to add the next admin-configurable rule; − a context this broad must resist becoming a dumping ground — any registry that grows its OWN business invariants (not just config) should be split out later.
+
+Decision    : Messaging and Panic Alert are Core, not Generic, despite "chat" and "alert" sounding like commodity names.
+Context     : Both inherit hard, safety-specific constraints from the rest of the domain (Messaging must enforce RiskTier-driven masking; Panic Alert must resolve to a real recipient under a threat scenario) — a generic off-the-shelf chat/push SDK would not encode either constraint.
+Consequences: + forces the same design rigor as Report Management instead of bolting on a library; − more initial engineering cost than reaching for a commodity chat/notification SDK.
 ```
 
 ## Save

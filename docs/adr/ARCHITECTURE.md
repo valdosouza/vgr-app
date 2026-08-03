@@ -8,6 +8,12 @@ with `bloc`, async return type `Either<Failure, T>` (`dartz`). Flow:
 presentation (bloc) → domain (usecase) → data (repository/datasource) → VGR
 API (`D:\ProjetoVGR\api`, same structure as setes-api).
 
+Two apps share this same workspace/packages (decision 56): `apps/mobile`
+(citizen-facing — Android/iOS) and `apps/admin` (internal team — **web
+only**, same pattern as setes-app's `apps/web`). Both consume the same
+vgr-api, but `apps/admin` talks to administrative endpoints protected by
+distinct roles (see decision 45 — dual control).
+
 ## FOLDER STRUCTURE
 <folder_structure>
 D:\ProjetoVGR\app/
@@ -17,23 +23,31 @@ D:\ProjetoVGR\app/
 │   ├── vgr_widgets/               # Pure design system — no raw Flutter widget used directly in screens
 │   └── vgr_validators/            # Pure validators/masks — mirrors vgr-api/src/shared/validation
 └── apps/
-    └── mobile/                   # Mobile app (Android/iOS) — the only app for now
-        └── lib/app/
-            ├── shared/            # Business code used by 2+ modules (promoted from inside a module)
+    ├── mobile/                   # Citizen-facing app (Android/iOS) — reporters and helpers
+    │   └── lib/app/
+    │       ├── shared/            # Business code used by 2+ modules (promoted from inside a module)
+    │       └── modules/
+    │           ├── home/          # Shell: menu + RouterOutlet
+    │           └── <feature>/     # 1 feature = 1 flutter_modular module (e.g. denuncia, ajuda)
+    │               ├── <feature>_module.dart   # Binds (DI) + ChildRoute
+    │               ├── data/
+    │               │   ├── datasource/         # Talks to core.ApiClient, throws Failure
+    │               │   └── repository/         # Converts exceptions into Either<Failure,T>
+    │               ├── domain/
+    │               │   ├── entity/             # Entities (Equatable), fromJson
+    │               │   ├── repository/         # Abstract contract (implemented in data/)
+    │               │   └── usecase/            # One file per operation (getlist, post, put, delete)
+    │               └── presentation/
+    │                   ├── bloc/               # "Buildable" states (List/Form) + "one-shot" states (ActionSuccess/Failure)
+    │                   └── page/               # Widgets — only read state via BlocConsumer
+    └── admin/                    # Administrative panel, Flutter WEB only (decision 56)
+        └── lib/app/              # Same module shape as mobile/ (feature = flutter_modular module)
             └── modules/
-                ├── home/          # Shell: menu + RouterOutlet
-                └── <feature>/     # 1 feature = 1 flutter_modular module (e.g. denuncia, ajuda)
-                    ├── <feature>_module.dart   # Binds (DI) + ChildRoute
-                    ├── data/
-                    │   ├── datasource/         # Talks to core.ApiClient, throws Failure
-                    │   └── repository/         # Converts exceptions into Either<Failure,T>
-                    ├── domain/
-                    │   ├── entity/             # Entities (Equatable), fromJson
-                    │   ├── repository/         # Abstract contract (implemented in data/)
-                    │   └── usecase/            # One file per operation (getlist, post, put, delete)
-                    └── presentation/
-                        ├── bloc/               # "Buildable" states (List/Form) + "one-shot" states (ActionSuccess/Failure)
-                        └── page/               # Widgets — only read state via BlocConsumer
+                ├── risk-config/          # Manages RiskTier registry (decision 46)
+                ├── category-forms/       # Manages per-category detail form schema (decision 47)
+                ├── panic-responders/     # Approves/revokes "authorized responder" applications (decisions 51-52)
+                ├── dual-control-access/  # Two-role decryption approval workflow (decision 45)
+                └── monetization-config/  # Fee rules for reward intermediation (decision 39)
 </folder_structure>
 
 ## LAYERS
@@ -49,6 +63,7 @@ D:\ProjetoVGR\app/
 | vgr_validators | Shared validators/masks (mirrors the API) | `packages/vgr_validators/` |
 | home | Navigation shell (menu + RouterOutlet) | `apps/mobile/lib/app/modules/home/` |
 | features/* | One business domain per module (denúncia, ajuda, recompensa — to be defined by `scope-refinement`) | `apps/mobile/lib/app/modules/<feature>/` |
+| admin/* | Administrative modules (risk config, category forms, panic responder approval, dual-control decryption access, monetization config — decisions 45, 46, 47, 51-52, 39) | `apps/admin/lib/app/modules/<module>/` |
 
 REQUIRED: **A module never imports another module.** Code used by 2+ modules is promoted to `app/shared/` (app-level business code) or to a `package` (infra/design system).
 
