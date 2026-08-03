@@ -8,7 +8,9 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | Document | Description | Reading |
 |----------|-------------|----------|
 | [**ARCHITECTURE.md**](./adr/ARCHITECTURE.md) | Architecture, folder organization, and code patterns for the project. | **Mandatory** |
+| [**DESIGN-SYSTEM.md**](./adr/DESIGN-SYSTEM.md) | No raw Flutter widget in a screen — everything encapsulated as `Vgr*` (decision 133). | **Mandatory before writing any screen** |
 | [**TESTS.md**](./adr/TESTS.md) | Testing strategies, patterns, and execution commands. | **Mandatory** |
+| [**auth.md**](./feature/auth.md) | Panel login, mandatory TOTP enrollment, silent session renewal, 451 view (decisions 73, 112-117). | Optional |
 | [**identity.md**](./feature/identity.md) | Shared Role/AnonymityMode state (`packages/core`), consumed by mobile and admin. | Optional |
 | [**admin-panel.md**](./feature/admin-panel.md) | `apps/admin` structure and role-gating (decision 56). | Optional |
 | [**network.md**](./feature/network.md) | Shared `ApiClient`/`Failure` (`packages/core`), used by every repository. | Optional |
@@ -17,5 +19,6 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 ## Recommended Reading Order
 
 1. **adr/ARCHITECTURE.md** — technical foundation and project organization.
-2. **adr/TESTS.md** — code validation and quality.
-3. Additional documents in adr/ or feature/ folders as needed for the task.
+2. **adr/DESIGN-SYSTEM.md** — the widget rule; read it before touching any screen.
+3. **adr/TESTS.md** — code validation and quality.
+4. Additional documents in adr/ or feature/ folders as needed for the task.
