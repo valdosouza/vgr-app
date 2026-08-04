@@ -67,11 +67,11 @@ class ApiClient {
     await _pendingRenewal;
   }
 
-  Future<Map<String, dynamic>> get(String path, {String? token}) async {
+  Future<Map<String, dynamic>> get(String path, {String? token, Map<String, String>? headers}) async {
     await _ensureFreshToken(token);
     final response = await _httpClient.get(
       Uri.parse('$baseUrl$path'),
-      headers: _headers(token),
+      headers: _headers(token, extra: headers),
     );
     return _decode(response);
   }
@@ -80,13 +80,35 @@ class ApiClient {
     String path,
     Map<String, dynamic> body, {
     String? token,
+    Map<String, String>? headers,
   }) async {
     await _ensureFreshToken(token);
     final response = await _httpClient.post(
       Uri.parse('$baseUrl$path'),
-      headers: _headers(token),
+      headers: _headers(token, extra: headers),
       body: jsonEncode(body),
     );
+    return _decode(response);
+  }
+
+  /// Multipart upload — the `/app-media` contract (file field + text
+  /// fields). Kept on the client so repositories stay `Either`-only.
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required String filePath,
+    String fileField = 'file',
+    Map<String, String> fields = const {},
+    String? token,
+  }) async {
+    await _ensureFreshToken(token);
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'))
+      ..fields.addAll(fields)
+      ..files.add(await http.MultipartFile.fromPath(fileField, filePath));
+    final effectiveToken = token ?? _token;
+    if (effectiveToken != null) {
+      request.headers['Authorization'] = 'Bearer $effectiveToken';
+    }
+    final response = await http.Response.fromStream(await _httpClient.send(request));
     return _decode(response);
   }
 
@@ -113,11 +135,12 @@ class ApiClient {
     return _decode(response);
   }
 
-  Map<String, String> _headers(String? token) {
+  Map<String, String> _headers(String? token, {Map<String, String>? extra}) {
     final effectiveToken = token ?? _token;
     return {
       'Content-Type': 'application/json',
       if (effectiveToken != null) 'Authorization': 'Bearer $effectiveToken',
+      ...?extra,
     };
   }
 

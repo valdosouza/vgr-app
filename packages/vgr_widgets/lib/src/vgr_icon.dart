@@ -29,6 +29,9 @@ enum VgrIconName {
   money,
   location,
   alert,
+  image,
+  camera,
+  gallery,
 }
 
 class VgrIcon extends StatelessWidget {
@@ -62,6 +65,9 @@ class VgrIcon extends StatelessWidget {
         VgrIconName.money => Icons.attach_money,
         VgrIconName.location => Icons.place_outlined,
         VgrIconName.alert => Icons.notifications_active_outlined,
+        VgrIconName.image => Icons.image_outlined,
+        VgrIconName.camera => Icons.photo_camera_outlined,
+        VgrIconName.gallery => Icons.photo_library_outlined,
       };
 
   @override

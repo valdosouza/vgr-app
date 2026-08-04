@@ -162,6 +162,19 @@ class VgrStatefulContent extends StatelessWidget {
       StatefulBuilder(builder: (innerContext, setState) => builder(innerContext, setState));
 }
 
+/// Encapsulates [Wrap] — thumbnails and chips that must break line
+/// instead of overflowing (the photo strip is the case that forced it).
+class VgrWrap extends StatelessWidget {
+  const VgrWrap({super.key, required this.children, this.spacing = 8});
+
+  final List<Widget> children;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) =>
+      Wrap(spacing: spacing, runSpacing: spacing, children: children);
+}
+
 /// Encapsulates a fixed-width [SizedBox] — narrow inputs inside a row,
 /// where letting the field take the whole width would be wrong.
 class VgrFixedWidth extends StatelessWidget {

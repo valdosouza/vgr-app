@@ -1,3 +1,94 @@
 {
-  "app_name": "VGR"
+  "app_name": "VGR",
+  "report": {
+    "title": "Denunciar",
+    "categoryLabel": "O que aconteceu?",
+    "category": {
+      "assault": "Agressão",
+      "environmental": "Crime ambiental",
+      "robbery": "Roubo / furto",
+      "homicide": "Homicídio",
+      "illegal_commerce": "Comércio ilegal",
+      "missing": "Desaparecimento",
+      "fugitive": "Foragido",
+      "kidnapping": "Sequestro",
+      "suspicious": "Atividade suspeita",
+      "trafficking": "Tráfico",
+      "traffic": "Ocorrência de trânsito",
+      "vandalism": "Vandalismo",
+      "freeTag": "Outro (descrever)"
+    },
+    "freeTagLabel": "Descreva o que aconteceu",
+    "subjectLabel": "Quem ou o que está envolvido?",
+    "subject": {
+      "child": "Criança",
+      "adult": "Adulto",
+      "animal": "Animal",
+      "vehicle": "Veículo",
+      "property": "Propriedade",
+      "commerce": "Comércio",
+      "weapon": "Arma",
+      "environment": "Meio ambiente",
+      "other": "Outro"
+    },
+    "form": {
+      "required": "Campo obrigatório.",
+      "dateHint": "AAAA-MM-DD"
+    },
+    "position": {
+      "locating": "Obtendo sua localização…",
+      "ready": "Localização capturada",
+      "failed": "Não foi possível obter sua localização.",
+      "retry": "Tentar novamente"
+    },
+    "photos": {
+      "title": "Fotos",
+      "camera": "Câmera",
+      "gallery": "Galeria",
+      "hint": "Até 10 fotos. Elas sobem em segundo plano — sua denúncia nunca espera."
+    },
+    "anonymousInfo": "Esta denúncia é anônima.",
+    "anonymousChoice": "Denunciar anonimamente",
+    "exif": {
+      "title": "Manter dados técnicos da foto?",
+      "warning": "Esta foto carrega informações invisíveis: onde ela foi tirada (GPS), quando, e com qual aparelho. Mantê-las pode ajudar como prova — mas também revela onde você estava.\n\nSe você preferir se proteger, descarte: a foto continua valendo, sem os dados técnicos. Só quem tem autorização especial e auditada consegue ver os dados mantidos.",
+      "anonymousWarning": "Você escolheu denunciar anonimamente. Os dados técnicos desta foto podem revelar sua localização e contradizer esse anonimato. Mantenha apenas se entender esse risco.",
+      "keep": "Manter como prova",
+      "discard": "Descartar dados (recomendado)",
+      "badge": "EXIF mantido"
+    },
+    "submit": "Enviar denúncia",
+    "success": {
+      "title": "Denúncia registrada",
+      "sent": "Sua denúncia foi enviada. Obrigado por ajudar.",
+      "queuedBanner": "Sem conexão agora — sua denúncia está guardada neste aparelho e será enviada automaticamente assim que houver internet.",
+      "newReport": "Nova denúncia"
+    }
+  },
+  "core": {
+    "errors": {
+      "VALIDATION_FAILED": "Falha de validação — verifique os campos destacados.",
+      "INVALID_ID": "Identificador inválido.",
+      "NOT_FOUND": "Registro não encontrado.",
+      "DUPLICATE": "Este valor já existe.",
+      "BUSINESS_RULE": "A solicitação viola uma regra de negócio.",
+      "NOT_AVAILABLE": "Este recurso ainda não está disponível.",
+      "UNAUTHORIZED": "Credenciais inválidas ou sessão expirada.",
+      "LEGAL_BLOCKED": "Ação bloqueada nesta jurisdição por decisão legal.",
+      "FORBIDDEN": "Você não tem permissão para esta ação.",
+      "INTERNAL": "Erro interno — tente novamente mais tarde.",
+      "OFFLINE": "Sem conexão.",
+      "LOCATION_OFF": "Os serviços de localização estão desligados.",
+      "LOCATION_DENIED": "Permissão de localização negada — a denúncia precisa de onde aconteceu.",
+      "LOCATION_ERROR": "Não foi possível ler sua localização."
+    },
+    "fieldErrors": {
+      "REQUIRED": "Campo obrigatório.",
+      "TOO_SHORT": "Mínimo de {min} caracteres.",
+      "TOO_LONG": "Máximo de {max} caracteres.",
+      "INVALID_FORMAT": "Formato inválido.",
+      "INVALID_OPTION": "Opção inválida.",
+      "INVALID_VALUE": "Valor inválido."
+    }
+  }
 }

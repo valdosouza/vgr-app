@@ -15,6 +15,7 @@ export 'src/menu/domain/menu_repository.dart';
 export 'src/menu/presentation/menu_bloc.dart';
 export 'src/menu/session_access.dart';
 export 'src/network/api_client.dart';
+export 'src/offline/offline_queue_service.dart';
 export 'src/preference/data/preference_repository_impl.dart';
 export 'src/preference/domain/preference_repository.dart';
 export 'src/preference/presentation/language_selector.dart';

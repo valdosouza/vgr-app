@@ -31,6 +31,15 @@ dependencies:
   # i18n: JSON translations, runtime switch
   easy_localization: ^3.0.7
   intl: ^0.20.2
+  # Offline queue persistence + category-form catalog cache (decision 28/47);
+  # declared explicitly (not only via core) so tests can mock initial values.
+  shared_preferences: ^2.5.3
+  # clientKey idempotency of the offline queue (decision 137)
+  uuid: ^4.5.1
+  # Exact position is mandatory on submit (decisions 7/135)
+  geolocator: ^13.0.1
+  # Evidence capture — camera/gallery (decisions 129/130)
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,94 @@
 {
-  "app_name": "VGR"
+  "app_name": "VGR",
+  "report": {
+    "title": "Report",
+    "categoryLabel": "What happened?",
+    "category": {
+      "assault": "Assault",
+      "environmental": "Environmental crime",
+      "robbery": "Robbery / theft",
+      "homicide": "Homicide",
+      "illegal_commerce": "Illegal commerce",
+      "missing": "Missing",
+      "fugitive": "Fugitive",
+      "kidnapping": "Kidnapping",
+      "suspicious": "Suspicious activity",
+      "trafficking": "Trafficking",
+      "traffic": "Traffic incident",
+      "vandalism": "Vandalism",
+      "freeTag": "Other (describe)"
+    },
+    "freeTagLabel": "Describe what happened",
+    "subjectLabel": "Who or what is involved?",
+    "subject": {
+      "child": "Child",
+      "adult": "Adult",
+      "animal": "Animal",
+      "vehicle": "Vehicle",
+      "property": "Property",
+      "commerce": "Commerce",
+      "weapon": "Weapon",
+      "environment": "Environment",
+      "other": "Other"
+    },
+    "form": {
+      "required": "Required field.",
+      "dateHint": "YYYY-MM-DD"
+    },
+    "position": {
+      "locating": "Getting your location…",
+      "ready": "Location captured",
+      "failed": "Could not get your location.",
+      "retry": "Try again"
+    },
+    "photos": {
+      "title": "Photos",
+      "camera": "Camera",
+      "gallery": "Gallery",
+      "hint": "Up to 10 photos. They upload in the background — your report never waits."
+    },
+    "anonymousInfo": "This report is anonymous.",
+    "anonymousChoice": "Report anonymously",
+    "exif": {
+      "title": "Keep the photo's technical data?",
+      "warning": "This photo carries invisible information: where it was taken (GPS), when, and with which device. Keeping it may help as evidence — but it also reveals where you were.\n\nIf you prefer to protect yourself, discard it: the photo still counts, without the technical data. Only specially authorized and audited staff can see kept data.",
+      "anonymousWarning": "You chose to report anonymously. This photo's technical data may reveal your location and contradict that anonymity. Keep it only if you understand this risk.",
+      "keep": "Keep as evidence",
+      "discard": "Discard data (recommended)",
+      "badge": "EXIF kept"
+    },
+    "submit": "Submit report",
+    "success": {
+      "title": "Report registered",
+      "sent": "Your report was sent. Thank you for helping.",
+      "queuedBanner": "No connection right now — your report is saved on this device and will be sent automatically as soon as you're back online.",
+      "newReport": "New report"
+    }
+  },
+  "core": {
+    "errors": {
+      "VALIDATION_FAILED": "Validation failed — check the highlighted fields.",
+      "INVALID_ID": "Invalid identifier.",
+      "NOT_FOUND": "Record not found.",
+      "DUPLICATE": "This value already exists.",
+      "BUSINESS_RULE": "The request violates a business rule.",
+      "NOT_AVAILABLE": "This feature is not available yet.",
+      "UNAUTHORIZED": "Invalid credentials or expired session.",
+      "LEGAL_BLOCKED": "Action blocked in this jurisdiction by a legal decision.",
+      "FORBIDDEN": "You do not have permission for this action.",
+      "INTERNAL": "Internal error — try again later.",
+      "OFFLINE": "No connection.",
+      "LOCATION_OFF": "Location services are turned off.",
+      "LOCATION_DENIED": "Location permission denied — the report needs where it happened.",
+      "LOCATION_ERROR": "Could not read your location."
+    },
+    "fieldErrors": {
+      "REQUIRED": "Required field.",
+      "TOO_SHORT": "Minimum of {min} characters.",
+      "TOO_LONG": "Maximum of {max} characters.",
+      "INVALID_FORMAT": "Invalid format.",
+      "INVALID_OPTION": "Invalid option.",
+      "INVALID_VALUE": "Invalid value."
+    }
+  }
 }

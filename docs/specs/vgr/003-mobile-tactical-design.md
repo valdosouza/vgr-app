@@ -3,6 +3,40 @@
 
 > Frontend architecture: Flutter Clean Architecture per `docs/adr/ARCHITECTURE.md` — one `flutter_modular` module per feature, each with `domain/` (entity, repository contract, usecase), `data/` (datasource, repository impl), `presentation/` (bloc, page). Style layer lives in `packages/vgr_widgets`. DDD constructs below map onto this shape; they do not replace it.
 
+> **Amended — Report front A1 (decisions 134-142, `plano-denuncia.md`).**
+> This design predates the two auth planes (119), the two-axis taxonomy
+> (140), media (126-132) and the design system guard (133). Amendments over
+> tasks 03-06/16/21, applied as they are implemented:
+> - **MA1 (taxonomy, decision 140)**: `ReportEntity`'s invariant "category
+>   XOR freeTag" gains the SECOND mandatory axis — `subject` (one-tap
+>   `other` fallback protecting decision 123). Mirrors API amendment E2;
+>   the canonical seed lives in code on both sides (140d).
+> - **MA2 (idempotency, decision 137)**: the draft carries a client-
+>   generated UUID (`clientKey`) born with the draft and surviving in the
+>   offline queue — every retry is the same report (API answers 200 on
+>   replay). Mirrors E6.
+> - **MA3 (routes/planes)**: the app consumes **/app-reports** and
+>   **/app-media** (E1) — never `/api`. Tasks 17/20 (LoginPage providers)
+>   were superseded by decisions 119-124: e-mail/senha exists, social
+>   adapters are round 6; the mobile MVP submits anonymously (32) with no
+>   login screen.
+> - **MA4 (media, decisions 129/130/134/139)**: photos never ride the
+>   submit body — they upload in background through the offline queue
+>   (`/app-media` then attach with the `x-client-key` bearer header, 134),
+>   chained submit → upload → attach. Per-photo EXIF choice (default
+>   discard) behind the approved v1 warning whose version is recorded;
+>   HEIC→JPEG is the capture gateway's job on iOS builds (M1 amendment).
+> - **MA5 (offline queue, task 16)**: `OfflineQueueService` is a generic
+>   persisted FIFO with per-kind handlers; "connectivity detected" is
+>   flush-on-boot plus a periodic retry (no connectivity plugin). Order is
+>   the contract: a retryable failure stops the flush.
+> - **MA6 (position, decisions 7/135)**: exact lat/lng is mandatory on
+>   submit and read from a `LocationGateway` port (plugin swappable); the
+>   exact position leaves the device ONLY in the submit body.
+> - **MA7 (design system, decision 133)**: every screen renders `Vgr*`
+>   widgets only, enforced by `test/design_system_guard_test.dart`
+>   replicated into apps/mobile.
+
 ## Section 1 — Main Structure
 
 | Element | Layer / Type | Invariants / Tech Rules | 4-line Snippet |

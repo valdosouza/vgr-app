@@ -15,6 +15,7 @@ export 'src/vgr_field.dart';
 export 'src/vgr_icon.dart';
 export 'src/vgr_layout.dart';
 export 'src/vgr_menu.dart';
+export 'src/vgr_photo.dart';
 export 'src/vgr_progress.dart';
 export 'src/vgr_scaffold.dart';
 export 'src/vgr_text.dart';
