@@ -4,6 +4,50 @@ import 'package:flutter/material.dart';
 
 import 'vgr_icon.dart';
 
+/// Encapsulates [Image.network] for authenticated media streams
+/// (decision 133). Evidence is never a public URL — the caller passes the
+/// headers that authorize the read (e.g. `x-client-key`, decision 134).
+class VgrNetworkImage extends StatelessWidget {
+  const VgrNetworkImage({
+    super.key,
+    required this.url,
+    this.headers,
+    this.size = 96,
+  });
+
+  final String url;
+  final Map<String, String>? headers;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: size,
+        height: size,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            url,
+            headers: headers,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const ColoredBox(
+              color: Color(0xFFE0E0E0),
+              child: Center(child: VgrIcon(VgrIconName.image)),
+            ),
+            loadingBuilder: (_, child, progress) => progress == null
+                ? child
+                : const ColoredBox(
+                    color: Color(0xFFF0F0F0),
+                    child: Center(child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )),
+                  ),
+          ),
+        ),
+      );
+}
+
 /// Encapsulates [Image] (file-backed) for photo thumbnails (decision 133).
 /// Dumb by design: the badge text and the remove action are the screen's
 /// business — this widget only renders them.

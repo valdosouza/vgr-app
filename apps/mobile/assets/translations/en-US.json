@@ -1,5 +1,50 @@
 {
   "app_name": "VGR",
+  "feed": {
+    "title": "Nearby",
+    "newReport": "Report",
+    "empty": "Nothing reported around you right now.",
+    "retry": "Try again",
+    "orderLabel": "Sort by",
+    "order": {
+      "recency": "Most recent",
+      "relevance": "Relevance"
+    },
+    "loadMore": "Load more",
+    "loading": "Loading…",
+    "itemSubtitle": "~{distance} km · {when}"
+  },
+  "detail": {
+    "title": "Report",
+    "yours": "You submitted this report from this device.",
+    "summary": {
+      "resolved": "This case was resolved."
+    },
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "positionApprox": "Approximate area: {lat}, {lng}",
+    "fields": "Details",
+    "timeline": "Timeline",
+    "event": {
+      "created": "Report created",
+      "edited": "Report edited",
+      "resolved": "Case resolved",
+      "media_attached": "Photo attached",
+      "help_offered": "Someone offered help"
+    },
+    "offers": "Help offers",
+    "noOffers": "No help offers yet.",
+    "anonymousHelper": "Anonymous helper",
+    "helpType": {
+      "physical_presence": "Physical presence",
+      "relay_information": "Relay information",
+      "remote_support": "Remote support",
+      "share": "Share",
+      "financial_contribution": "Financial contribution"
+    }
+  },
   "report": {
     "title": "Report",
     "categoryLabel": "What happened?",

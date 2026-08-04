@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 
 import '../domain/entity/report_input.dart';
+import 'my_reports_store.dart';
 
 /// Task kinds + handlers of the report offline chain (decisions 28/123/137).
 ///
@@ -20,7 +21,8 @@ abstract final class ReportQueueTasks {
   static const mediaAttach = 'report_media_attach';
 
   /// Wires the three handlers. Call once at bootstrap, before any flush.
-  static void register(OfflineQueueService queue, ApiClient apiClient) {
+  static void register(OfflineQueueService queue, ApiClient apiClient,
+      {MyReportsStore? myReports}) {
     queue.register(submit, (payload) async {
       final input = ReportInput.fromJson(payload);
       final int reportId;
@@ -32,6 +34,8 @@ abstract final class ReportQueueTasks {
       } on Failure catch (failure) {
         return _judge(failure);
       }
+      // Bearer ownership survives the offline path too (decision 134).
+      await myReports?.save(reportId, input.clientKey);
       for (final photo in input.photos) {
         await queue.enqueue(mediaUpload, {
           'reportId': reportId,

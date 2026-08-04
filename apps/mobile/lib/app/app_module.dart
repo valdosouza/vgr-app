@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import 'modules/report/data/my_reports_store.dart';
 import 'modules/report/data/report_queue_tasks.dart';
 import 'modules/report/report_module.dart';
 
@@ -12,12 +13,14 @@ class AppModule extends Module {
         // TODO: base URL must become environment-configurable (dev/staging/
         // prod) once that decision is made — same note as apps/admin.
         Bind.singleton((i) => ApiClient(baseUrl: 'http://localhost:3002')),
+        Bind.singleton((i) => MyReportsStore()),
         // Offline queue (decision 28): handlers wired before anything can
         // flush; boot flush drains what a previous run left behind, the
         // periodic retry covers connectivity coming back mid-session.
         Bind.singleton((i) {
           final queue = OfflineQueueService();
-          ReportQueueTasks.register(queue, i.get<ApiClient>());
+          ReportQueueTasks.register(queue, i.get<ApiClient>(),
+              myReports: i.get<MyReportsStore>());
           queue.startAutoFlush();
           // ignore: unawaited_futures
           queue.flush();

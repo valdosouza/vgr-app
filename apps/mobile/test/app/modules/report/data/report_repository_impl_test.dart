@@ -2,10 +2,14 @@ import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
 import 'package:vgr_mobile/app/modules/report/data/report_queue_tasks.dart';
 import 'package:vgr_mobile/app/modules/report/data/report_repository_impl.dart';
+import 'package:vgr_mobile/app/modules/report/domain/entity/feed_item_entity.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/photo_draft.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/report_input.dart';
+import 'package:vgr_mobile/app/modules/report/domain/entity/report_view_entity.dart';
+import 'package:vgr_mobile/app/modules/report/domain/gateway/location_gateway.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
 
@@ -24,6 +28,7 @@ void main() {
 
   late MockApiClient apiClient;
   late OfflineQueueService queue;
+  late MyReportsStore myReports;
   late ReportRepositoryImpl repository;
   late SharedPreferences prefs;
 
@@ -32,7 +37,8 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     apiClient = MockApiClient();
     queue = OfflineQueueService(prefs: prefs);
-    repository = ReportRepositoryImpl(apiClient, queue, prefs: prefs);
+    myReports = MyReportsStore(prefs: prefs);
+    repository = ReportRepositoryImpl(apiClient, queue, myReports, prefs: prefs);
   });
 
   group('submit', () {
@@ -48,6 +54,9 @@ void main() {
           .captured
           .single as Map<String, dynamic>;
       expect(body['clientKey'], 'key-1');
+      // Bearer ownership persisted (decision 134): later reads of report 7
+      // present this key.
+      expect(await myReports.clientKeyOf(7), 'key-1');
     });
 
     test('online with photos: report never waits — photos ride the queue '
@@ -138,9 +147,100 @@ void main() {
     });
   });
 
+  group('feed and detail reads (A2)', () {
+    test('listNearby queries /app-feed with transient viewer position', () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => {
+            'items': [
+              {
+                'reportId': 3,
+                'category': 'missing',
+                'freeTag': null,
+                'subject': 'child',
+                'tier': 'medium',
+                'position': {'lat': -23.505, 'lng': -46.605},
+                'distanceKm': 1.5,
+                'createdAt': '2026-08-04T18:15:00.000Z',
+              },
+            ],
+            'page': 1,
+            'hasMore': true,
+            'order': 'recency',
+          });
+
+      final result = await repository.listNearby(
+          const GeoPoint(lat: -23.5, lng: -46.6), 1, FeedOrder.recency);
+
+      final page = result.getOrElse(() => throw StateError('left'));
+      expect(page.items.single.reportId, 3);
+      expect(page.hasMore, isTrue);
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      expect(path, '/app-feed?lat=-23.5&lng=-46.6&page=1&order=recency');
+    });
+
+    test('getReport presents the stored clientKey — bearer ownership (134)',
+        () async {
+      await myReports.save(9, 'key-9');
+      when(() => apiClient.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => {
+                'access': 'owner',
+                'reportId': 9,
+                'category': 'assault',
+                'freeTag': null,
+                'subject': 'adult',
+                'tier': 'high',
+                'status': 'open',
+                'position': {'lat': -23.5, 'lng': -46.6},
+                'detailFields': {'weapon': 'knife'},
+                'createdAt': '2026-08-04T18:12:33.000Z',
+                'resolvedAt': null,
+                'timeline': [
+                  {'eventType': 'created', 'payload': null, 'createdAt': '2026-08-04T18:12:33.000Z'},
+                ],
+                'media': [
+                  {'publicId': 'pub-1', 'mime': 'image/webp', 'width': 320, 'height': 320},
+                ],
+                'offers': [],
+              });
+
+      final result = await repository.getReport(9);
+
+      final view = result.getOrElse(() => throw StateError('left'));
+      expect(view.access, ReportAccess.owner);
+      expect(view.timeline!.single.eventType, 'created');
+      final headers = verify(() => apiClient.get(any(), headers: captureAny(named: 'headers')))
+          .captured
+          .single as Map<String, String>;
+      expect(headers['x-client-key'], 'key-9');
+    });
+
+    test('getReport for a report this device does not own sends no key', () async {
+      when(() => apiClient.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => {
+                'access': 'summary',
+                'reportId': 4,
+                'category': 'robbery',
+                'freeTag': null,
+                'subject': 'property',
+                'tier': 'medium',
+                'status': 'resolved',
+                'resolvedAt': '2026-08-04T18:00:00.000Z',
+              });
+
+      final result = await repository.getReport(4);
+
+      expect(result.getOrElse(() => throw StateError('left')).access,
+          ReportAccess.summary);
+      final headers = verify(() => apiClient.get(any(), headers: captureAny(named: 'headers')))
+          .captured
+          .single as Map<String, String>?;
+      expect(headers, isNull);
+    });
+  });
+
   group('offline chain handlers (ReportQueueTasks)', () {
-    test('queued draft drains submit → upload → attach in one flush', () async {
-      ReportQueueTasks.register(queue, apiClient);
+    test('queued draft drains submit → upload → attach in one flush, '
+        'persisting ownership', () async {
+      ReportQueueTasks.register(queue, apiClient, myReports: myReports);
       when(() => apiClient.post('/app-reports', any()))
           .thenAnswer((_) async => {'reportId': 9, 'status': 'open'});
       when(() => apiClient.postMultipart('/app-media',
@@ -169,6 +269,8 @@ void main() {
           .single as Map<String, String>;
       // Bearer-secret ownership (decision 134) — header, never URL.
       expect(headers['x-client-key'], 'key-1');
+      // The offline path persists ownership too (A2).
+      expect(await myReports.clientKeyOf(9), 'key-1');
     });
 
     test('5xx keeps the task for retry; a judged refusal drops it', () async {

@@ -5,18 +5,24 @@ import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/entity/category_form_schema_entity.dart';
+import '../domain/entity/feed_item_entity.dart';
 import '../domain/entity/report_input.dart';
+import '../domain/entity/report_view_entity.dart';
+import '../domain/gateway/location_gateway.dart';
 import '../domain/repository/report_repository.dart';
+import 'my_reports_store.dart';
 import 'report_queue_tasks.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
-  ReportRepositoryImpl(this._apiClient, this._queue, {SharedPreferences? prefs})
+  ReportRepositoryImpl(this._apiClient, this._queue, this._myReports,
+      {SharedPreferences? prefs})
       : _injectedPrefs = prefs;
 
   static const _formsCacheKey = 'category_forms_cache_v1';
 
   final ApiClient _apiClient;
   final OfflineQueueService _queue;
+  final MyReportsStore _myReports;
   final SharedPreferences? _injectedPrefs;
 
   Future<SharedPreferences> get _prefs async =>
@@ -27,6 +33,9 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final response = await _apiClient.post('/app-reports', input.toSubmitBody());
       final reportId = response['reportId'] as int;
+      // Bearer ownership (decision 134): the clientKey is what lets this
+      // device read/edit its own report later.
+      await _myReports.save(reportId, input.clientKey);
       // The report never waits for an image (decision 123): photos ride the
       // queue in the background, chained upload → attach per photo.
       for (final photo in input.photos) {
@@ -79,6 +88,40 @@ class ReportRepositoryImpl implements ReportRepository {
             .map((f) => CategoryFormSchemaEntity.fromJson((f as Map).cast<String, dynamic>()))
             .toList(),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, FeedPageEntity>> listNearby(
+    GeoPoint position,
+    int page,
+    FeedOrder order,
+  ) async {
+    try {
+      final response = await _apiClient.get(
+        '/app-feed?lat=${position.lat}&lng=${position.lng}&page=$page&order=${order.name}',
+      );
+      return Right(FeedPageEntity.fromJson(response));
+    } on Failure catch (failure) {
+      return Left(failure);
+    } catch (_) {
+      return const Left(Failure(message: 'No connection', code: 'OFFLINE'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReportViewEntity>> getReport(int reportId) async {
+    try {
+      final clientKey = await _myReports.clientKeyOf(reportId);
+      final response = await _apiClient.get(
+        '/app-reports/$reportId',
+        headers: clientKey == null ? null : {'x-client-key': clientKey},
+      );
+      return Right(ReportViewEntity.fromJson(response));
+    } on Failure catch (failure) {
+      return Left(failure);
+    } catch (_) {
+      return const Left(Failure(message: 'No connection', code: 'OFFLINE'));
     }
   }
 }

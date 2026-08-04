@@ -1,5 +1,50 @@
 {
   "app_name": "VGR",
+  "feed": {
+    "title": "Por perto",
+    "newReport": "Denunciar",
+    "empty": "Nada denunciado perto de você agora.",
+    "retry": "Tentar novamente",
+    "orderLabel": "Ordenar por",
+    "order": {
+      "recency": "Mais recentes",
+      "relevance": "Relevância"
+    },
+    "loadMore": "Carregar mais",
+    "loading": "Carregando…",
+    "itemSubtitle": "~{distance} km · {when}"
+  },
+  "detail": {
+    "title": "Denúncia",
+    "yours": "Você registrou esta denúncia neste aparelho.",
+    "summary": {
+      "resolved": "Este caso foi resolvido."
+    },
+    "status": {
+      "open": "Aberta",
+      "resolved": "Resolvida"
+    },
+    "positionApprox": "Área aproximada: {lat}, {lng}",
+    "fields": "Detalhes",
+    "timeline": "Linha do tempo",
+    "event": {
+      "created": "Denúncia registrada",
+      "edited": "Denúncia editada",
+      "resolved": "Caso resolvido",
+      "media_attached": "Foto anexada",
+      "help_offered": "Alguém ofereceu ajuda"
+    },
+    "offers": "Ofertas de ajuda",
+    "noOffers": "Ainda não há ofertas de ajuda.",
+    "anonymousHelper": "Helper anônimo",
+    "helpType": {
+      "physical_presence": "Presença física",
+      "relay_information": "Repassar informação",
+      "remote_support": "Apoio remoto",
+      "share": "Divulgar",
+      "financial_contribution": "Contribuição financeira"
+    }
+  },
   "report": {
     "title": "Denunciar",
     "categoryLabel": "O que aconteceu?",

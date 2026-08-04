@@ -1,0 +1,137 @@
+import 'package:core/core.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:vgr_mobile/app/modules/report/domain/entity/feed_item_entity.dart';
+import 'package:vgr_mobile/app/modules/report/domain/gateway/location_gateway.dart';
+import 'package:vgr_mobile/app/modules/report/domain/repository/report_repository.dart';
+import 'package:vgr_mobile/app/modules/report/domain/usecase/list_nearby_reports_usecase.dart';
+import 'package:vgr_mobile/app/modules/report/presentation/bloc/nearby_feed_bloc.dart';
+import 'package:vgr_mobile/app/modules/report/presentation/page/nearby_feed_page.dart';
+
+import '../../../../helpers/pump_localized.dart';
+
+class MockReportRepository extends Mock implements ReportRepository {}
+
+class MockLocationGateway extends Mock implements LocationGateway {}
+
+FeedItemEntity _item(int id) => FeedItemEntity(
+      reportId: id,
+      category: 'missing',
+      subject: 'child',
+      tier: 'medium',
+      position: const GeoPoint(lat: -23.5, lng: -46.6),
+      distanceKm: 1.5,
+      createdAt: '2026-08-04T18:15:00.000Z',
+    );
+
+void main() {
+  late MockReportRepository repository;
+  late MockLocationGateway location;
+
+  setUpAll(() {
+    registerFallbackValue(const GeoPoint(lat: 0, lng: 0));
+    registerFallbackValue(FeedOrder.recency);
+  });
+
+  setUp(() {
+    repository = MockReportRepository();
+    location = MockLocationGateway();
+    when(() => location.currentPosition()).thenAnswer(
+        (_) async => const Right(GeoPoint(lat: -23.5, lng: -46.6)));
+  });
+
+  Future<void> pumpPage(WidgetTester tester,
+      {void Function(int)? onOpenReport, VoidCallback? onNewReport}) async {
+    await pumpLocalized(
+      tester,
+      BlocProvider<NearbyFeedBloc>(
+        create: (_) =>
+            NearbyFeedBloc(ListNearbyReportsUsecase(repository), location),
+        child: NearbyFeedPage(onOpenReport: onOpenReport, onNewReport: onNewReport),
+      ),
+    );
+  }
+
+  testWidgets('renders loaded items with degraded distance and time', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => Right(FeedPageEntity(
+              items: [_item(1)],
+              page: 1,
+              hasMore: false,
+              order: FeedOrder.recency,
+            )));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('feed-item-1')), findsOneWidget);
+    expect(find.textContaining('Missing'), findsOneWidget);
+    expect(find.textContaining('~1.5 km'), findsOneWidget);
+    expect(find.byKey(const Key('feed-load-more-button')), findsNothing);
+  });
+
+  testWidgets('empty state renders distinctly with a retry', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => const Right(FeedPageEntity(
+            items: [], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('feed-empty')), findsOneWidget);
+  });
+
+  testWidgets('error state renders the code-translated failure', (tester) async {
+    when(() => location.currentPosition()).thenAnswer((_) async =>
+        const Left(Failure(message: 'denied', code: 'LOCATION_DENIED')));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('feed-error')), findsOneWidget);
+    expect(
+        find.text('Location permission denied — the report needs where it happened.'),
+        findsOneWidget);
+  });
+
+  testWidgets('load more fetches and appends the next page', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => Right(FeedPageEntity(
+            items: [_item(1)], page: 1, hasMore: true, order: FeedOrder.recency)));
+    when(() => repository.listNearby(any(), 2, FeedOrder.recency))
+        .thenAnswer((_) async => Right(FeedPageEntity(
+            items: [_item(2)], page: 2, hasMore: false, order: FeedOrder.recency)));
+
+    await pumpPage(tester);
+    await tester.ensureVisible(find.byKey(const Key('feed-load-more-button')));
+    await tester.tap(find.byKey(const Key('feed-load-more-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('feed-item-1')), findsOneWidget);
+    expect(find.byKey(const Key('feed-item-2')), findsOneWidget);
+  });
+
+  testWidgets('tapping an item opens its detail', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => Right(FeedPageEntity(
+            items: [_item(7)], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    int? opened;
+    await pumpPage(tester, onOpenReport: (id) => opened = id);
+    await tester.tap(find.byKey(const Key('feed-item-7')));
+
+    expect(opened, 7);
+  });
+
+  testWidgets('the new-report action is always one tap away (123)', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => const Right(FeedPageEntity(
+            items: [], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    var newReport = false;
+    await pumpPage(tester, onNewReport: () => newReport = true);
+    await tester.tap(find.byKey(const Key('feed-new-report-button')));
+
+    expect(newReport, isTrue);
+  });
+}
