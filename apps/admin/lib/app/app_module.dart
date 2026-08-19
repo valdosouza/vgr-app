@@ -12,6 +12,7 @@ import 'modules/auth/presentation/page/login_page.dart';
 import 'modules/auth/presentation/page/recovery_password_page.dart';
 import 'modules/auth/presentation/page/two_factor_recover_page.dart';
 import 'modules/auth/presentation/page/two_factor_setup_page.dart';
+import 'modules/case-freeze/case_freeze_module.dart';
 import 'modules/category-forms/category_forms_module.dart';
 import 'modules/dual-control-access/dual_control_access_module.dart';
 import 'modules/home/home_module.dart';
@@ -110,6 +111,8 @@ class AppModule extends Module {
           ),
         ),
         ModuleRoute('/', module: HomeModule()),
+        // The report front's ONE panel screen (decisions 141/142).
+        ModuleRoute('/case-freeze', module: CaseFreezeModule()),
         ModuleRoute('/risk-config', module: RiskConfigModule()),
         ModuleRoute('/category-forms', module: CategoryFormsModule()),
         ModuleRoute('/panic-responders', module: PanicRespondersModule()),

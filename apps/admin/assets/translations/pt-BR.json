@@ -70,6 +70,7 @@
       "administration": "Administração"
     },
     "interfaces": {
+      "case_freeze": "Congelamento de Caso",
       "risk_config": "Configuração de Risco",
       "category_forms": "Formulários por Categoria",
       "panic_responders": "Respondedores de Pânico",
@@ -103,6 +104,30 @@
     "title": "Respondedores de Pânico",
     "noPending": "Nenhuma solicitação pendente",
     "user": "Usuário nº {}"
+  },
+  "caseFreeze": {
+    "title": "Congelamento de Caso",
+    "caseId": "Id do caso",
+    "lookup": "Buscar",
+    "caseTitle": "Caso #{id}",
+    "status": {
+      "open": "Aberto",
+      "resolved": "Resolvido"
+    },
+    "frozen": "CONGELADO — a retenção está suspensa; nada deste caso é destruído.",
+    "notFrozen": "Caso não congelado — a régua de retenção corre normalmente.",
+    "frozenReason": "Motivo: {reason}",
+    "freezeTitle": "Congelar o caso",
+    "freeze": "Congelar",
+    "reason": "Motivo (obrigatório — nº do ofício/processo)",
+    "reasonRequired": "Informe o motivo (mínimo de 3 caracteres).",
+    "requestUnfreezeTitle": "Solicitar descongelamento",
+    "requestUnfreeze": "Solicitar descongelamento",
+    "dualControlHint": "Descongelar rearma a destruição: a solicitação precisa da aprovação de OUTRO usuário (duplo controle).",
+    "approveUnfreezeTitle": "Aprovar descongelamento",
+    "pendingBy": "Solicitado pelo usuário {user}",
+    "approveHint": "O aprovador deve ser um usuário DIFERENTE de quem solicitou. Ao aprovar, o prazo de retenção recomeça do zero.",
+    "approveUnfreeze": "Aprovar descongelamento"
   },
   "dualControl": {
     "title": "Acesso por Duplo Controle",

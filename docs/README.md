@@ -18,6 +18,7 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**report-form.md**](./feature/report-form.md) | Mobile report submission with offline queue and per-photo EXIF choice (A1). | Optional |
 | [**report-feed.md**](./feature/report-feed.md) | Nearby feed (home) and server-resolved report detail (A2). | Optional |
 | [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |
+| [**case-freeze.md**](./feature/case-freeze.md) | Panel screen to freeze/unfreeze a case under dual control (P1). | Optional |
 
 ## Recommended Reading Order
 

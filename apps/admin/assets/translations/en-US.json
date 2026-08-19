@@ -70,6 +70,7 @@
       "administration": "Administration"
     },
     "interfaces": {
+      "case_freeze": "Case Freeze",
       "risk_config": "Risk Config",
       "category_forms": "Category Forms",
       "panic_responders": "Panic Responders",
@@ -103,6 +104,30 @@
     "title": "Panic Responders",
     "noPending": "No pending requests",
     "user": "User #{}"
+  },
+  "caseFreeze": {
+    "title": "Case Freeze",
+    "caseId": "Case id",
+    "lookup": "Look up",
+    "caseTitle": "Case #{id}",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "frozen": "FROZEN — retention is suspended; nothing in this case is destroyed.",
+    "notFrozen": "Case not frozen — the retention clock runs normally.",
+    "frozenReason": "Reason: {reason}",
+    "freezeTitle": "Freeze the case",
+    "freeze": "Freeze",
+    "reason": "Reason (mandatory — writ/case number)",
+    "reasonRequired": "Provide the reason (at least 3 characters).",
+    "requestUnfreezeTitle": "Request unfreeze",
+    "requestUnfreeze": "Request unfreeze",
+    "dualControlHint": "Unfreezing re-arms destruction: the request needs approval from a DIFFERENT user (dual control).",
+    "approveUnfreezeTitle": "Approve unfreeze",
+    "pendingBy": "Requested by user {user}",
+    "approveHint": "The approver must be a DIFFERENT user than the requester. Approving restarts the retention clock from zero.",
+    "approveUnfreeze": "Approve unfreeze"
   },
   "dualControl": {
     "title": "Dual Control Access",

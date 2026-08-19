@@ -11,6 +11,7 @@ void grantAllPrivileges() {
     Privileges.delete,
   ];
   SessionAccess.instance.applyPermissions(const {
+    'case_freeze': [Privileges.view, Privileges.update],
     'risk_config': all,
     'category_forms': all,
     'panic_responders': all,
