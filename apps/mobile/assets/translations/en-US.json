@@ -37,6 +37,7 @@
     "offers": "Help offers",
     "noOffers": "No help offers yet.",
     "anonymousHelper": "Anonymous helper",
+    "offerHelp": "Offer help",
     "helpType": {
       "physical_presence": "Physical presence",
       "relay_information": "Relay information",
@@ -110,6 +111,18 @@
       "newReport": "New report"
     }
   },
+  "offer": {
+    "title": "Offer help",
+    "typeLabel": "How do you want to help?",
+    "anonymousNotice": "Your offer is anonymous: it counts in full, but anonymous helpers cannot receive a reward.",
+    "selfDealing": "You submitted this report from this device — you cannot offer help on your own report.",
+    "submit": "Send offer",
+    "success": {
+      "title": "Offer registered",
+      "message": "The reporter will see that help is available. Thank you.",
+      "back": "Back"
+    }
+  },
   "core": {
     "errors": {
       "VALIDATION_FAILED": "Validation failed — check the highlighted fields.",
@@ -125,7 +138,8 @@
       "OFFLINE": "No connection.",
       "LOCATION_OFF": "Location services are turned off.",
       "LOCATION_DENIED": "Location permission denied — the report needs where it happened.",
-      "LOCATION_ERROR": "Could not read your location."
+      "LOCATION_ERROR": "Could not read your location.",
+      "SELF_DEALING": "You cannot offer help on your own report."
     },
     "fieldErrors": {
       "REQUIRED": "Required field.",

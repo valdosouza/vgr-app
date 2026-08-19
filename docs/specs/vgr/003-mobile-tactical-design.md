@@ -36,6 +36,28 @@
 > - **MA7 (design system, decision 133)**: every screen renders `Vgr*`
 >   widgets only, enforced by `test/design_system_guard_test.dart`
 >   replicated into apps/mobile.
+>
+> **Amended — Report front A3 (help offers, decisions 6/10/20/34/35).**
+> - **MA8 (self-dealing signal, decisions 20/134)**: tasks 09/10 key the
+>   guard on `IdentityBloc.currentUserId == reporterId`, but the mobile
+>   MVP has no login (MA3) and the API never exposes `reporterId` (41).
+>   The ownership signal is the one decision 134 created: this device
+>   holds the report's `clientKey` in `MyReportsStore`. The usecase AND
+>   the bloc consult that check through an `OwnsReport` port — the bloc to
+>   disable the form (acceptance of task 10, crafted deep links included),
+>   the usecase as the last line before the repository. The server keeps
+>   the authoritative check for identified users (20).
+> - **MA9 (reward-ineligibility notice, decisions 34/35)**: task 19
+>   conditions the notice on "Report has an active Reward", but the reward
+>   domain is a later front. Until it exists the notice renders for EVERY
+>   anonymous helper — over-warning is the safe direction; narrow it to
+>   reward-bearing reports when the reward module lands. Anonymous offers
+>   are accepted in full (35); the notice never blocks submission.
+> - **MA10 (route/plane)**: help offers post to **/app-help-offers**
+>   (E1/MA3 pattern); `listByReport` from task 09's contract is DROPPED —
+>   offers are read only inside `GET /app-reports/:id` (decision 50), the
+>   app has no standalone offer list. HelpOfferFormPage is reached from
+>   ReportDetailPage on an OPEN report the viewer does not own.
 
 ## Section 1 — Main Structure
 

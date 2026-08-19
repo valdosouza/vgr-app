@@ -37,6 +37,7 @@
     "offers": "Ofertas de ajuda",
     "noOffers": "Ainda não há ofertas de ajuda.",
     "anonymousHelper": "Helper anônimo",
+    "offerHelp": "Oferecer ajuda",
     "helpType": {
       "physical_presence": "Presença física",
       "relay_information": "Repassar informação",
@@ -110,6 +111,18 @@
       "newReport": "Nova denúncia"
     }
   },
+  "offer": {
+    "title": "Oferecer ajuda",
+    "typeLabel": "Como você quer ajudar?",
+    "anonymousNotice": "Sua oferta é anônima: ela vale integralmente, mas quem ajuda de forma anônima não pode receber recompensa.",
+    "selfDealing": "Você registrou esta denúncia neste aparelho — não é possível oferecer ajuda na própria denúncia.",
+    "submit": "Enviar oferta",
+    "success": {
+      "title": "Oferta registrada",
+      "message": "Quem denunciou verá que há ajuda disponível. Obrigado.",
+      "back": "Voltar"
+    }
+  },
   "core": {
     "errors": {
       "VALIDATION_FAILED": "Falha de validação — verifique os campos destacados.",
@@ -125,7 +138,8 @@
       "OFFLINE": "Sem conexão.",
       "LOCATION_OFF": "Os serviços de localização estão desligados.",
       "LOCATION_DENIED": "Permissão de localização negada — a denúncia precisa de onde aconteceu.",
-      "LOCATION_ERROR": "Não foi possível ler sua localização."
+      "LOCATION_ERROR": "Não foi possível ler sua localização.",
+      "SELF_DEALING": "Não é possível oferecer ajuda na própria denúncia."
     },
     "fieldErrors": {
       "REQUIRED": "Campo obrigatório.",

@@ -15,6 +15,9 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**admin-panel.md**](./feature/admin-panel.md) | `apps/admin` structure and role-gating (decision 56). | Optional |
 | [**network.md**](./feature/network.md) | Shared `ApiClient`/`Failure` (`packages/core`), used by every repository. | Optional |
 | [**category-forms.md**](./feature/category-forms.md) | Admin editor for per-Category detail-field schema (decision 47). | Optional |
+| [**report-form.md**](./feature/report-form.md) | Mobile report submission with offline queue and per-photo EXIF choice (A1). | Optional |
+| [**report-feed.md**](./feature/report-feed.md) | Nearby feed (home) and server-resolved report detail (A2). | Optional |
+| [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |
 
 ## Recommended Reading Order
 

@@ -27,13 +27,21 @@ void main() {
     myReports = MyReportsStore(prefs: await SharedPreferences.getInstance());
   });
 
-  Future<void> pumpPage(WidgetTester tester, {int reportId = 5}) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    int reportId = 5,
+    void Function(int reportId)? onOfferHelp,
+  }) async {
     await pumpLocalized(
       tester,
       BlocProvider<ReportDetailBloc>(
         create: (_) =>
             ReportDetailBloc(GetReportViewUsecase(repository), myReports),
-        child: ReportDetailPage(reportId: reportId, mediaBaseUrl: 'http://api.test'),
+        child: ReportDetailPage(
+          reportId: reportId,
+          mediaBaseUrl: 'http://api.test',
+          onOfferHelp: onOfferHelp,
+        ),
       ),
     );
   }
@@ -119,6 +127,65 @@ void main() {
     expect(find.text('Someone offered help'), findsOneWidget);
     expect(find.text('Anonymous helper'), findsOneWidget);
     expect(find.text('Physical presence'), findsOneWidget);
+  });
+
+  testWidgets('a third party on an open case can offer help (A3, decision 10)',
+      (tester) async {
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.public,
+            reportId: 5,
+            category: 'robbery',
+            subject: 'property',
+            tier: 'medium',
+            status: 'open',
+          ),
+        ));
+
+    int? offered;
+    await pumpPage(tester, onOfferHelp: (id) => offered = id);
+
+    final button = find.byKey(const Key('detail-offer-help-button'));
+    expect(button, findsOneWidget);
+    await tester.scrollUntilVisible(button, 200);
+    await tester.tap(button);
+    expect(offered, 5);
+  });
+
+  testWidgets('the owner never sees the offer-help button (decision 20)',
+      (tester) async {
+    await myReports.save(5, 'key-5');
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.owner,
+            reportId: 5,
+            category: 'robbery',
+            subject: 'property',
+            tier: 'medium',
+            status: 'open',
+          ),
+        ));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('detail-offer-help-button')), findsNothing);
+  });
+
+  testWidgets('no new offers on a resolved case (decision 18)', (tester) async {
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.summary,
+            reportId: 5,
+            category: 'robbery',
+            subject: 'property',
+            tier: 'medium',
+            status: 'resolved',
+          ),
+        ));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('detail-offer-help-button')), findsNothing);
   });
 
   testWidgets('a failed load renders a retryable error', (tester) async {

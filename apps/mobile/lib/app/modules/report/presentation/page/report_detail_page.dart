@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/report_view_entity.dart';
@@ -11,12 +12,20 @@ import '../bloc/report_detail_bloc.dart';
 /// this viewer may see — the page renders strictly by `access` and never
 /// tries to show more than it received.
 class ReportDetailPage extends StatefulWidget {
-  const ReportDetailPage({super.key, required this.reportId, required this.mediaBaseUrl});
+  const ReportDetailPage({
+    super.key,
+    required this.reportId,
+    required this.mediaBaseUrl,
+    this.onOfferHelp,
+  });
 
   final int reportId;
 
   /// Base URL for media streams (`GET /app-reports/:id/media/...`).
   final String mediaBaseUrl;
+
+  /// Test seam — default navigation goes through Modular.
+  final void Function(int reportId)? onOfferHelp;
 
   @override
   State<ReportDetailPage> createState() => _ReportDetailPageState();
@@ -159,10 +168,32 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           '${_when(offer.createdAt!)}',
                 ),
           ],
+          // Offering help (A3, decisions 10/34/35): open cases only (18),
+          // third parties only — the owner sees offers, never the button
+          // (20), and a participant already offered (one per report).
+          if (view.access == ReportAccess.public && view.status == 'open') ...[
+            const VgrGap.lg(),
+            VgrPrimaryButton(
+              key: const Key('detail-offer-help-button'),
+              label: 'detail.offerHelp'.tr(),
+              onPressed: () => _offerHelp(view.reportId),
+            ),
+          ],
           const VgrGap.lg(),
         ],
       ),
     );
+  }
+
+  Future<void> _offerHelp(int reportId) async {
+    if (widget.onOfferHelp != null) {
+      widget.onOfferHelp!(reportId);
+      return;
+    }
+    await Modular.to.pushNamed('/offer/$reportId');
+    // A successful offer changed the case (timeline event) — reload so
+    // the view reflects it.
+    if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(reportId));
   }
 
   String _when(String iso) =>
