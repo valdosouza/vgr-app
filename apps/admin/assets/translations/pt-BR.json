@@ -71,6 +71,9 @@
     },
     "interfaces": {
       "case_freeze": "Congelamento de Caso",
+      "legal_jurisdictions": "Jurisdições",
+      "legal_capabilities": "Capacidades Legais",
+      "legal_rules": "Regras Legais",
       "risk_config": "Configuração de Risco",
       "category_forms": "Formulários por Categoria",
       "panic_responders": "Respondedores de Pânico",
@@ -104,6 +107,65 @@
     "title": "Respondedores de Pânico",
     "noPending": "Nenhuma solicitação pendente",
     "user": "Usuário nº {}"
+  },
+  "legal": {
+    "retry": "Tentar novamente",
+    "state": {
+      "live": "Ativa",
+      "restricted": "Restrita",
+      "suspended": "Suspensa"
+    },
+    "status": {
+      "allowed": "Permitida",
+      "restricted": "Restrita",
+      "blocked": "Bloqueada",
+      "unreviewed": "Não revisada (bloqueia em produção)"
+    },
+    "reason": {
+      "no_control": "Sem controle no produto",
+      "legislation": "Legislação proíbe",
+      "self_preservation": "Autopreservação"
+    },
+    "review": {
+      "none": "Sem revisão",
+      "ai_assessed": "Avaliada por IA",
+      "counsel_confirmed": "Confirmada por advogado"
+    },
+    "ruleState": {
+      "proposed": "Proposta",
+      "active": "Ativa",
+      "rejected": "Rejeitada",
+      "superseded": "Substituída"
+    },
+    "jurisdictions": {
+      "title": "Jurisdições",
+      "sandbox": "SANDBOX (demonstração)",
+      "pending": "Afrouxamento pendente para {state}, proposto pelo usuário {user} — precisa de confirmação de OUTRO usuário.",
+      "confirm": "Confirmar mudança"
+    },
+    "capabilities": {
+      "title": "Capacidades Legais",
+      "jurisdiction": "Jurisdição (código)",
+      "load": "Carregar",
+      "hint": "Informe a jurisdição — o catálogo só tem veredito por país.",
+      "ruleSummary": "regra v{version} · {review}"
+    },
+    "rules": {
+      "title": "Regras Legais",
+      "proposeTitle": "Propor regra",
+      "capability": "Capacidade",
+      "jurisdiction": "Jurisdição",
+      "status": "Status",
+      "reason": "Motivo",
+      "legalBasis": "Base legal",
+      "propose": "Propor",
+      "historyTitle": "Histórico de versões",
+      "filter": "Filtrar",
+      "empty": "Nenhuma regra no filtro atual.",
+      "window": "Vigência: {from} até {until}",
+      "approve": "Aprovar (ativa)",
+      "reject": "Rejeitar"
+    }
   },
   "caseFreeze": {
     "title": "Congelamento de Caso",

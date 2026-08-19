@@ -12,6 +12,9 @@ void grantAllPrivileges() {
   ];
   SessionAccess.instance.applyPermissions(const {
     'case_freeze': [Privileges.view, Privileges.update],
+    'legal_jurisdictions': all,
+    'legal_capabilities': all,
+    'legal_rules': all,
     'risk_config': all,
     'category_forms': all,
     'panic_responders': all,

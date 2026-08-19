@@ -19,6 +19,7 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**report-feed.md**](./feature/report-feed.md) | Nearby feed (home) and server-resolved report detail (A2). | Optional |
 | [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |
 | [**case-freeze.md**](./feature/case-freeze.md) | Panel screen to freeze/unfreeze a case under dual control (P1). | Optional |
+| [**legal-policy.md**](./feature/legal-policy.md) | Legal Gate admin screens: jurisdictions kill switch, capability verdicts, versioned rules (L3). | Optional |
 
 ## Recommended Reading Order
 

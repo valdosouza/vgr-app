@@ -71,6 +71,9 @@
     },
     "interfaces": {
       "case_freeze": "Case Freeze",
+      "legal_jurisdictions": "Jurisdictions",
+      "legal_capabilities": "Legal Capabilities",
+      "legal_rules": "Legal Rules",
       "risk_config": "Risk Config",
       "category_forms": "Category Forms",
       "panic_responders": "Panic Responders",
@@ -104,6 +107,65 @@
     "title": "Panic Responders",
     "noPending": "No pending requests",
     "user": "User #{}"
+  },
+  "legal": {
+    "retry": "Try again",
+    "state": {
+      "live": "Live",
+      "restricted": "Restricted",
+      "suspended": "Suspended"
+    },
+    "status": {
+      "allowed": "Allowed",
+      "restricted": "Restricted",
+      "blocked": "Blocked",
+      "unreviewed": "Unreviewed (blocks in production)"
+    },
+    "reason": {
+      "no_control": "No control in the product",
+      "legislation": "Legislation forbids",
+      "self_preservation": "Self-preservation"
+    },
+    "review": {
+      "none": "No review",
+      "ai_assessed": "AI assessed",
+      "counsel_confirmed": "Counsel confirmed"
+    },
+    "ruleState": {
+      "proposed": "Proposed",
+      "active": "Active",
+      "rejected": "Rejected",
+      "superseded": "Superseded"
+    },
+    "jurisdictions": {
+      "title": "Jurisdictions",
+      "sandbox": "SANDBOX (demo)",
+      "pending": "Loosening pending to {state}, proposed by user {user} — needs confirmation by a DIFFERENT user.",
+      "confirm": "Confirm change"
+    },
+    "capabilities": {
+      "title": "Legal Capabilities",
+      "jurisdiction": "Jurisdiction (code)",
+      "load": "Load",
+      "hint": "Enter the jurisdiction — the catalog only has a verdict per country.",
+      "ruleSummary": "rule v{version} · {review}"
+    },
+    "rules": {
+      "title": "Legal Rules",
+      "proposeTitle": "Propose rule",
+      "capability": "Capability",
+      "jurisdiction": "Jurisdiction",
+      "status": "Status",
+      "reason": "Reason",
+      "legalBasis": "Legal basis",
+      "propose": "Propose",
+      "historyTitle": "Version history",
+      "filter": "Filter",
+      "empty": "No rules under the current filter.",
+      "window": "Effective: {from} until {until}",
+      "approve": "Approve (activates)",
+      "reject": "Reject"
+    }
   },
   "caseFreeze": {
     "title": "Case Freeze",
