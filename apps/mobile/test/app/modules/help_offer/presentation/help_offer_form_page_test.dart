@@ -31,13 +31,26 @@ void main() {
     WidgetTester tester, {
     required bool owns,
     bool done = false,
+    bool identified = false,
     VoidCallback? onDone,
   }) async {
     await pumpLocalized(
       tester,
       MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => IdentityBloc()),
+          BlocProvider(
+            create: (_) => IdentityBloc()
+              ..add(identified
+                  ? const ProviderLoginCompleted(
+                      role: Role.helper,
+                      anonymityMode: AnonymityMode.identifiedWithReward,
+                      token: 'jwt',
+                    )
+                  : const ProviderLoginCompleted(
+                      role: Role.anonymous,
+                      anonymityMode: AnonymityMode.anonymous,
+                    )),
+          ),
           BlocProvider(
             create: (_) => HelpOfferBloc(
               SubmitHelpOfferUsecase(repository, ownsReport: (_) async => owns),
@@ -117,6 +130,32 @@ void main() {
     expect(find.byKey(const Key('offer-error')), findsOneWidget);
     expect(find.text('This value already exists.'), findsOneWidget);
     expect(submitEnabled(tester), isTrue); // selection kept for retry
+  });
+
+  testWidgets('identified helper sees the reward-onboarding link on success '
+      '(decisions 104/143)', (tester) async {
+    when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+    await pumpPage(tester, owns: false, identified: true);
+
+    await tester.tap(find.byKey(const Key('offer-type-share')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('offer-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('offer-reward-onboarding-link')), findsOneWidget);
+  });
+
+  testWidgets('anonymous helper never sees the reward-onboarding link '
+      '(decisions 34/35 — cannot claim a reward)', (tester) async {
+    when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+    await pumpPage(tester, owns: false, identified: false);
+
+    await tester.tap(find.byKey(const Key('offer-type-share')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('offer-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('offer-reward-onboarding-link')), findsNothing);
   });
 
   testWidgets('success screen calls the done seam', (tester) async {

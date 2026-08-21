@@ -120,7 +120,37 @@
     "success": {
       "title": "Oferta registrada",
       "message": "Quem denunciou verá que há ajuda disponível. Obrigado.",
-      "back": "Voltar"
+      "back": "Voltar",
+      "rewardOnboardingLink": "Cadastrar para poder receber recompensa"
+    }
+  },
+  "rewardOnboarding": {
+    "title": "Cadastro para receber recompensa",
+    "intro": "Esses dados vão direto para o parceiro de pagamento e não ficam guardados no VGR — servem só para abrir sua conta de recebimento.",
+    "form": {
+      "legalName": "Nome completo",
+      "email": "E-mail",
+      "taxId": "CPF ou CNPJ",
+      "mobilePhone": "Celular",
+      "monthlyIncome": "Renda mensal",
+      "addressTitle": "Endereço",
+      "street": "Rua",
+      "number": "Número",
+      "neighborhood": "Bairro",
+      "postalCode": "CEP",
+      "required": "Campo obrigatório",
+      "invalidNumber": "Informe um valor válido"
+    },
+    "submit": "Cadastrar",
+    "retry": "Tentar novamente",
+    "back": "Voltar",
+    "alreadyDone": {
+      "title": "Você já está cadastrado",
+      "message": "Esta conta já pode ser escolhida para receber uma recompensa."
+    },
+    "success": {
+      "title": "Cadastro concluído",
+      "message": "Você já pode ser escolhido para receber uma recompensa."
     }
   },
   "core": {

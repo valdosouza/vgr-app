@@ -43,7 +43,7 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
       body: BlocBuilder<HelpOfferBloc, HelpOfferState>(
         builder: (context, state) => switch (state) {
           HelpOfferBlockedSelfDealing() => _blocked(),
-          HelpOfferSuccess() => _success(),
+          HelpOfferSuccess() => _success(anonymous: anonymous),
           HelpOfferReady() || HelpOfferSubmitting() =>
             _form(state, anonymous: anonymous),
         },
@@ -67,7 +67,7 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
     );
   }
 
-  Widget _success() {
+  Widget _success({required bool anonymous}) {
     return VgrCenter(
       child: VgrColumn(
         key: const Key('offer-success-view'),
@@ -77,6 +77,17 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
           VgrText.headline('offer.success.title'.tr()),
           const VgrGap.sm(),
           VgrText('offer.success.message'.tr()),
+          // Identified helpers can register to receive a reward payout
+          // (decisions 104/143) — an anonymous offer can never claim one
+          // (34/35), so the link only makes sense here when identified.
+          if (!anonymous) ...[
+            const VgrGap.md(),
+            VgrTextButton(
+              key: const Key('offer-reward-onboarding-link'),
+              label: 'offer.success.rewardOnboardingLink'.tr(),
+              onPressed: () => Modular.to.pushNamed('/reward-onboarding/'),
+            ),
+          ],
           const VgrGap.lg(),
           VgrSecondaryButton(
             key: const Key('offer-done-button'),

@@ -5,6 +5,7 @@ import 'modules/help_offer/help_offer_module.dart';
 import 'modules/report/data/my_reports_store.dart';
 import 'modules/report/data/report_queue_tasks.dart';
 import 'modules/report/report_module.dart';
+import 'modules/reward_onboarding/reward_onboarding_module.dart';
 
 class AppModule extends Module {
   @override
@@ -34,6 +35,9 @@ class AppModule extends Module {
         // Offering help lives in its own module (spec task 10); listed
         // before '/' so the prefix wins the match.
         ModuleRoute('/offer', module: HelpOfferModule()),
+        // Reward payout onboarding (decisions 104/143) — reachable once a
+        // helper decides to become eligible, not tied to one report.
+        ModuleRoute('/reward-onboarding', module: RewardOnboardingModule()),
         // The feed is the home (A2); the form stays one tap away (123).
         ModuleRoute('/', module: ReportModule()),
       ];

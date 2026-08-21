@@ -120,7 +120,37 @@
     "success": {
       "title": "Offer registered",
       "message": "The reporter will see that help is available. Thank you.",
-      "back": "Back"
+      "back": "Back",
+      "rewardOnboardingLink": "Register to be able to receive a reward"
+    }
+  },
+  "rewardOnboarding": {
+    "title": "Reward payout registration",
+    "intro": "This data goes straight to the payment partner and is not kept by VGR — it only opens your payout account.",
+    "form": {
+      "legalName": "Full name",
+      "email": "Email",
+      "taxId": "Tax ID",
+      "mobilePhone": "Mobile phone",
+      "monthlyIncome": "Monthly income",
+      "addressTitle": "Address",
+      "street": "Street",
+      "number": "Number",
+      "neighborhood": "Neighborhood",
+      "postalCode": "Postal code",
+      "required": "Required field",
+      "invalidNumber": "Enter a valid value"
+    },
+    "submit": "Register",
+    "retry": "Retry",
+    "back": "Back",
+    "alreadyDone": {
+      "title": "You are already registered",
+      "message": "This account can already be chosen to receive a reward."
+    },
+    "success": {
+      "title": "Registration complete",
+      "message": "You can now be chosen to receive a reward."
     }
   },
   "core": {
