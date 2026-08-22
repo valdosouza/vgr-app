@@ -9,10 +9,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - [keepConnected]: remembers the checkbox's last choice.
 /// - [rememberedEmail]: "remember my email" stores the email, NEVER the
 ///   password.
+/// - [appRefreshToken]: the APP plane's rotating refresh token (decision
+///   122) — unlike the panel's JWT, always persisted (no "keep me signed
+///   in" choice exists for the app); the short-lived access token itself
+///   never touches disk, only `ApiClient`'s memory.
 class LocalPrefs {
   static const sessionToken = 'session_token';
   static const keepConnected = 'keep_connected';
   static const rememberedEmail = 'remembered_email';
+  static const appRefreshToken = 'app_refresh_token';
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
@@ -44,4 +49,17 @@ class LocalPrefs {
   }
 
   Future<void> clearSession() => setSessionToken(null);
+
+  Future<String?> getAppRefreshToken() async => (await _prefs).getString(appRefreshToken);
+
+  Future<void> setAppRefreshToken(String? token) async {
+    final prefs = await _prefs;
+    if (token == null) {
+      await prefs.remove(appRefreshToken);
+    } else {
+      await prefs.setString(appRefreshToken, token);
+    }
+  }
+
+  Future<void> clearAppSession() => setAppRefreshToken(null);
 }

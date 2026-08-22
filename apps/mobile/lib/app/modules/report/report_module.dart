@@ -58,8 +58,11 @@ class ReportModule extends Module {
         // The feed is the home; submitting stays one tap away (123).
         ChildRoute(
           '/',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<NearbyFeedBloc>(),
+          child: (_, __) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: Modular.get<IdentityBloc>()),
+              BlocProvider(create: (_) => Modular.get<NearbyFeedBloc>()),
+            ],
             child: const NearbyFeedPage(),
           ),
         ),

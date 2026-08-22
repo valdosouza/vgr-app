@@ -40,9 +40,22 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Auth is optional and never blocks reporting (decision 123) — this is
+    // just the entry point into it, identified vs anonymous.
+    final identified = context.watch<IdentityBloc>().state.token != null;
+
     return VgrScaffold(
       title: 'feed.title'.tr(),
       padded: false,
+      actions: [
+        VgrIconButton(
+          key: Key(identified ? 'feed-account-button' : 'feed-login-button'),
+          icon: VgrIconName.person,
+          tooltip: identified ? 'auth.account.title'.tr() : 'auth.login.title'.tr(),
+          onPressed: () =>
+              Modular.to.pushNamed(identified ? '/auth/account/' : '/auth/login/'),
+        ),
+      ],
       // "A denúncia nunca espera" (decision 123): submitting is always one
       // tap away from the home screen.
       floatingAction: VgrFloatingAddButton(

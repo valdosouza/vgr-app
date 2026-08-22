@@ -44,12 +44,31 @@ void main() {
   });
 
   Future<void> pumpPage(WidgetTester tester,
-      {void Function(int)? onOpenReport, VoidCallback? onNewReport}) async {
+      {void Function(int)? onOpenReport,
+      VoidCallback? onNewReport,
+      bool identified = false}) async {
     await pumpLocalized(
       tester,
-      BlocProvider<NearbyFeedBloc>(
-        create: (_) =>
-            NearbyFeedBloc(ListNearbyReportsUsecase(repository), location),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => IdentityBloc()
+              ..add(identified
+                  ? const ProviderLoginCompleted(
+                      role: Role.reporter,
+                      anonymityMode: AnonymityMode.identifiedNoReward,
+                      token: 'jwt',
+                    )
+                  : const ProviderLoginCompleted(
+                      role: Role.anonymous,
+                      anonymityMode: AnonymityMode.anonymous,
+                    )),
+          ),
+          BlocProvider<NearbyFeedBloc>(
+            create: (_) =>
+                NearbyFeedBloc(ListNearbyReportsUsecase(repository), location),
+          ),
+        ],
         child: NearbyFeedPage(onOpenReport: onOpenReport, onNewReport: onNewReport),
       ),
     );
@@ -133,5 +152,30 @@ void main() {
     await tester.tap(find.byKey(const Key('feed-new-report-button')));
 
     expect(newReport, isTrue);
+  });
+
+  testWidgets('anonymous visitor sees the login action, not the account one '
+      '(decisions 119/123 — auth is optional and never blocks the feed)',
+      (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency)).thenAnswer(
+        (_) async => const Right(FeedPageEntity(
+            items: [], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    await pumpPage(tester, identified: false);
+
+    expect(find.byKey(const Key('feed-login-button')), findsOneWidget);
+    expect(find.byKey(const Key('feed-account-button')), findsNothing);
+  });
+
+  testWidgets('identified user sees the account action, not the login one',
+      (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency)).thenAnswer(
+        (_) async => const Right(FeedPageEntity(
+            items: [], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    await pumpPage(tester, identified: true);
+
+    expect(find.byKey(const Key('feed-account-button')), findsOneWidget);
+    expect(find.byKey(const Key('feed-login-button')), findsNothing);
   });
 }

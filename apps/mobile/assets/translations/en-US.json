@@ -111,6 +111,46 @@
       "newReport": "New report"
     }
   },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "register": {
+      "title": "Create account",
+      "displayName": "Name",
+      "passwordHint": "At least 12 characters",
+      "consent": "I agree to the terms of use",
+      "submit": "Create account",
+      "haveAccount": "I already have an account — sign in"
+    },
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "noAccount": "I don't have an account — create one",
+      "twoFactorHint": "Enter the code from your authenticator app.",
+      "twoFactorCode": "Verification code",
+      "invalidCode": "Invalid code",
+      "verify": "Verify"
+    },
+    "account": {
+      "title": "My account",
+      "verifyEmail": "Confirm email",
+      "verifyEmailHint": "Only needed to offer or receive a reward",
+      "signOut": "Sign out"
+    },
+    "verifyEmail": {
+      "title": "Confirm email",
+      "intro": "We'll send a 6-digit code to your account's email.",
+      "send": "Send code",
+      "codeSent": "Enter the code we sent to your email.",
+      "code": "Code",
+      "confirm": "Confirm",
+      "resend": "Resend code",
+      "success": {
+        "title": "Email confirmed",
+        "back": "Back"
+      }
+    }
+  },
   "offer": {
     "title": "Offer help",
     "typeLabel": "How do you want to help?",

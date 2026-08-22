@@ -111,6 +111,46 @@
       "newReport": "Nova denúncia"
     }
   },
+  "auth": {
+    "email": "E-mail",
+    "password": "Senha",
+    "register": {
+      "title": "Criar conta",
+      "displayName": "Nome",
+      "passwordHint": "Mínimo de 12 caracteres",
+      "consent": "Concordo com os termos de uso",
+      "submit": "Criar conta",
+      "haveAccount": "Já tenho conta — entrar"
+    },
+    "login": {
+      "title": "Entrar",
+      "submit": "Entrar",
+      "noAccount": "Não tenho conta — criar",
+      "twoFactorHint": "Digite o código do seu aplicativo autenticador.",
+      "twoFactorCode": "Código de verificação",
+      "invalidCode": "Código inválido",
+      "verify": "Verificar"
+    },
+    "account": {
+      "title": "Minha conta",
+      "verifyEmail": "Confirmar e-mail",
+      "verifyEmailHint": "Necessário só para oferecer ou receber recompensa",
+      "signOut": "Sair"
+    },
+    "verifyEmail": {
+      "title": "Confirmar e-mail",
+      "intro": "Enviaremos um código de 6 dígitos para o e-mail da sua conta.",
+      "send": "Enviar código",
+      "codeSent": "Digite o código que enviamos para o seu e-mail.",
+      "code": "Código",
+      "confirm": "Confirmar",
+      "resend": "Reenviar código",
+      "success": {
+        "title": "E-mail confirmado",
+        "back": "Voltar"
+      }
+    }
+  },
   "offer": {
     "title": "Oferecer ajuda",
     "typeLabel": "Como você quer ajudar?",
