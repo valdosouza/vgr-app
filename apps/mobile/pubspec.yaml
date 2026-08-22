@@ -40,6 +40,7 @@ dependencies:
   geolocator: ^13.0.1
   # Evidence capture — camera/gallery (decisions 129/130)
   image_picker: ^1.1.2
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:

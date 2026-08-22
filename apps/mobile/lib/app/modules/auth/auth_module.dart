@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'data/auth_repository_impl.dart';
+import 'data/google_sign_in_gateway.dart';
+import 'domain/gateway/social_sign_in_gateway.dart';
 import 'domain/repository/auth_repository.dart';
 import 'domain/usecase/confirm_email_verification_usecase.dart';
 import 'domain/usecase/login_usecase.dart';
+import 'domain/usecase/login_with_google_usecase.dart';
 import 'domain/usecase/register_usecase.dart';
 import 'domain/usecase/send_email_verification_usecase.dart';
 import 'domain/usecase/sign_out_usecase.dart';
@@ -18,14 +21,25 @@ import 'presentation/page/email_verification_page.dart';
 import 'presentation/page/login_page.dart';
 import 'presentation/page/register_page.dart';
 
-/// Email+password auth for the app plane (decisions 119/122-124/151-152).
-/// Provider login and OTP are absent by design — decision 152 defers them
-/// until real credentials exist.
+/// Web-type OAuth client id from Google Cloud Console (decision 152) — the
+/// one whose id becomes the ID token's `aud`, which
+/// `GOOGLE_OAUTH_CLIENT_ID` on the API checks against. Public, not a
+/// secret. TODO: env-configurable like `ApiClient`'s baseUrl below, same
+/// treatment once that decision lands.
+const _googleServerClientId =
+    '74577618050-oan6sgm9bi1vsb5ihp5mbcloqiuktgup.apps.googleusercontent.com';
+
+/// Email+password + Google auth for the app plane (decisions 119/122-124/
+/// 151-152). Apple/Facebook and OTP are absent by design — decision 152
+/// defers them until real credentials exist.
 class AuthModule extends Module {
   @override
   List<Bind> get binds => [
         Bind.lazySingleton<AuthRepository>(
           (i) => AuthRepositoryImpl(i.get<ApiClient>()),
+        ),
+        Bind.lazySingleton<SocialSignInGateway>(
+          (i) => GoogleSignInGatewayImpl(serverClientId: _googleServerClientId),
         ),
         Bind.factory((i) => RegisterBloc(
               RegisterUsecase(i.get<AuthRepository>()),
@@ -34,6 +48,7 @@ class AuthModule extends Module {
             )),
         Bind.factory((i) => LoginBloc(
               LoginUsecase(i.get<AuthRepository>()),
+              LoginWithGoogleUsecase(i.get<SocialSignInGateway>(), i.get<AuthRepository>()),
               i.get<IdentityBloc>(),
               i.get<LocalPrefs>(),
             )),

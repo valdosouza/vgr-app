@@ -129,7 +129,8 @@
       "twoFactorHint": "Digite o código do seu aplicativo autenticador.",
       "twoFactorCode": "Código de verificação",
       "invalidCode": "Código inválido",
-      "verify": "Verificar"
+      "verify": "Verificar",
+      "google": "Entrar com Google"
     },
     "account": {
       "title": "Minha conta",

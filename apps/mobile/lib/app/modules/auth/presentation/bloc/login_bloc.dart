@@ -2,7 +2,9 @@ import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entity/app_session_entity.dart';
 import '../../domain/usecase/login_usecase.dart';
+import '../../domain/usecase/login_with_google_usecase.dart';
 
 sealed class LoginEvent extends Equatable {
   const LoginEvent();
@@ -20,6 +22,10 @@ class LoginSubmitted extends LoginEvent {
 
   @override
   List<Object?> get props => [email, password, totpCode];
+}
+
+class LoginWithGooglePressed extends LoginEvent {
+  const LoginWithGooglePressed();
 }
 
 sealed class LoginState extends Equatable {
@@ -67,11 +73,14 @@ class LoginTwoFactorRequired extends LoginState {
 /// enrollment is never mandatory — the second factor only appears here
 /// when the account already turned it on.
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc(this._login, this._identityBloc, this._localPrefs) : super(const LoginReady()) {
+  LoginBloc(this._login, this._loginWithGoogle, this._identityBloc, this._localPrefs)
+      : super(const LoginReady()) {
     on<LoginSubmitted>(_onSubmitted);
+    on<LoginWithGooglePressed>(_onGooglePressed);
   }
 
   final LoginUsecase _login;
+  final LoginWithGoogleUsecase _loginWithGoogle;
   final IdentityBloc _identityBloc;
   final LocalPrefs _localPrefs;
 
@@ -96,14 +105,40 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(LoginReady(failure: failure));
       },
       (session) async {
-        await _localPrefs.setAppRefreshToken(session.refreshToken);
-        _identityBloc.add(ProviderLoginCompleted(
-          role: Role.reporter,
-          anonymityMode: AnonymityMode.identifiedNoReward,
-          token: session.accessToken,
-        ));
+        await _onSessionIssued(session);
         emit(const LoginSuccess());
       },
     );
+  }
+
+  Future<void> _onGooglePressed(
+    LoginWithGooglePressed event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(const LoginSubmitting());
+    final result = await _loginWithGoogle();
+    if (emit.isDone) return;
+    if (result == null) {
+      // Cancelled the native flow — back to the form, no error shown
+      // (same contract as the photo picker's null-means-cancel).
+      emit(const LoginReady());
+      return;
+    }
+    await result.fold(
+      (failure) async => emit(LoginReady(failure: failure)),
+      (session) async {
+        await _onSessionIssued(session);
+        emit(const LoginSuccess());
+      },
+    );
+  }
+
+  Future<void> _onSessionIssued(AppSessionEntity session) async {
+    await _localPrefs.setAppRefreshToken(session.refreshToken);
+    _identityBloc.add(ProviderLoginCompleted(
+      role: Role.reporter,
+      anonymityMode: AnonymityMode.identifiedNoReward,
+      token: session.accessToken,
+    ));
   }
 }

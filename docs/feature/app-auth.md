@@ -1,4 +1,4 @@
-# App auth (email+password) — apps/mobile
+# App auth (email+password + Google) — apps/mobile
 
 Mobile side of decisions 119/122-124/151/152
 (`AI/docs/decisions/VGR-plano.md`); API contract:
@@ -7,17 +7,62 @@ Mobile side of decisions 119/122-124/151/152
 `/app-auth` had register/login/refresh/verify-email fully built but
 **no mobile screen ever called it**.
 
-## Scope: email+password only (decision 152)
+## Scope: email+password, plus Google once credentials existed (decision 152)
 
-Provider login (Google/Apple/Facebook) and phone/WhatsApp OTP are
-absent by design, not by oversight — decision 152 defers the social
-adapters until real OAuth credentials exist in the three consoles
-(only then can the client SDK's actual token format be discovered),
-and OTP stays blocked on the round-6 commercial pendency (decision
-120, same shape as the PSP's decision 59). `AuthRepository` accepts
-only email+password today; adding a provider later is additive on
-both the API side (`loginWithProvider` already accepts a pre-verified
-identity) and here.
+Apple/Facebook and phone/WhatsApp OTP are absent by design, not by
+oversight — decision 152 defers Apple/Facebook until real OAuth
+credentials exist in those consoles (only then can the client SDK's
+actual token format be discovered), and OTP stays blocked on the
+round-6 commercial pendency (decision 120, same shape as the PSP's
+decision 59). Google shipped in a later slice of the same session,
+once a Web-type OAuth client id existed — `AuthRepository` grew
+`loginWithProvider` additively, exactly as decision 152 anticipated
+(`loginWithProvider` on the API already accepted a pre-verified
+identity; wiring one provider never touched the others).
+
+## Google sign-in (`domain/gateway/social_sign_in_gateway.dart`)
+
+`SocialSignInGateway` is a port (same shape as `report`'s
+`PhotoGateway`) so the `google_sign_in` SDK never touches
+domain/presentation — only `data/google_sign_in_gateway.dart` imports
+it. `GoogleSignInGatewayImpl.signInWithGoogle()` initializes
+`GoogleSignIn.instance` once (memoized future, same pattern as
+`ApiClient._ensureFreshToken`'s shared in-flight renewal) with the
+**Web-type** OAuth client id as `serverClientId` — that is what makes
+the SDK issue an ID token the API can verify (its `aud` has to be a
+Web client, not the Android/iOS ones registered for the native
+handshake). Returns the raw ID token, or null if the user cancelled
+(`GoogleSignInExceptionCode.canceled`) — the usecase and bloc both
+treat null as a silent no-op, never an error, mirroring the photo
+picker's cancel contract.
+
+`LoginBloc` gained `LoginWithGooglePressed`, sharing `LoginSubmitting`/
+`LoginReady`/`LoginSuccess` with the password flow — a successful
+Google session runs the exact same `_onSessionIssued` side effect
+(persist refresh token, `IdentityBloc.add(ProviderLoginCompleted(...))`)
+password login does, so the rest of the app cannot tell which method
+was used. The button is hidden during the two-factor step (Google
+never has one) and disabled while submitting.
+
+**Not needed and deliberately not added**: the Firebase SDK / Google
+Services Gradle plugin. A Firebase project was only a convenient way
+to register OAuth client ids in the Google Cloud console; nothing in
+the app loads Firebase (decision 143 — no external SDK without a
+port, and this app has neither). `android/app/google-services.json`
+is gitignored for that reason.
+
+**Android signing note**: the machine-wide `~/.android/debug.keystore`
+is shared by every Android app built on a given computer, which
+collided with an unrelated app's registered SHA-1 while setting up the
+OAuth client. Fixed with a project-scoped debug keystore
+(`android/app/vgr-debug.keystore`, gitignored) wired into
+`android/app/build.gradle.kts`'s debug `signingConfig` — see that
+file's comment if this needs revisiting (e.g. registering a NEW
+machine's debug SHA-1, or adding the release keystore later).
+
+**iOS is not configured** — no iOS OAuth client or bundle
+registration was created this session; Google sign-in only works on
+Android today.
 
 ## Module (`app/modules/auth`)
 
@@ -106,10 +151,14 @@ for this is future work, not part of this slice.
 
 ## Tests
 
-+32 in the new module (repository: register/login/refresh/verify/
-sign-out wire bodies and error mapping; blocs: success wiring incl.
-`LocalPrefs` + `IdentityBloc` side effects, two-factor branch, wrong/
-duplicate/offline failures, no-op guards; pages: consent gate, done
-seams, two-factor round trip, translated-vs-raw error display). +2 in
-`nearby_feed_page_test.dart` for the login/account action swap.
-Suites: core 31, admin 126, mobile 133 — all green, analyzer clean.
++32 in the auth module for email+password (repository: register/login/
+refresh/verify/sign-out wire bodies and error mapping; blocs: success
+wiring incl. `LocalPrefs` + `IdentityBloc` side effects, two-factor
+branch, wrong/duplicate/offline failures, no-op guards; pages: consent
+gate, done seams, two-factor round trip, translated-vs-raw error
+display). +2 in `nearby_feed_page_test.dart` for the login/account
+action swap. +8 more for Google (bloc: success/cancel/failure; page:
+button success, hidden during two-factor). `flutter build apk --debug`
+verified the new `google_sign_in` dependency doesn't break the Android
+build. Suites: core 31, admin 126, mobile 141 — all green, analyzer
+clean.

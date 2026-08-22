@@ -71,6 +71,20 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, AppSessionEntity>> loginWithProvider({
+    required String provider,
+    required String idToken,
+  }) async {
+    try {
+      final json = await _apiClient
+          .post('/app-auth/login-provider', {'provider': provider, 'idToken': idToken});
+      return Right(_session(json));
+    } on Failure catch (f) {
+      return Left(f);
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> sendEmailVerification() async {
     try {
       await _apiClient.post('/app-auth/verify-email/send', const {});

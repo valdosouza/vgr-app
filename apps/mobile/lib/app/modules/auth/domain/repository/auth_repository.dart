@@ -4,9 +4,8 @@ import 'package:dartz/dartz.dart';
 import '../entity/app_session_entity.dart';
 
 /// Contract of the app plane's auth data layer (`/app-auth`, decisions
-/// 119-124/151). Provider login (Google/Apple/Facebook) and phone OTP are
-/// deliberately absent — decision 152 defers them until real credentials
-/// exist; only email+password is wired today.
+/// 119-124/151-152). Apple/Facebook and phone OTP are still absent —
+/// decision 152 defers them until real credentials exist; Google is wired.
 abstract class AuthRepository {
   Future<Either<Failure, AppSessionEntity>> register({
     required String displayName,
@@ -24,6 +23,14 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, AppSessionEntity>> refresh(String refreshToken);
+
+  /// [idToken] must already be a raw token from the provider's SDK — the
+  /// API is the one that verifies it (decision 119: the app plane never
+  /// trusts a client-supplied claim about itself).
+  Future<Either<Failure, AppSessionEntity>> loginWithProvider({
+    required String provider,
+    required String idToken,
+  });
 
   /// Decision 151: sends a 6-digit code to the account's email, reusing
   /// the panel's mailer. Silent no-op server-side with no email or an

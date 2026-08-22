@@ -129,7 +129,8 @@
       "twoFactorHint": "Enter the code from your authenticator app.",
       "twoFactorCode": "Verification code",
       "invalidCode": "Invalid code",
-      "verify": "Verify"
+      "verify": "Verify",
+      "google": "Sign in with Google"
     },
     "account": {
       "title": "My account",

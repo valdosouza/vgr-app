@@ -98,6 +98,16 @@ class _LoginPageState extends State<LoginPage> {
                 busy: submitting,
                 onPressed: () => _submit(totpCode: twoFactor != null ? _totp.text : null),
               ),
+              if (twoFactor == null) ...[
+                const VgrGap.md(),
+                VgrSecondaryButton(
+                  key: const Key('login-google-button'),
+                  label: 'auth.login.google'.tr(),
+                  onPressed: submitting
+                      ? null
+                      : () => context.read<LoginBloc>().add(const LoginWithGooglePressed()),
+                ),
+              ],
               const VgrGap.md(),
               VgrTextButton(
                 key: const Key('login-go-to-register-link'),
