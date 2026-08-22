@@ -29,6 +29,8 @@ void main() {
     'AlertDialog', 'SnackBar', 'DropdownButton', 'DropdownButtonFormField',
     'ExpansionTile', 'PopupMenuButton', 'SingleChildScrollView', 'Expanded',
     'StatefulBuilder',
+    'Container', 'Image', 'Stack', 'GridView', 'Wrap', 'Form', 'Chip',
+    'Tooltip', 'Slider', 'RadioListTile', 'Positioned', 'SafeArea', 'Flexible',
   ];
 
   final roots = [
