@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Not used by the app (decision 152 — no Firebase SDK, we verify OAuth
+# tokens ourselves via JWKS): this file only exists as a byproduct of
+# using a Firebase project to generate Google OAuth client IDs. Kept out
+# of git so it never reads as "Firebase is wired in" to a future reader.
+/android/app/google-services.json

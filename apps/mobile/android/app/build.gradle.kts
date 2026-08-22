@@ -30,6 +30,20 @@ android {
         versionName = flutter.versionName
     }
 
+    // Project-specific debug keystore (not the machine-wide
+    // ~/.android/debug.keystore, which every Android app built on this
+    // computer shares — that collided with an unrelated app's SHA-1 when
+    // registering Google Sign-In OAuth clients). Not sensitive: debug-only,
+    // gitignored (*.keystore), never used for a release build.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("vgr-debug.keystore")
+            storePassword = "vgrdebug123"
+            keyAlias = "vgrdebugkey"
+            keyPassword = "vgrdebug123"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
