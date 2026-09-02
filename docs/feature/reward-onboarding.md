@@ -19,6 +19,17 @@ Entry point today: the "Offer help" success screen
 (`IdentityBloc.state.token != null`) — an anonymous offer can never
 claim a reward (decisions 34/35), so the link only makes sense there.
 
+## Local format check (decisions 153–157, 2026-09-02)
+
+Before submit the form runs `VgrValidators` from `packages/vgr_validators`
+(see `validators.md`): e-mail, CPF/CNPJ check digits, phone length, CEP,
+positive income — the same rules `onboardRecipientDto` applies server-side
+(the API still revalidates). Tax id, phone and postal code are masked on
+screen (`VgrTextField.mask`) and sent unmasked (`unmask`), digits only,
+which is what the API accepts since decision 155. Local errors are
+translated through `core.fieldErrors.<code>`, exactly like a server field
+error.
+
 ## Status-first flow
 
 `GET /app-reward/onboarding` runs before the form ever renders

@@ -178,9 +178,7 @@
       "street": "Rua",
       "number": "Número",
       "neighborhood": "Bairro",
-      "postalCode": "CEP",
-      "required": "Campo obrigatório",
-      "invalidNumber": "Informe um valor válido"
+      "postalCode": "CEP"
     },
     "submit": "Cadastrar",
     "retry": "Tentar novamente",

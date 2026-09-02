@@ -54,7 +54,7 @@ void main() {
     await tester.enterText(
         find.byKey(const Key('reward-onboarding-email-field')), 'helper@example.com');
     await tester.enterText(
-        find.byKey(const Key('reward-onboarding-tax-id-field')), '12345678900');
+        find.byKey(const Key('reward-onboarding-tax-id-field')), '52998224725');
     await tester.enterText(
         find.byKey(const Key('reward-onboarding-mobile-phone-field')), '11999998888');
     await tester.enterText(
@@ -94,6 +94,37 @@ void main() {
         as RewardRecipientProfileEntity;
     expect(sent.legalName, 'Helper Name');
     expect(sent.monthlyIncome, 3000);
+    // Decision 155: masked on screen, digits only on the wire.
+    expect(sent.taxId, '52998224725');
+    expect(sent.mobilePhone, '11999998888');
+    expect(sent.postalCode, '01001000');
+  });
+
+  testWidgets('a CPF with a wrong check digit blocks submit with the shared '
+      'INVALID_FORMAT text (decisions 153/155)', (tester) async {
+    when(() => repository.getStatus()).thenAnswer((_) async => const Right(false));
+    await pumpPage(tester);
+
+    await fillForm(tester);
+    await tester.enterText(
+        find.byKey(const Key('reward-onboarding-tax-id-field')), '52998224726');
+    await tester.ensureVisible(find.byKey(const Key('reward-onboarding-submit-button')));
+    await tester.tap(find.byKey(const Key('reward-onboarding-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Invalid format.'), findsOneWidget);
+    verifyNever(() => repository.submit(any()));
+  });
+
+  testWidgets('the tax id, phone and postal code fields are masked while typing '
+      '(decision 157)', (tester) async {
+    when(() => repository.getStatus()).thenAnswer((_) async => const Right(false));
+    await pumpPage(tester);
+
+    await fillForm(tester);
+    expect(find.text('529.982.247-25'), findsOneWidget);
+    expect(find.text('(11) 99999-8888'), findsOneWidget);
+    expect(find.text('01001-000'), findsOneWidget);
   });
 
   testWidgets('empty required fields block submit with inline errors',
@@ -105,7 +136,8 @@ void main() {
     await tester.tap(find.byKey(const Key('reward-onboarding-submit-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Required field'), findsWidgets);
+    // Same text a server REQUIRED field error shows (core.fieldErrors, decision 83).
+    expect(find.text('Required field.'), findsWidgets);
     verifyNever(() => repository.submit(any()));
   });
 

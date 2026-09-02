@@ -1,10 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
+  group('VgrTextField.mask (decision 157)', () {
+    testWidgets('applies the named mask while typing and exposes no formatter', (tester) async {
+      final controller = TextEditingController();
+      await tester.pumpWidget(host(
+        VgrTextField(controller: controller, label: 'CPF', mask: VgrMask.cpfCnpj),
+      ));
+
+      await tester.enterText(find.byType(TextField), '52998224725');
+      expect(controller.text, '529.982.247-25');
+      expect(unmask(controller.text), '52998224725');
+    });
+
+    testWidgets('without a mask, the number keyboard still filters to digits', (tester) async {
+      final controller = TextEditingController();
+      await tester.pumpWidget(host(
+        VgrTextField(controller: controller, label: 'N', keyboard: VgrKeyboard.number),
+      ));
+
+      await tester.enterText(find.byType(TextField), '12a3');
+      expect(controller.text, '123');
+    });
+  });
+
   group('VgrText', () {
     testWidgets('renders the text and resolves the role against the theme', (tester) async {
       await tester.pumpWidget(host(const VgrText.title('Hello')));

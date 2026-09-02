@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vgr_validators/vgr_validators.dart';
 
 /// Encapsulates [TextField] (decision 133).
 ///
@@ -17,6 +18,7 @@ class VgrTextField extends StatelessWidget {
     this.enabled = true,
     this.autofocus = false,
     this.keyboard = VgrKeyboard.text,
+    this.mask,
     this.maxLength,
     this.onSubmitted,
   });
@@ -32,6 +34,11 @@ class VgrTextField extends StatelessWidget {
   final bool enabled;
   final bool autofocus;
   final VgrKeyboard keyboard;
+
+  /// Input mask (decision 157). The screen names the mask; the formatter
+  /// itself lives in `vgr_validators` and is never touched by a screen.
+  /// Validation is separate (`VgrValidators`) — a mask only shapes typing.
+  final VgrMask? mask;
   final int? maxLength;
   final ValueChanged<String>? onSubmitted;
 
@@ -47,8 +54,11 @@ class VgrTextField extends StatelessWidget {
           VgrKeyboard.number => TextInputType.number,
           VgrKeyboard.phone => TextInputType.phone,
         },
-        inputFormatters:
-            keyboard == VgrKeyboard.number ? [FilteringTextInputFormatter.digitsOnly] : null,
+        inputFormatters: mask != null
+            ? [VgrMaskFormatter(mask!)]
+            : keyboard == VgrKeyboard.number
+                ? [FilteringTextInputFormatter.digitsOnly]
+                : null,
         maxLength: maxLength,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(

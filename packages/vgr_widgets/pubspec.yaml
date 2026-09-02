@@ -13,6 +13,10 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  # Masks come from the validators package (decision 157): the design
+  # system carries no format rule, it only hands the enum to the formatter.
+  vgr_validators:
+    path: ../vgr_validators
 
 dev_dependencies:
   flutter_test:

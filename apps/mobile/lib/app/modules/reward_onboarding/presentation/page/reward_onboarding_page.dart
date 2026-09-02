@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
+import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/reward_recipient_profile_entity.dart';
@@ -55,29 +56,32 @@ class _RewardOnboardingPageState extends State<RewardOnboardingPage> {
 
   void _done() => widget.onDone != null ? widget.onDone!() : Modular.to.pop(true);
 
+  /// Local format check (decisions 153–155): the same rules the API's
+  /// `onboardRecipientDto` applies, so a typo is caught before the
+  /// round-trip — the API still revalidates everything (decision 47).
+  /// Codes are translated through the same key a server field error uses
+  /// (`core.fieldErrors.<code>`, decision 83).
   bool _validate() {
-    final errors = <String, String>{};
-    final required = <String, TextEditingController>{
-      'legalName': _legalName,
-      'email': _email,
-      'taxId': _taxId,
-      'mobilePhone': _mobilePhone,
-      'monthlyIncome': _monthlyIncome,
-      'street': _street,
-      'number': _number,
-      'neighborhood': _neighborhood,
-      'postalCode': _postalCode,
-    };
-    for (final entry in required.entries) {
-      if (entry.value.text.trim().isEmpty) {
-        errors[entry.key] = 'rewardOnboarding.form.required'.tr();
-      }
-    }
-    final income = num.tryParse(_monthlyIncome.text.trim());
-    if (income == null || income <= 0) {
-      errors['monthlyIncome'] = 'rewardOnboarding.form.invalidNumber'.tr();
-    }
-    setState(() => _fieldErrors = errors);
+    final errors = VgrValidators.validate({
+      'legalName': (_legalName.text, [VgrValidators.required]),
+      'email': (_email.text, [VgrValidators.email]),
+      'taxId': (_taxId.text, [VgrValidators.brTaxId]),
+      'mobilePhone': (_mobilePhone.text, [VgrValidators.brPhone]),
+      'monthlyIncome': (_monthlyIncome.text, [VgrValidators.positiveNumber]),
+      'street': (_street.text, [VgrValidators.required]),
+      'number': (_number.text, [VgrValidators.required]),
+      'neighborhood': (_neighborhood.text, [VgrValidators.required]),
+      'postalCode': (_postalCode.text, [VgrValidators.cep]),
+    });
+    setState(() => _fieldErrors = {
+          for (final e in errors.entries)
+            e.key: fieldFailureText(FieldFailure(
+              field: e.key,
+              message: e.value.code,
+              code: e.value.code,
+              params: e.value.params,
+            )),
+        });
     return errors.isEmpty;
   }
 
@@ -87,13 +91,13 @@ class _RewardOnboardingPageState extends State<RewardOnboardingPage> {
           RewardRecipientProfileEntity(
             legalName: _legalName.text.trim(),
             email: _email.text.trim(),
-            taxId: _taxId.text.trim(),
-            mobilePhone: _mobilePhone.text.trim(),
+            taxId: unmask(_taxId.text),
+            mobilePhone: unmask(_mobilePhone.text),
             monthlyIncome: num.parse(_monthlyIncome.text.trim()),
             street: _street.text.trim(),
             number: _number.text.trim(),
             neighborhood: _neighborhood.text.trim(),
-            postalCode: _postalCode.text.trim(),
+            postalCode: unmask(_postalCode.text),
           ),
         ));
   }
@@ -197,6 +201,7 @@ class _RewardOnboardingPageState extends State<RewardOnboardingPage> {
             controller: _taxId,
             label: 'rewardOnboarding.form.taxId'.tr(),
             keyboard: VgrKeyboard.number,
+            mask: VgrMask.cpfCnpj,
             enabled: !submitting,
             errorText: _fieldErrors['taxId'],
           ),
@@ -206,6 +211,7 @@ class _RewardOnboardingPageState extends State<RewardOnboardingPage> {
             controller: _mobilePhone,
             label: 'rewardOnboarding.form.mobilePhone'.tr(),
             keyboard: VgrKeyboard.phone,
+            mask: VgrMask.phoneBr,
             enabled: !submitting,
             errorText: _fieldErrors['mobilePhone'],
           ),
@@ -250,6 +256,7 @@ class _RewardOnboardingPageState extends State<RewardOnboardingPage> {
             controller: _postalCode,
             label: 'rewardOnboarding.form.postalCode'.tr(),
             keyboard: VgrKeyboard.number,
+            mask: VgrMask.cep,
             enabled: !submitting,
             errorText: _fieldErrors['postalCode'],
           ),

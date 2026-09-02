@@ -178,9 +178,7 @@
       "street": "Street",
       "number": "Number",
       "neighborhood": "Neighborhood",
-      "postalCode": "Postal code",
-      "required": "Required field",
-      "invalidNumber": "Enter a valid value"
+      "postalCode": "Postal code"
     },
     "submit": "Register",
     "retry": "Retry",

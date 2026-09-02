@@ -1,7 +1,8 @@
-# packages/vgr_validators — shared validators for the app: mirrors
-# src/shared/validation in vgr-api — keep the rules IDENTICAL on both
-# sides (API = source of truth). No widgets, no easy_localization, no
-# API calls: pure functions + mask TextInputFormatter (flutter/services).
+# packages/vgr_validators — shared format validators + input masks of the
+# app (decisions 153–157). Each rule mirrors ONE Zod rule in vgr-api,
+# named in its doc comment and proved by test (API = source of truth,
+# always revalidates). No widgets, no easy_localization, no API calls:
+# pure functions + a mask TextInputFormatter (flutter/services).
 name: vgr_validators
 description: Shared validators and masks for the vgr-app (mirrors the API)
 publish_to: none
