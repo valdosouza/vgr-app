@@ -14,6 +14,7 @@ class ReportFiltersEntity extends Equatable {
     this.frozen,
     this.hasMedia,
     this.hidden,
+    this.reviewed,
     this.from,
     this.to,
   });
@@ -29,6 +30,9 @@ class ReportFiltersEntity extends Equatable {
   /// Moderation flag (B2, decision 162): `hidden=true|false`.
   final bool? hidden;
 
+  /// Review mark (B3, decision 161): `reviewed=true|false`.
+  final bool? reviewed;
+
   /// `YYYY-MM-DD` (or ISO date-time) on `created_at`.
   final String? from;
   final String? to;
@@ -42,13 +46,14 @@ class ReportFiltersEntity extends Equatable {
         if (frozen != null) 'frozen': '$frozen',
         if (hasMedia != null) 'hasMedia': '$hasMedia',
         if (hidden != null) 'hidden': '$hidden',
+        if (reviewed != null) 'reviewed': '$reviewed',
         if (from != null) 'from': from!,
         if (to != null) 'to': to!,
       };
 
   @override
   List<Object?> get props =>
-      [id, status, category, subject, tier, frozen, hasMedia, hidden, from, to];
+      [id, status, category, subject, tier, frozen, hasMedia, hidden, reviewed, from, to];
 }
 
 /// A DEGRADED grid point (decision 135/159) — never the exact position.
@@ -84,6 +89,7 @@ class ReportListItemEntity extends Equatable {
     required this.frozen,
     required this.purged,
     this.hidden = false,
+    this.reviewed = false,
     required this.mediaCount,
     required this.position,
     required this.createdAt,
@@ -105,6 +111,10 @@ class ReportListItemEntity extends Equatable {
   /// Hidden by moderation (162): gone from the feed and public reads,
   /// still listed here. `false` when the API does not send it.
   final bool hidden;
+
+  /// A human marked the case reviewed (B3, decision 161) — it left the
+  /// proactive queue. `false` when the API does not send it.
+  final bool reviewed;
   final int mediaCount;
   final ReportPositionEntity? position;
   final String createdAt;
@@ -121,6 +131,7 @@ class ReportListItemEntity extends Equatable {
         frozen: json['frozen'] as bool,
         purged: json['purged'] as bool,
         hidden: json['hidden'] as bool? ?? false,
+        reviewed: json['reviewed'] as bool? ?? false,
         mediaCount: (json['mediaCount'] as num).toInt(),
         position: json['position'] == null
             ? null
@@ -132,8 +143,68 @@ class ReportListItemEntity extends Equatable {
   @override
   List<Object?> get props => [
         reportId, category, freeTag, subject, tier, status, anonymous, frozen, purged,
-        hidden, mediaCount, position, createdAt, resolvedAt,
+        hidden, reviewed, mediaCount, position, createdAt, resolvedAt,
       ];
+}
+
+/// One row of the proactive moderation queue (B3, decision 161): the B1
+/// `ReportListItem` shape (degraded position, no identity) plus the queue
+/// fields the API resolves — the tier as [priority], whether living media
+/// is attached, and whole hours since `created_at`. The ORDER is the
+/// server's (tier → media → oldest); the screen never re-sorts.
+class QueueItemEntity extends Equatable {
+  const QueueItemEntity({
+    required this.item,
+    required this.priority,
+    required this.hasMedia,
+    required this.ageHours,
+  });
+
+  final ReportListItemEntity item;
+
+  /// `high | medium | low`.
+  final String priority;
+  final bool hasMedia;
+  final int ageHours;
+
+  factory QueueItemEntity.fromJson(Map<String, dynamic> json) => QueueItemEntity(
+        item: ReportListItemEntity.fromJson(json),
+        priority: json['priority'] as String,
+        hasMedia: json['hasMedia'] as bool,
+        ageHours: (json['ageHours'] as num).toInt(),
+      );
+
+  @override
+  List<Object?> get props => [item, priority, hasMedia, ageHours];
+}
+
+/// `GET /api/reports/queue` → `{ items, page, pageSize, total }`.
+class QueuePageEntity extends Equatable {
+  const QueuePageEntity({
+    required this.items,
+    required this.page,
+    required this.pageSize,
+    required this.total,
+  });
+
+  final List<QueueItemEntity> items;
+  final int page;
+  final int pageSize;
+  final int total;
+
+  int get pageCount => total == 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
+
+  factory QueuePageEntity.fromJson(Map<String, dynamic> json) => QueuePageEntity(
+        items: (json['items'] as List)
+            .map((e) => QueueItemEntity.fromJson((e as Map).cast<String, dynamic>()))
+            .toList(),
+        page: (json['page'] as num).toInt(),
+        pageSize: (json['pageSize'] as num).toInt(),
+        total: (json['total'] as num).toInt(),
+      );
+
+  @override
+  List<Object?> get props => [items, page, pageSize, total];
 }
 
 /// `{ items, page, pageSize, total }`.
@@ -305,6 +376,8 @@ class ReportPanelDetailEntity extends Equatable {
     this.hiddenNote,
     this.hiddenAt,
     this.hiddenBy,
+    this.reviewedAt,
+    this.reviewedBy,
     required this.reporter,
     required this.position,
     required this.detailFields,
@@ -337,6 +410,12 @@ class ReportPanelDetailEntity extends Equatable {
   final String? hiddenAt;
   final int? hiddenBy;
 
+  /// Review mark (B3, decision 161): when ONE human with `reports` UPDATE
+  /// marked the case reviewed, and who. Not a moderation act — no reason.
+  /// Both `null` while the case still sits in the queue.
+  final String? reviewedAt;
+  final int? reviewedBy;
+
   /// `null` when anonymous (decision 160).
   final ReportActorEntity? reporter;
 
@@ -367,6 +446,8 @@ class ReportPanelDetailEntity extends Equatable {
         hiddenNote: json['hiddenNote'] as String?,
         hiddenAt: json['hiddenAt'] as String?,
         hiddenBy: (json['hiddenBy'] as num?)?.toInt(),
+        reviewedAt: json['reviewedAt'] as String?,
+        reviewedBy: (json['reviewedBy'] as num?)?.toInt(),
         reporter: json['reporter'] == null
             ? null
             : ReportActorEntity.fromJson((json['reporter'] as Map).cast<String, dynamic>()),
@@ -389,8 +470,8 @@ class ReportPanelDetailEntity extends Equatable {
   List<Object?> get props => [
         reportId, category, freeTag, subject, tier, status, anonymous, frozen, frozenReason,
         frozenAt, purged, createdAt, resolvedAt, expiresAt, hidden, hiddenReasonCode,
-        hiddenNote, hiddenAt, hiddenBy, reporter, position, detailFields, timeline, media,
-        offers,
+        hiddenNote, hiddenAt, hiddenBy, reviewedAt, reviewedBy, reporter, position,
+        detailFields, timeline, media, offers,
       ];
 }
 

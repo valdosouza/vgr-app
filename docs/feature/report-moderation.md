@@ -140,6 +140,78 @@ disabled without UPDATE, 409 rendered by code); list page (hidden filter → ent
 mark). +2 `vgr_validators` (`maxLength`). +4 mobile (140 → 144): entity default/flag, owner
 sees the notice, visible case shows none. Guard 133 green in both apps.
 
+## B3 — proactive queue (`modules/reports`, decisions 161/165/166)
+
+Same module, no new interface: reading the queue is the `reports` VIEW grant, marking a case
+reviewed is `reports` UPDATE (165). Route `/reports/queue`, reached from the list page header
+("Moderation queue"). API contract: `api/docs/feature/report-moderation.md` §B3
+(`GET /api/reports/queue`, `POST /api/reports/:id/reviewed`).
+
+### Invariants the screens honour
+
+| Invariant | Where |
+|---|---|
+| The queue is PROACTIVE (161): open, not reviewed, not hidden, not purged; frozen stays in | Server-side. The page has no filter and no sort control — it renders the server's page as served |
+| Priority order tier high → medium → low, media first inside a tier, oldest first (161) | Server-side (`ORDER BY` over the tier category sets). `QueueItemEntity` carries `priority`, `hasMedia`, `ageHours` exactly as served; the page never re-sorts |
+| Reviewing is ONE human with `reports` UPDATE, audited, no reason (161/165/116) | `markReviewed(id)` posts an empty body; the bloc re-fetches the queue (or the detail) — a case leaves the queue only because the server no longer serves it. A second mark is a 409 `DUPLICATE` rendered by code; un-review does not exist on screen |
+| Queue reads are list reads → NOT audited; opening a case IS (166) | The page hint says so; a row tap pushes `/reports/:id` (the audited B1 detail) |
+| `/queue` is a literal segment registered BEFORE `/:id` | `ReportsModule.routes` order; flutter_modular resolves routes in registration order, so `/:id` would otherwise parse `queue` as an id. `reports_queue_page_test` asserts the order on the REAL module and navigates `/reports/queue` through it |
+| The future "flag content" signal enters this same queue above the tier (161) | Nothing on the screen assumes the shape of the order — it renders what it is given |
+| No raw Flutter widget (133); validators from `vgr_validators` (157) | Guard green; the queue has no free-text input, so no validator is needed |
+
+### What changed
+
+- Entities: `QueueItemEntity` (wraps `ReportListItemEntity` + `priority`, `hasMedia`,
+  `ageHours`), `QueuePageEntity` (`pageCount`); `ReportListItemEntity.reviewed` (`false` when
+  absent), `ReportFiltersEntity.reviewed` (→ `reviewed=true|false`),
+  `ReportPanelDetailEntity.reviewedAt/reviewedBy` (`null` when absent).
+- Repository: `queue(page, pageSize)` → `GET /api/reports/queue?page&pageSize` (Uri-built);
+  `markReviewed(id)` → `POST /api/reports/:id/reviewed` with `{}` — answers `void`, the bloc
+  re-fetches.
+- `presentation/bloc/reports_queue_*`: `Requested` → page 1; `PageRequested(n)`;
+  `MarkReviewed(id)` → busy → post → re-read the SAME page; a refusal keeps the rows with
+  `failure`. `ReportDetailBloc` gains `ReportMarkReviewedSubmitted` through the same `_mutate`
+  (post → re-fetch detail + freeze state).
+- `presentation/page/reports_queue_page.dart`: header "{n} case(s) awaiting review" + hint; one
+  `VgrListTile` per row (`queue-row-{id}`): `PRIORITY · #id · taxonomy · subject`, subtitle
+  `age · With media · FROZEN · Anonymous` (age = whole hours under a day, whole days from there:
+  "12 h" / "3 d"); trailing "Mark reviewed" (`queue-review-{id}`, disabled without UPDATE or
+  while busy); tap → detail; prev/next with "Page X of Y"; empty state "Queue is empty."
+  (`queue-empty`); load refusal `queue-error`, mark refusal `queue-action-error`, both via
+  `failureText`.
+- Detail page header: review line — `Reviewed {when} · by user {n}` (`report-reviewed`) or
+  "Not reviewed" (`report-not-reviewed`) + "Mark reviewed" (`mark-reviewed-button`, same gating;
+  absent on a purged skeleton).
+- List page: `reviewed` tri-state filter (`reports-filter-reviewed`), `REVIEWED` mark on rows,
+  app-bar link to the queue (`reports-queue-link`).
+- Module: `/queue` route (bloc created with `ReportsQueueRequested` dispatched, page
+  `autoload: false`, same `AdminSessionGuard`) registered between `/` and `/:id`.
+- Translations `reports.queue.*` (title, plural header, hint, empty, row, priority labels,
+  hours/days, withMedia, markReviewed, notReviewed, reviewedAt) and
+  `reports.list.reviewed/reviewedMark/queueLink` (en-US, pt-BR).
+
+### A test-side finding worth knowing
+
+flutter_modular 5 debounces `Modular.to.navigate` by 500 ms of WALL-CLOCK time through a
+`Future.delayed` that runs on flutter_test's FAKE clock. The first `ModularApp` in a file
+never notices (catalog loading burns the 500 ms); a second one is built fast enough to hit
+the debounce, and `pumpAndSettle` never elapses that delay — the page silently never
+renders. Both navigation test files now `pump(600 ms)` after `navigate` (`navigateTo`
+helper). Production is unaffected (real clock).
+
+### Tests
+
++27 admin (205 → 232): repository (queue path/query and full mapping, `markReviewed` path +
+empty body, 409 as `Left`, `reviewed` on list/filter, detail `reviewedAt/By` present and
+absent); queue bloc (idle → page 1, page navigation, load error, mark → re-fetch, 409 keeps the
+rows, mark before load is a no-op); queue page (rows with priority/taxonomy/subject/media/
+age/frozen, empty state, mark → repository + re-fetch, button disabled without UPDATE, 409 by
+code, pagination, load error), routing through the REAL `ReportsModule` (`/queue` ordered before
+`/:id` and `/reports/queue` opening the queue; row tap → `/reports/7` audited detail); detail
+bloc (mark → re-fetch, 409 keeps the case); detail page (not reviewed → mark → reviewed line,
+disabled without UPDATE, none on purged); list page (`reviewed` filter → entity + `REVIEWED`
+mark, header link → `/reports/queue`). Guard 133 green.
+
 ## B4 — statistics (`modules/report-stats`, decisions 164/165)
 
 Reaching it: interface `report_stats` (kind 'T', Operations, VIEW only, migration 040 —

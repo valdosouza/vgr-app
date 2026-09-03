@@ -10,8 +10,10 @@ import 'package:vgr_admin/app/modules/reports/presentation/bloc/report_detail_st
 
 class MockReportsRepository extends Mock implements ReportsRepository {}
 
-ReportPanelDetailEntity detail({bool frozen = false, bool hidden = false}) =>
+ReportPanelDetailEntity detail({bool frozen = false, bool hidden = false, bool reviewed = false}) =>
     ReportPanelDetailEntity(
+      reviewedAt: reviewed ? '2026-09-02T09:00:00.000Z' : null,
+      reviewedBy: reviewed ? 4 : null,
       reportId: 7,
       category: 'assault',
       freeTag: null,
@@ -232,6 +234,42 @@ void main() {
       verify(() => repository.blockMedia('abc', 'illegal_content', null)).called(1);
       verify(() => repository.unblockMedia('abc', 'duplicate', null)).called(1);
       verify(() => repository.getDetail(7)).called(3);
+    });
+  });
+
+  group('review — B3 (decision 161)', () {
+    test('mark reviewed posts and re-reads the case (reviewedAt arrives from the server)',
+        () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      when(() => repository.markReviewed(7)).thenAnswer((_) async => const Right(null));
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail(reviewed: true)));
+
+      bloc.add(const ReportMarkReviewedSubmitted());
+      await settle();
+
+      expect(bloc.state, ReportDetailLoaded(detail(reviewed: true), freeze: _open));
+      verify(() => repository.markReviewed(7)).called(1);
+      verify(() => repository.getDetail(7)).called(2);
+    });
+
+    test('a 409 (already reviewed) keeps the case with the failure', () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      const failure = Failure(message: 'already', statusCode: 409, code: 'DUPLICATE');
+      when(() => repository.markReviewed(7)).thenAnswer((_) async => const Left(failure));
+
+      bloc.add(const ReportMarkReviewedSubmitted());
+      await settle();
+
+      expect(bloc.state, ReportDetailLoaded(detail(), freeze: _open, failure: failure));
+      verify(() => repository.getDetail(7)).called(1);
     });
   });
 }

@@ -365,4 +365,115 @@ void main() {
       expect(detail.media.last.blockedAt, isNull);
     });
   });
+
+  group('queue — B3 (decision 161)', () {
+    test('queue(page, pageSize) reads GET /api/reports/queue and maps the queue fields on top '
+        'of the ReportListItem shape', () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => {
+            'items': [
+              {
+                'reportId': 7, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+                'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': true,
+                'purged': false, 'hidden': false, 'reviewed': false, 'mediaCount': 2,
+                'position': {'lat': -23.55, 'lng': -46.63},
+                'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null,
+                'priority': 'high', 'hasMedia': true, 'ageHours': 36,
+              },
+            ],
+            'page': 2, 'pageSize': 50, 'total': 51,
+          });
+
+      final result = await repository.queue(2, 50);
+
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      final uri = Uri.parse(path);
+      expect(uri.path, '/api/reports/queue');
+      expect(uri.queryParameters, {'page': '2', 'pageSize': '50'});
+      final page = result.getOrElse(() => throw StateError('left'));
+      expect(page.total, 51);
+      expect(page.page, 2);
+      expect(page.pageCount, 2);
+      final entry = page.items.single;
+      expect(entry.priority, 'high');
+      expect(entry.hasMedia, isTrue);
+      expect(entry.ageHours, 36);
+      expect(entry.item.reportId, 7);
+      expect(entry.item.frozen, isTrue);
+      expect(entry.item.position, const ReportPositionEntity(lat: -23.55, lng: -46.63));
+    });
+
+    test('markReviewed posts to /api/reports/:id/reviewed with no body', () async {
+      when(() => apiClient.post(any(), any())).thenAnswer((_) async => {});
+
+      expect((await repository.markReviewed(7)).isRight(), isTrue);
+
+      verify(() => apiClient.post('/api/reports/7/reviewed', {})).called(1);
+    });
+
+    test('a 409 (already reviewed) surfaces as Left with the code intact', () async {
+      when(() => apiClient.post('/api/reports/7/reviewed', any())).thenThrow(
+          const Failure(message: 'already', statusCode: 409, code: 'DUPLICATE'));
+
+      final result = await repository.markReviewed(7);
+
+      expect(result.fold((f) => f.code, (_) => null), 'DUPLICATE');
+    });
+
+    test('list items carry `reviewed` (false when absent); the tri-state filter is sent',
+        () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => {
+            'items': [
+              {
+                'reportId': 7, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+                'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+                'purged': false, 'reviewed': true, 'mediaCount': 0, 'position': null,
+                'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null,
+              },
+              {
+                'reportId': 8, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+                'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+                'purged': false, 'mediaCount': 0, 'position': null,
+                'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null,
+              },
+            ],
+            'page': 1, 'pageSize': 20, 'total': 2,
+          });
+
+      final result = await repository.search(const ReportFiltersEntity(reviewed: false), 1, 20);
+
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      expect(Uri.parse(path).queryParameters['reviewed'], 'false');
+      final page = result.getOrElse(() => throw StateError('left'));
+      expect(page.items.first.reviewed, isTrue);
+      expect(page.items.last.reviewed, isFalse);
+    });
+
+    test('detail maps reviewedAt / reviewedBy (null when never reviewed or absent)', () async {
+      when(() => apiClient.get('/api/reports/7')).thenAnswer((_) async => {
+            'reportId': 7, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+            'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+            'frozenReason': null, 'frozenAt': null, 'purged': false,
+            'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null, 'expiresAt': null,
+            'reviewedAt': '2026-09-02T09:00:00.000Z', 'reviewedBy': 4,
+            'reporter': null, 'position': null, 'detailFields': null, 'timeline': [],
+            'media': [], 'offers': [],
+          });
+      when(() => apiClient.get('/api/reports/8')).thenAnswer((_) async => {
+            'reportId': 8, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+            'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+            'frozenReason': null, 'frozenAt': null, 'purged': false,
+            'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null, 'expiresAt': null,
+            'reporter': null, 'position': null, 'detailFields': null, 'timeline': [],
+            'media': [], 'offers': [],
+          });
+
+      final reviewed = (await repository.getDetail(7)).getOrElse(() => throw StateError('left'));
+      final fresh = (await repository.getDetail(8)).getOrElse(() => throw StateError('left'));
+
+      expect(reviewed.reviewedAt, '2026-09-02T09:00:00.000Z');
+      expect(reviewed.reviewedBy, 4);
+      expect(fresh.reviewedAt, isNull);
+      expect(fresh.reviewedBy, isNull);
+    });
+  });
 }

@@ -34,4 +34,13 @@ abstract class ReportsRepository {
   Future<Either<Failure, void>> unhide(int reportId, String reasonCode, String? note);
   Future<Either<Failure, void>> blockMedia(String publicId, String reasonCode, String? note);
   Future<Either<Failure, void>> unblockMedia(String publicId, String reasonCode, String? note);
+
+  // Proactive queue (B3, decision 161). Reading it is a list read — NOT
+  // audited (166); the server orders it (tier → media → oldest).
+  Future<Either<Failure, QueuePageEntity>> queue(int page, int pageSize);
+
+  /// ONE human with `reports` UPDATE (165), audited server-side (116), no
+  /// reason — reviewing is not a moderation act. A second mark is a 409
+  /// `DUPLICATE`; un-review does not exist.
+  Future<Either<Failure, void>> markReviewed(int reportId);
 }

@@ -39,6 +39,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
   String _frozen = _any;
   String _hasMedia = _any;
   String _hidden = _any;
+  String _reviewed = _any;
   Map<String, String> _fieldErrors = const {};
 
   @override
@@ -80,6 +81,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
       frozen: tri(_frozen),
       hasMedia: tri(_hasMedia),
       hidden: tri(_hidden),
+      reviewed: tri(_reviewed),
       from: opt(_fromController.text.trim()),
       to: opt(_toController.text.trim()),
     );
@@ -90,6 +92,15 @@ class _ReportsListPageState extends State<ReportsListPage> {
   Widget build(BuildContext context) {
     return VgrScaffold(
       title: 'reports.list.title'.tr(),
+      actions: [
+        // The proactive queue (B3, 161) is a sibling route: literal
+        // `/queue`, registered before `/:id` in the module.
+        VgrTextButton(
+          key: const Key('reports-queue-link'),
+          label: 'reports.list.queueLink'.tr(),
+          onPressed: () => Modular.to.pushNamed('/reports/queue'),
+        ),
+      ],
       body: BlocBuilder<ReportsListBloc, ReportsListState>(
         builder: (context, state) {
           return VgrScrollView(
@@ -213,6 +224,16 @@ class _ReportsListPageState extends State<ReportsListPage> {
               ),
             ),
             VgrFixedWidth(
+              width: 160,
+              child: VgrDropdownField<String>(
+                key: const Key('reports-filter-reviewed'),
+                label: 'reports.list.reviewed'.tr(),
+                value: _reviewed,
+                options: _triOptions(),
+                onChanged: (v) => setState(() => _reviewed = v ?? _any),
+              ),
+            ),
+            VgrFixedWidth(
               width: 180,
               child: VgrTextField(
                 key: const Key('reports-filter-from'),
@@ -275,6 +296,8 @@ class _ReportsListPageState extends State<ReportsListPage> {
       if (item.purged) 'reports.list.purgedMark'.tr(),
       // Moderation mark (B2, 162): hidden cases stay searchable here.
       if (item.hidden) 'reports.list.hiddenMark'.tr(),
+      // Review mark (B3, 161): the case already left the proactive queue.
+      if (item.reviewed) 'reports.list.reviewedMark'.tr(),
       if (item.anonymous) 'reports.list.anonymousMark'.tr(),
     ];
     final meta = 'reports.list.rowMeta'.tr(namedArgs: {

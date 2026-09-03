@@ -282,10 +282,34 @@
       "purgedMark": "PURGED",
       "hidden": "Hidden",
       "hiddenMark": "HIDDEN",
+      "reviewed": "Reviewed",
+      "reviewedMark": "REVIEWED",
+      "queueLink": "Moderation queue",
       "anonymousMark": "Anonymous",
       "pageOf": "Page {page} of {pages}",
       "prev": "Previous",
       "next": "Next"
+    },
+    "queue": {
+      "title": "Moderation queue",
+      "header": {
+        "one": "{} case awaiting review",
+        "other": "{} cases awaiting review"
+      },
+      "hint": "Open cases nobody has reviewed yet — hidden and purged ones excluded, frozen ones kept. Order: tier, then media, then oldest first. Listing is not audited; opening a case is.",
+      "empty": "Queue is empty.",
+      "row": "{priority} · #{id} · {taxonomy} · {subject}",
+      "priority": {
+        "high": "HIGH",
+        "medium": "MEDIUM",
+        "low": "LOW"
+      },
+      "hours": "{n} h",
+      "days": "{n} d",
+      "withMedia": "With media",
+      "markReviewed": "Mark reviewed",
+      "notReviewed": "Not reviewed",
+      "reviewedAt": "Reviewed {when} · by user {user}"
     },
     "detail": {
       "title": "Case #{id}",

@@ -20,9 +20,12 @@ ReportPanelDetailEntity detail({
   bool frozen = false,
   bool purged = false,
   bool hidden = false,
+  bool reviewed = false,
   String mediaStatus = 'blocked',
 }) =>
     ReportPanelDetailEntity(
+      reviewedAt: reviewed ? '2026-09-02T09:00:00.000Z' : null,
+      reviewedBy: reviewed ? 4 : null,
       reportId: 7,
       category: purged ? null : 'assault',
       freeTag: purged ? 'noise' : null,
@@ -398,6 +401,49 @@ void main() {
       expect(find.byKey(const Key('report-action-error')), findsOneWidget);
       expect(find.text('This value already exists.'), findsOneWidget);
       expect(find.byKey(const Key('hide-button')), findsOneWidget);
+    });
+  });
+
+  group('review — B3 (decision 161)', () {
+    testWidgets('not reviewed: header says so and "Mark reviewed" posts, then the re-fetched '
+        'case shows reviewed at / by and no button', (tester) async {
+      stub();
+      when(() => repository.markReviewed(7)).thenAnswer((_) async => const Right(null));
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('report-not-reviewed')), findsOneWidget);
+      expect(find.text('Not reviewed'), findsOneWidget);
+
+      stub(entity: detail(reviewed: true));
+      await tapVisible(tester, 'mark-reviewed-button');
+
+      verify(() => repository.markReviewed(7)).called(1);
+      expect(find.byKey(const Key('report-reviewed')), findsOneWidget);
+      expect(find.text('Reviewed 2026-09-02 09:00 · by user 4'), findsOneWidget);
+      expect(find.byKey(const Key('mark-reviewed-button')), findsNothing);
+    });
+
+    testWidgets('without reports UPDATE the "Mark reviewed" button renders disabled (72/165)',
+        (tester) async {
+      SessionAccess.instance.applyPermissions(const {
+        'reports': [Privileges.view],
+        'case_freeze': [Privileges.view, Privileges.update],
+      });
+      stub();
+      await pumpPage(tester);
+
+      expect(
+          tester
+              .widget<VgrSecondaryButton>(find.byKey(const Key('mark-reviewed-button')))
+              .onPressed,
+          isNull);
+    });
+
+    testWidgets('a purged skeleton offers no "Mark reviewed"', (tester) async {
+      stub(entity: detail(purged: true));
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('mark-reviewed-button')), findsNothing);
     });
   });
 }

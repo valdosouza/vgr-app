@@ -89,4 +89,21 @@ class ReportsRepositoryImpl implements ReportsRepository {
   Future<Either<Failure, void>> unblockMedia(String publicId, String reasonCode, String? note) =>
       _guard(
           () => _apiClient.post('/api/media/$publicId/unblock', _reasonBody(reasonCode, note)));
+
+  // Queue (B3, decision 161): `/api/reports/queue` is a literal segment the
+  // API registers before `/:id`; the app mirrors that in `ReportsModule`.
+  @override
+  Future<Either<Failure, QueuePageEntity>> queue(int page, int pageSize) => _guard(() async {
+        final uri = Uri(
+          path: '/api/reports/queue',
+          queryParameters: {'page': '$page', 'pageSize': '$pageSize'},
+        );
+        return QueuePageEntity.fromJson(await _apiClient.get(uri.toString()));
+      });
+
+  /// No body: reviewing carries no reason (161). The detail the API answers
+  /// is discarded — the bloc re-fetches, as with every other mutation.
+  @override
+  Future<Either<Failure, void>> markReviewed(int reportId) =>
+      _guard(() => _apiClient.post('/api/reports/$reportId/reviewed', {}));
 }

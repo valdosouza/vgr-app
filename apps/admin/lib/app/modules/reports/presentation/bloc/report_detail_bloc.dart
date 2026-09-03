@@ -32,6 +32,8 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
         emit, (_) => _repository.blockMedia(event.publicId, event.reasonCode, event.note)));
     on<ReportMediaUnblockSubmitted>((event, emit) => _mutate(
         emit, (_) => _repository.unblockMedia(event.publicId, event.reasonCode, event.note)));
+    // Review (B3, 161): same discipline — `reviewedAt/By` come back from the server.
+    on<ReportMarkReviewedSubmitted>((event, emit) => _mutate(emit, _repository.markReviewed));
   }
 
   final ReportsRepository _repository;

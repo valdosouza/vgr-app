@@ -94,7 +94,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               child: VgrColumn(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _header(state.detail),
+                  _header(state),
                   const VgrGap.md(),
                   ..._reporter(state.detail),
                   const VgrGap.md(),
@@ -126,7 +126,8 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     );
   }
 
-  Widget _header(ReportPanelDetailEntity d) {
+  Widget _header(ReportDetailLoaded state) {
+    final d = state.detail;
     final taxonomy =
         d.category != null ? 'reports.category.${d.category}'.tr() : (d.freeTag ?? '—');
     return VgrCard(
@@ -148,10 +149,45 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               const VgrGap.sm(),
               VgrText.error('reports.detail.purged'.tr(), key: const Key('report-purged-badge')),
             ],
+            const VgrGap.sm(),
+            ..._review(state),
           ],
         ),
       ),
     );
+  }
+
+  /// Review line (B3, decision 161): reviewed at / by, or "not reviewed"
+  /// with "Mark reviewed" — ONE human with `reports` UPDATE (165), no
+  /// reason, audited server-side; the bloc re-fetches. A purged skeleton
+  /// has nothing to review (the API 404s).
+  List<Widget> _review(ReportDetailLoaded state) {
+    final d = state.detail;
+    if (d.reviewedAt != null) {
+      return [
+        VgrText.caption(
+          'reports.queue.reviewedAt'.tr(namedArgs: {
+            'when': _when(d.reviewedAt!),
+            'user': '${d.reviewedBy ?? '—'}',
+          }),
+          key: const Key('report-reviewed'),
+        ),
+      ];
+    }
+    final canReview = SessionAccess.instance.can('reports', Privileges.update);
+    return [
+      VgrText.caption('reports.queue.notReviewed'.tr(), key: const Key('report-not-reviewed')),
+      if (!d.purged) ...[
+        const VgrGap.sm(),
+        VgrSecondaryButton(
+          key: const Key('mark-reviewed-button'),
+          label: 'reports.queue.markReviewed'.tr(),
+          onPressed: !canReview || state.busy
+              ? null
+              : () => context.read<ReportDetailBloc>().add(const ReportMarkReviewedSubmitted()),
+        ),
+      ],
+    ];
   }
 
   List<Widget> _reporter(ReportPanelDetailEntity d) => [

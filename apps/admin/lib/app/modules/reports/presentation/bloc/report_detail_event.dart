@@ -77,6 +77,13 @@ class ReportMediaBlockSubmitted extends ReportDetailEvent {
   List<Object?> get props => [publicId, reasonCode, note];
 }
 
+/// Review mark (B3, decision 161): ONE human, no reason, audited
+/// server-side. Not a moderation act — nothing on the case changes but
+/// `reviewedAt/By`.
+class ReportMarkReviewedSubmitted extends ReportDetailEvent {
+  const ReportMarkReviewedSubmitted();
+}
+
 class ReportMediaUnblockSubmitted extends ReportDetailEvent {
   const ReportMediaUnblockSubmitted(this.publicId, this.reasonCode, this.note);
 

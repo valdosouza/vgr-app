@@ -282,10 +282,34 @@
       "purgedMark": "EXPURGADO",
       "hidden": "Oculta",
       "hiddenMark": "OCULTA",
+      "reviewed": "Revisada",
+      "reviewedMark": "REVISADA",
+      "queueLink": "Fila de moderação",
       "anonymousMark": "Anônimo",
       "pageOf": "Página {page} de {pages}",
       "prev": "Anterior",
       "next": "Próxima"
+    },
+    "queue": {
+      "title": "Fila de moderação",
+      "header": {
+        "one": "{} caso aguardando revisão",
+        "other": "{} casos aguardando revisão"
+      },
+      "hint": "Casos abertos que ninguém revisou ainda — ocultos e expurgados ficam de fora, congelados permanecem. Ordem: nível, depois mídia, depois o mais antigo primeiro. Listar não é auditado; abrir um caso é.",
+      "empty": "A fila está vazia.",
+      "row": "{priority} · #{id} · {taxonomy} · {subject}",
+      "priority": {
+        "high": "ALTO",
+        "medium": "MÉDIO",
+        "low": "BAIXO"
+      },
+      "hours": "{n} h",
+      "days": "{n} d",
+      "withMedia": "Com mídia",
+      "markReviewed": "Marcar como revisada",
+      "notReviewed": "Não revisada",
+      "reviewedAt": "Revisada em {when} · por usuário {user}"
     },
     "detail": {
       "title": "Caso #{id}",

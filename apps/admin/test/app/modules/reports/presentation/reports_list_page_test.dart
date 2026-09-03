@@ -17,8 +17,10 @@ import '../../../../helpers/session_access.dart';
 
 class MockReportsRepository extends Mock implements ReportsRepository {}
 
-ReportListItemEntity item(int id, {bool frozen = false, bool purged = false, bool hidden = false}) =>
+ReportListItemEntity item(int id,
+        {bool frozen = false, bool purged = false, bool hidden = false, bool reviewed = false}) =>
     ReportListItemEntity(
+      reviewed: reviewed,
       reportId: id,
       category: purged ? null : 'assault',
       freeTag: purged ? 'noise' : null,
@@ -163,8 +165,49 @@ void main() {
     expect(find.textContaining('HIDDEN'), findsOneWidget);
   });
 
+  testWidgets('reviewed filter (tri-state) travels as `reviewed`; reviewed rows carry the mark '
+      '(B3, 161)', (tester) async {
+    when(() => repository.search(any(), 1, 20)).thenAnswer((_) async => Right(ReportPageEntity(
+        items: [item(7, reviewed: true), item(8)], page: 1, pageSize: 20, total: 2)));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('reports-filter-reviewed')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('No').last);
+    await tester.pumpAndSettle();
+    await search(tester);
+
+    final filters = verify(() => repository.search(captureAny(), 1, 20)).captured.single
+        as ReportFiltersEntity;
+    expect(filters, const ReportFiltersEntity(reviewed: false));
+    expect(find.textContaining('REVIEWED'), findsOneWidget);
+  });
+
   group('navigation', () {
     tearDown(Modular.destroy);
+
+    /// flutter_modular 5 debounces `navigate` by 500 ms of WALL-CLOCK time
+    /// through a `Future.delayed` on the test's FAKE clock: a second
+    /// ModularApp in the same file is created fast enough to hit it, and
+    /// `pumpAndSettle` alone never elapses that delay.
+    Future<void> navigateTo(WidgetTester tester, String path) async {
+      Modular.to.navigate(path);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the header link opens /reports/queue (B3, 161)', (tester) async {
+      await pumpLocalizedApp(
+        tester,
+        ModularApp(module: _TestModule(repository), child: const _TestApp()),
+      );
+      await navigateTo(tester, '/reports/');
+
+      await tester.tap(find.byKey(const Key('reports-queue-link')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('queue-stub')), findsOneWidget);
+    });
 
     testWidgets('tapping a row pushes /reports/:id', (tester) async {
       when(() => repository.search(any(), 1, 20)).thenAnswer((_) async =>
@@ -174,8 +217,7 @@ void main() {
         tester,
         ModularApp(module: _TestModule(repository), child: const _TestApp()),
       );
-      Modular.to.navigate('/reports/');
-      await tester.pumpAndSettle();
+      await navigateTo(tester, '/reports/');
       await search(tester);
 
       await tester.tap(find.byKey(const Key('report-row-7')));
@@ -214,6 +256,8 @@ class _ReportsRoutes extends Module {
             child: const ReportsListPage(),
           ),
         ),
+        // Literal BEFORE the parameter, as in production (B3).
+        ChildRoute('/queue', child: (_, __) => const Scaffold(body: Text('q', key: Key('queue-stub')))),
         ChildRoute(
           '/:id',
           child: (_, args) =>
