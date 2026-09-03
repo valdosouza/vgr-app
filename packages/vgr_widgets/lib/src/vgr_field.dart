@@ -94,6 +94,9 @@ class VgrDropdownField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<T>(
         initialValue: value,
+        // Fill the parent's width instead of sizing to the widest option:
+        // in a constrained slot (filter bar) the natural width overflows.
+        isExpanded: true,
         decoration: InputDecoration(labelText: label),
         items: options
             .map((option) => DropdownMenuItem<T>(value: option.value, child: Text(option.label)))

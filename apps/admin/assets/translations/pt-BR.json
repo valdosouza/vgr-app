@@ -70,6 +70,7 @@
       "administration": "Administração"
     },
     "interfaces": {
+      "reports": "Denúncias",
       "case_freeze": "Congelamento de Caso",
       "reward_mediation": "Mediação de Recompensa",
       "legal_jurisdictions": "Jurisdições",
@@ -255,6 +256,125 @@
     "approverId": "Id do aprovador",
     "approve": "Aprovar",
     "approvals": "{} de 2 aprovações"
+  },
+  "reports": {
+    "list": {
+      "title": "Denúncias",
+      "search": "Buscar",
+      "id": "Id do caso",
+      "status": "Situação",
+      "category": "Categoria",
+      "subject": "Sujeito",
+      "tier": "Nível",
+      "frozen": "Congelado",
+      "hasMedia": "Com mídia",
+      "from": "De (AAAA-MM-DD)",
+      "to": "Até (AAAA-MM-DD)",
+      "any": "Qualquer",
+      "yes": "Sim",
+      "no": "Não",
+      "hint": "Nada é listado até você buscar. Abrir um caso fica registrado na trilha de auditoria; listar não.",
+      "empty": "Nenhuma denúncia corresponde aos filtros.",
+      "row": "#{id} · {taxonomy} · {subject}",
+      "rowMeta": "{tier} · {status} · {media} mídia(s) · {when}",
+      "frozenMark": "CONGELADO",
+      "purgedMark": "EXPURGADO",
+      "anonymousMark": "Anônimo",
+      "pageOf": "Página {page} de {pages}",
+      "prev": "Anterior",
+      "next": "Próxima"
+    },
+    "detail": {
+      "title": "Caso #{id}",
+      "created": "Criado: {when}",
+      "resolved": "Resolvido: {when}",
+      "expires": "Expira: {when}",
+      "purged": "EXPURGADO — conteúdo destruído pela retenção; resta só o esqueleto estatístico.",
+      "reporter": "Denunciante",
+      "anonymous": "Anônimo",
+      "account": "Conta #{id}",
+      "position": "Posição",
+      "noPosition": "Sem posição disponível.",
+      "approx": "≈ {lat}, {lng}",
+      "precision": "Grade degradada — precisão ≈ {meters} m. A posição exata é uma leitura separada e auditada.",
+      "reveal": "Revelar posição exata",
+      "exact": "Exata: {lat}, {lng}",
+      "exactAudited": "Esta leitura foi registrada na trilha de auditoria.",
+      "fields": "Campos de detalhe",
+      "timeline": "Linha do tempo",
+      "event": {
+        "created": "Denúncia criada",
+        "edited": "Denúncia editada",
+        "resolved": "Caso resolvido",
+        "media_attached": "Foto anexada",
+        "help_offered": "Alguém ofereceu ajuda"
+      },
+      "media": "Mídia",
+      "mediaRow": "{mime} · {size} · {status}",
+      "mediaNote": "Anexos apenas listados; a imagem em si é servida por /api/media sob o grant media_evidence.",
+      "mediaStatus": {
+        "pending": "pendente",
+        "available": "disponível",
+        "blocked": "bloqueada",
+        "deleted": "apagada"
+      },
+      "offers": "Ofertas de ajuda",
+      "noOffers": "Nenhuma oferta de ajuda.",
+      "anonymousHelper": "Ajudante anônimo",
+      "helpType": {
+        "physical_presence": "Presença física",
+        "relay_information": "Repassar informação",
+        "remote_support": "Apoio remoto",
+        "share": "Compartilhar",
+        "financial_contribution": "Contribuição financeira"
+      },
+      "freezeTitle": "Retenção / congelamento",
+      "freezeUnavailable": "Estado de congelamento indisponível — requer o grant case_freeze.",
+      "frozen": "CONGELADO — a retenção está suspensa; nada deste caso é destruído.",
+      "notFrozen": "Caso não congelado — a régua de retenção corre normalmente.",
+      "frozenReason": "Motivo: {reason}",
+      "freeze": "Congelar",
+      "reason": "Motivo (obrigatório — nº do ofício/processo)",
+      "requestUnfreeze": "Solicitar descongelamento",
+      "dualControlHint": "Descongelar rearma a destruição: a solicitação precisa da aprovação de OUTRO usuário (duplo controle).",
+      "pendingBy": "Solicitado pelo usuário {user}",
+      "approveHint": "O aprovador deve ser um usuário DIFERENTE de quem solicitou. Ao aprovar, o prazo de retenção recomeça do zero.",
+      "approveUnfreeze": "Aprovar descongelamento"
+    },
+    "status": {
+      "open": "Aberto",
+      "resolved": "Resolvido"
+    },
+    "tier": {
+      "low": "Baixo",
+      "medium": "Médio",
+      "high": "Alto"
+    },
+    "category": {
+      "assault": "Agressão",
+      "environmental": "Ambiental",
+      "robbery": "Roubo",
+      "homicide": "Homicídio",
+      "illegal_commerce": "Comércio ilegal",
+      "missing": "Desaparecido",
+      "fugitive": "Foragido",
+      "kidnapping": "Sequestro",
+      "suspicious": "Suspeito",
+      "trafficking": "Tráfico",
+      "traffic": "Trânsito",
+      "vandalism": "Vandalismo"
+    },
+    "subject": {
+      "child": "Criança",
+      "adult": "Adulto",
+      "animal": "Animal",
+      "vehicle": "Veículo",
+      "property": "Propriedade",
+      "commerce": "Comércio",
+      "weapon": "Arma",
+      "environment": "Meio ambiente",
+      "other": "Outro"
+    }
   },
   "core": {
     "errors": {

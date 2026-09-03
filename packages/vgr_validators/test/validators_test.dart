@@ -109,4 +109,37 @@ void main() {
       });
     });
   });
+
+  group('VgrValidators.minLength — mirrors z.string().min(n) (e.g. freezeReasonDto, decision 141)', () {
+    test('shorter than n after trimming → TOO_SHORT with the minimum as param', () {
+      expect(VgrValidators.minLength(3)('ab'), const VgrFieldError(VgrFieldCode.tooShort, {'min': '3'}));
+      expect(VgrValidators.minLength(3)(' ab '), const VgrFieldError(VgrFieldCode.tooShort, {'min': '3'}));
+    });
+
+    test('exactly n or longer passes', () {
+      expect(VgrValidators.minLength(3)('abc'), isNull);
+      expect(VgrValidators.minLength(3)('Writ 123/2026'), isNull);
+    });
+
+    test('blank is REQUIRED, not TOO_SHORT', () {
+      expect(VgrValidators.minLength(3)(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.isoDate — mirrors the YYYY-MM-DD form of reports-admin.dto.ts from/to', () {
+    test('accepts a calendar date', () {
+      expect(VgrValidators.isoDate('2026-09-02'), isNull);
+      expect(VgrValidators.isoDate('2024-02-29'), isNull);
+    });
+
+    test('rejects wrong shape or impossible dates → INVALID_FORMAT', () {
+      for (final value in ['2026-9-2', '02/09/2026', '2026-13-01', '2026-02-30', '20260902', 'abc']) {
+        expect(VgrValidators.isoDate(value), const VgrFieldError(VgrFieldCode.invalidFormat), reason: value);
+      }
+    });
+
+    test('blank is REQUIRED', () {
+      expect(VgrValidators.isoDate(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
 }

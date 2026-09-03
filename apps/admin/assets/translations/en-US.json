@@ -70,6 +70,7 @@
       "administration": "Administration"
     },
     "interfaces": {
+      "reports": "Reports",
       "case_freeze": "Case Freeze",
       "reward_mediation": "Reward Mediation",
       "legal_jurisdictions": "Jurisdictions",
@@ -255,6 +256,125 @@
     "approverId": "Approver id",
     "approve": "Approve",
     "approvals": "{} of 2 approvals"
+  },
+  "reports": {
+    "list": {
+      "title": "Reports",
+      "search": "Search",
+      "id": "Case id",
+      "status": "Status",
+      "category": "Category",
+      "subject": "Subject",
+      "tier": "Tier",
+      "frozen": "Frozen",
+      "hasMedia": "With media",
+      "from": "From (YYYY-MM-DD)",
+      "to": "To (YYYY-MM-DD)",
+      "any": "Any",
+      "yes": "Yes",
+      "no": "No",
+      "hint": "Nothing is listed until you search. Opening a case is recorded in the audit trail; listing is not.",
+      "empty": "No reports match the filters.",
+      "row": "#{id} · {taxonomy} · {subject}",
+      "rowMeta": "{tier} · {status} · {media} media · {when}",
+      "frozenMark": "FROZEN",
+      "purgedMark": "PURGED",
+      "anonymousMark": "Anonymous",
+      "pageOf": "Page {page} of {pages}",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "detail": {
+      "title": "Case #{id}",
+      "created": "Created: {when}",
+      "resolved": "Resolved: {when}",
+      "expires": "Expires: {when}",
+      "purged": "PURGED — content destroyed by retention; only the statistical skeleton remains.",
+      "reporter": "Reporter",
+      "anonymous": "Anonymous",
+      "account": "Account #{id}",
+      "position": "Position",
+      "noPosition": "No position available.",
+      "approx": "≈ {lat}, {lng}",
+      "precision": "Degraded grid — precision ≈ {meters} m. The exact position is a separate, audited read.",
+      "reveal": "Reveal exact position",
+      "exact": "Exact: {lat}, {lng}",
+      "exactAudited": "This read was recorded in the audit trail.",
+      "fields": "Detail fields",
+      "timeline": "Timeline",
+      "event": {
+        "created": "Report created",
+        "edited": "Report edited",
+        "resolved": "Case resolved",
+        "media_attached": "Photo attached",
+        "help_offered": "Someone offered help"
+      },
+      "media": "Media",
+      "mediaRow": "{mime} · {size} · {status}",
+      "mediaNote": "Attachments are listed only; the image itself is served by /api/media under the media_evidence grant.",
+      "mediaStatus": {
+        "pending": "pending",
+        "available": "available",
+        "blocked": "blocked",
+        "deleted": "deleted"
+      },
+      "offers": "Help offers",
+      "noOffers": "No help offers.",
+      "anonymousHelper": "Anonymous helper",
+      "helpType": {
+        "physical_presence": "Physical presence",
+        "relay_information": "Relay information",
+        "remote_support": "Remote support",
+        "share": "Share",
+        "financial_contribution": "Financial contribution"
+      },
+      "freezeTitle": "Retention / freeze",
+      "freezeUnavailable": "Freeze state unavailable — the case_freeze grant is required.",
+      "frozen": "FROZEN — retention is suspended; nothing in this case is destroyed.",
+      "notFrozen": "Case not frozen — the retention clock runs normally.",
+      "frozenReason": "Reason: {reason}",
+      "freeze": "Freeze",
+      "reason": "Reason (mandatory — writ/case number)",
+      "requestUnfreeze": "Request unfreeze",
+      "dualControlHint": "Unfreezing re-arms destruction: the request needs approval from a DIFFERENT user (dual control).",
+      "pendingBy": "Requested by user {user}",
+      "approveHint": "The approver must be a DIFFERENT user than the requester. Approving restarts the retention clock from zero.",
+      "approveUnfreeze": "Approve unfreeze"
+    },
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "tier": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "category": {
+      "assault": "Assault",
+      "environmental": "Environmental",
+      "robbery": "Robbery",
+      "homicide": "Homicide",
+      "illegal_commerce": "Illegal commerce",
+      "missing": "Missing",
+      "fugitive": "Fugitive",
+      "kidnapping": "Kidnapping",
+      "suspicious": "Suspicious",
+      "trafficking": "Trafficking",
+      "traffic": "Traffic",
+      "vandalism": "Vandalism"
+    },
+    "subject": {
+      "child": "Child",
+      "adult": "Adult",
+      "animal": "Animal",
+      "vehicle": "Vehicle",
+      "property": "Property",
+      "commerce": "Commerce",
+      "weapon": "Weapon",
+      "environment": "Environment",
+      "other": "Other"
+    }
   },
   "core": {
     "errors": {

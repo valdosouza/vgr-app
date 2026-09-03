@@ -64,6 +64,38 @@ abstract final class VgrValidators {
     return n != null && n > 0 ? null : const VgrFieldError(VgrFieldCode.invalidValue);
   }
 
+  /// Mirrors `z.string().min(n)` on a free-text field — e.g.
+  /// `freezeReasonDto` (`api/src/modules/reports/case-freeze.dto.ts`,
+  /// decision 141: the reason is mandatory, at least 3 characters). Blank
+  /// is `REQUIRED`; shorter than [min] after trimming is `TOO_SHORT {min}`.
+  static VgrValidator minLength(int min) => (String value) {
+        final v = value.trim();
+        if (v.isEmpty) return _required;
+        return v.length < min
+            ? VgrFieldError(VgrFieldCode.tooShort, {'min': '$min'})
+            : null;
+      };
+
+  /// Mirrors the `YYYY-MM-DD` form accepted by the panel report search
+  /// `from`/`to` query (`api/src/modules/reports/reports-admin.dto.ts`,
+  /// phase B1). Shape AND calendar validity: `2026-02-30` is
+  /// `INVALID_FORMAT`, the way the API's date parsing rejects it.
+  static final _isoDate = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+
+  static VgrFieldError? isoDate(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return _required;
+    if (!_isoDate.hasMatch(v)) return const VgrFieldError(VgrFieldCode.invalidFormat);
+    final parsed = DateTime.tryParse(v);
+    // DateTime.parse rolls invalid days over (Feb 30 -> Mar 2); the
+    // round-trip catches that.
+    if (parsed == null) return const VgrFieldError(VgrFieldCode.invalidFormat);
+    final roundTrip = '${parsed.year.toString().padLeft(4, '0')}-'
+        '${parsed.month.toString().padLeft(2, '0')}-'
+        '${parsed.day.toString().padLeft(2, '0')}';
+    return roundTrip == v ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
+  }
+
   /// Runs each field's validators in order and keeps the first error per
   /// field — the shape a screen puts straight into its `errorText` map.
   static Map<String, VgrFieldError> validate(

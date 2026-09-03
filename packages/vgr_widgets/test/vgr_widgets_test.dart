@@ -142,4 +142,27 @@ void main() {
       expect(result, isFalse);
     });
   });
+
+  group('VgrDropdownField', () {
+    testWidgets('fits a constrained width instead of overflowing (filter bars, decision 133)',
+        (tester) async {
+      await tester.pumpWidget(host(
+        VgrFixedWidth(
+          width: 120,
+          child: VgrDropdownField<String>(
+            label: 'Category',
+            value: 'a',
+            options: const [
+              VgrOption(value: 'a', label: 'A'),
+              VgrOption(value: 'b', label: 'A very long option label that would overflow'),
+            ],
+            onChanged: (_) {},
+          ),
+        ),
+      ));
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('A'), findsOneWidget);
+    });
+  });
 }

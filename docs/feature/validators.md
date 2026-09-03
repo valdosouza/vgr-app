@@ -36,6 +36,8 @@ found by the TDD audit of 2026-08-22.
 | `VgrValidators.brPhone` | `onboardRecipientDto.mobilePhone min(10).max(13)` | on unmasked digits; `TOO_SHORT {min}` / `TOO_LONG {max}` |
 | `VgrValidators.cep` | `onboardRecipientDto.address.postalCode min(8).max(9)` | exactly 8 digits (the app always sends the unmasked form) |
 | `VgrValidators.positiveNumber` | `z.number().positive()` | `INVALID_VALUE` |
+| `VgrValidators.minLength(n)` | `z.string().min(n)` — `freezeReasonDto` (case-freeze, decision 141) | returns a validator; blank → `REQUIRED`, shorter → `TOO_SHORT {min}` |
+| `VgrValidators.isoDate` | `from`/`to` of `reports-admin.dto.ts` (B1) | `YYYY-MM-DD` shape AND calendar validity → `INVALID_FORMAT` |
 | `VgrValidators.validate({field: (value, [rules])})` | — | first error per field, straight into a screen's `errorText` map |
 | `isValidCpf` / `isValidCnpj` / `isValidBrTaxId` | same functions in `br-tax-id.ts` | digits only |
 | `unmask(text)` | — | digits only — what goes on the wire (155) |

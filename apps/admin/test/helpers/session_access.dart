@@ -13,6 +13,8 @@ void grantAllPrivileges() {
   SessionAccess.instance.applyPermissions(const {
     'case_freeze': [Privileges.view, Privileges.update],
     'reward_mediation': [Privileges.view, Privileges.update],
+    // Report search/detail (B1, decision 165); UPDATE reserved for B2/B3.
+    'reports': [Privileges.view, Privileges.update],
     'legal_jurisdictions': all,
     'legal_capabilities': all,
     'legal_rules': all,
@@ -28,6 +30,8 @@ void grantAllPrivileges() {
     // kind 'R' resources — never on the menu, granted like any interface.
     'user_privileges': [Privileges.view, Privileges.update],
     'dual_control_approval': [Privileges.update],
+    // No bootstrap in the API (159) — granted here so page tests exercise the reveal.
+    'report_exact_position': [Privileges.view],
   });
 }
 
