@@ -7,7 +7,7 @@ import 'report_detail_event.dart';
 import 'report_detail_state.dart';
 
 /// Case detail on the panel plane (B1, decisions 159/160/165/166; B2 moderation
-/// 162/163/167): loads
+/// 162/163/167; C3 chat evidence 175): loads
 /// the detail (audited server-side) together with the embedded freeze
 /// state; after every freeze action BOTH are re-fetched — the server is
 /// the only authority on what the case is. The exact position is a
@@ -16,6 +16,7 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
   ReportDetailBloc(this._repository) : super(const ReportDetailInitial()) {
     on<ReportDetailRequested>(_onLoad);
     on<ReportExactPositionRequested>(_onReveal);
+    on<ReportChatRequested>(_onChat);
     on<ReportFreezeSubmitted>(
         (event, emit) => _mutate(emit, (id) => _repository.freeze(id, event.reason)));
     on<ReportUnfreezeRequestSubmitted>(
@@ -74,6 +75,23 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
     emit(result.fold(
       (failure) => current.copyWith(busy: false, failure: failure),
       (position) => current.copyWith(busy: false, exactPosition: position),
+    ));
+  }
+
+  /// Chat evidence (C3, decision 175): a separate, grant-gated, audited
+  /// read — never part of [_fetch], never re-read on its own; a mutation
+  /// drops it with the re-fetch, and a new "Load chat" is a new audit row.
+  Future<void> _onChat(ReportChatRequested event, Emitter<ReportDetailState> emit) async {
+    final current = state;
+    final reportId = _reportId;
+    if (current is! ReportDetailLoaded || current.chatLoading || reportId == null) return;
+
+    emit(current.copyWith(chatLoading: true));
+    final result = await _repository.getChat(reportId);
+    if (emit.isDone) return;
+    emit(result.fold(
+      (failure) => current.copyWith(chatLoading: false, chatFailure: failure),
+      (chat) => current.copyWith(chatLoading: false, chat: chat),
     ));
   }
 

@@ -4,7 +4,8 @@ Mobile side of the chat between reporter and helper (decision 54; round
 12, decisions 168–177 in `AI/docs/decisions/VGR-plano.md`; plan
 `AI/docs/plans/plano-chat.md` §4). C1 (API, `api/docs/feature/chat.md`)
 is what this codes against; C3 (panel reading under `chat_evidence`,
-decision 175) is a separate front. Uncommitted, awaiting review.
+decision 175) lives in `apps/admin` — see `report-moderation.md` §C3.
+Uncommitted, awaiting review.
 
 ## What the app NEVER decides
 

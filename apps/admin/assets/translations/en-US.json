@@ -398,6 +398,25 @@
         "other": "Other"
       }
     },
+    "chat": {
+      "section": "Chat (evidence)",
+      "audited": "Reading the chat is audited.",
+      "load": "Load chat",
+      "empty": "No chat thread on this case.",
+      "thread": "Thread {id} · offer {offer} · {when}",
+      "participant": "{role}: {name}",
+      "account": "#{id}",
+      "anonymous": "Anonymous",
+      "choseAnonymity": "chose anonymity",
+      "closed": "Closed",
+      "message": "{role} · {when} · {text}",
+      "purged": "[purged]",
+      "hasMore": "Older messages exist beyond the served limit.",
+      "role": {
+        "reporter": "Reporter",
+        "helper": "Helper"
+      }
+    },
     "status": {
       "open": "Open",
       "resolved": "Resolved"

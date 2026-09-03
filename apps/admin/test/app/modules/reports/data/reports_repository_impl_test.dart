@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vgr_admin/app/modules/reports/data/reports_repository_impl.dart';
+import 'package:vgr_admin/app/modules/reports/domain/entity/chat_evidence_entities.dart';
 import 'package:vgr_admin/app/modules/reports/domain/entity/report_entities.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
@@ -474,6 +475,148 @@ void main() {
       expect(reviewed.reviewedBy, 4);
       expect(fresh.reviewedAt, isNull);
       expect(fresh.reviewedBy, isNull);
+    });
+  });
+
+  group('chat evidence — C3 (decision 175): GET /api/reports/:id/chat', () {
+    Map<String, dynamic> served({bool hasMore = false, bool includeHasMore = true}) => {
+          'reportId': 7,
+          'tier': 'high',
+          'threads': [
+            {
+              'threadId': 3,
+              'helpOfferId': 11,
+              'createdAt': '2026-09-03T10:00:00.000Z',
+              'closed': true,
+              if (includeHasMore) 'hasMore': hasMore,
+              'participants': [
+                {
+                  'role': 'reporter',
+                  'participantToken': 'a' * 32,
+                  'accountId': null,
+                  'displayName': null,
+                  'anonymousChoice': true,
+                },
+                {
+                  'role': 'helper',
+                  'participantToken': 'b' * 32,
+                  'accountId': 30,
+                  'displayName': 'João',
+                  'anonymousChoice': false,
+                },
+              ],
+              'messages': [
+                {
+                  'messageId': 100,
+                  'sender': 'b' * 32,
+                  'text': 'Where are you?',
+                  'purged': false,
+                  'createdAt': '2026-09-03T10:01:02.000Z',
+                },
+                {
+                  'messageId': 101,
+                  'sender': 'a' * 32,
+                  'text': null,
+                  'purged': true,
+                  'createdAt': '2026-09-03T10:02:00.000Z',
+                },
+              ],
+            },
+          ],
+        };
+
+    test('getChat(id) reads /api/reports/:id/chat with no query when limit is not given',
+        () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => served());
+
+      await repository.getChat(7);
+
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      expect(path, '/api/reports/7/chat');
+    });
+
+    test('getChat(id, limit) sends ?limit=', () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => served());
+
+      await repository.getChat(7, limit: 50);
+
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      final uri = Uri.parse(path);
+      expect(uri.path, '/api/reports/7/chat');
+      expect(uri.queryParameters, {'limit': '50'});
+    });
+
+    test('maps threads, participants (null identity for the anonymous reporter, '
+        'accountId + displayName for the helper), messages incl. purged text', () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => served(hasMore: true));
+
+      final result = await repository.getChat(7);
+
+      final chat = result.getOrElse(() => throw StateError('left'));
+      expect(chat.reportId, 7);
+      expect(chat.tier, 'high');
+      expect(chat.threads, hasLength(1));
+      final thread = chat.threads.single;
+      expect(thread.threadId, 3);
+      expect(thread.helpOfferId, 11);
+      expect(thread.createdAt, '2026-09-03T10:00:00.000Z');
+      expect(thread.closed, isTrue);
+      expect(thread.hasMore, isTrue);
+      expect(thread.participants, [
+        ChatParticipantEvidenceEntity(
+          role: 'reporter',
+          participantToken: 'a' * 32,
+          accountId: null,
+          displayName: null,
+          anonymousChoice: true,
+        ),
+        ChatParticipantEvidenceEntity(
+          role: 'helper',
+          participantToken: 'b' * 32,
+          accountId: 30,
+          displayName: 'João',
+          anonymousChoice: false,
+        ),
+      ]);
+      expect(thread.messages, [
+        ChatMessageEvidenceEntity(
+          messageId: 100,
+          sender: 'b' * 32,
+          text: 'Where are you?',
+          purged: false,
+          createdAt: '2026-09-03T10:01:02.000Z',
+        ),
+        ChatMessageEvidenceEntity(
+          messageId: 101,
+          sender: 'a' * 32,
+          text: null,
+          purged: true,
+          createdAt: '2026-09-03T10:02:00.000Z',
+        ),
+      ]);
+    });
+
+    test('hasMore absent → false; a case with no thread → empty list', () async {
+      when(() => apiClient.get('/api/reports/7/chat'))
+          .thenAnswer((_) async => served(includeHasMore: false));
+      when(() => apiClient.get('/api/reports/8/chat'))
+          .thenAnswer((_) async => {'reportId': 8, 'tier': 'low', 'threads': []});
+
+      final withThread = await repository.getChat(7);
+      final without = await repository.getChat(8);
+
+      expect(withThread.getOrElse(() => throw StateError('left')).threads.single.hasMore, isFalse);
+      expect(without.getOrElse(() => throw StateError('left')).threads, isEmpty);
+    });
+
+    test('a 403 (reports VIEW only, no chat_evidence) surfaces as Left with the code intact',
+        () async {
+      when(() => apiClient.get('/api/reports/7/chat')).thenThrow(
+          const Failure(message: 'no', statusCode: 403, code: 'FORBIDDEN'));
+
+      final result = await repository.getChat(7);
+
+      expect(result.fold((f) => f.code, (_) => null), 'FORBIDDEN');
     });
   });
 }

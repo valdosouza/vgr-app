@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 
+import '../entity/chat_evidence_entities.dart';
 import '../entity/report_entities.dart';
 
 /// Contract of the panel report front, phase B1 (decisions 158–167):
@@ -43,4 +44,11 @@ abstract class ReportsRepository {
   /// reason — reviewing is not a moderation act. A second mark is a 409
   /// `DUPLICATE`; un-review does not exist.
   Future<Either<Failure, void>> markReviewed(int reportId);
+
+  /// Chat evidence (C3, decision 175): needs `reports` VIEW AND the
+  /// `chat_evidence` grant (no bootstrap — a human must grant it);
+  /// audited per call (`report_chat`). Read only, never fetched with the
+  /// detail — the screen asks for it on demand. [limit] caps the messages
+  /// per thread (API default 200, max 500).
+  Future<Either<Failure, ReportChatEntity>> getChat(int reportId, {int? limit});
 }

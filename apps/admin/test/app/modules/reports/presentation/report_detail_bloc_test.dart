@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_admin/app/modules/reports/domain/entity/chat_evidence_entities.dart';
 import 'package:vgr_admin/app/modules/reports/domain/entity/report_entities.dart';
 import 'package:vgr_admin/app/modules/reports/domain/repository/reports_repository.dart';
 import 'package:vgr_admin/app/modules/reports/presentation/bloc/report_detail_bloc.dart';
@@ -270,6 +271,64 @@ void main() {
 
       expect(bloc.state, ReportDetailLoaded(detail(), freeze: _open, failure: failure));
       verify(() => repository.getDetail(7)).called(1);
+    });
+  });
+
+  group('chat evidence — C3 (decision 175): a separate, grant-gated, audited read', () {
+    const chat = ReportChatEntity(reportId: 7, tier: 'high', threads: []);
+
+    test('ReportChatRequested loads the chat onto the loaded state (chatLoading in between)',
+        () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      when(() => repository.getChat(7)).thenAnswer((_) async => const Right(chat));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      final states = <ReportDetailState>[];
+      final sub = bloc.stream.listen(states.add);
+      bloc.add(const ReportChatRequested());
+      await settle();
+      await sub.cancel();
+
+      expect(states, [
+        ReportDetailLoaded(detail(), freeze: _open, chatLoading: true),
+        ReportDetailLoaded(detail(), freeze: _open, chat: chat),
+      ]);
+      verify(() => repository.getChat(7)).called(1);
+    });
+
+    test('the chat is NEVER fetched with the detail', () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+
+      build().add(const ReportDetailRequested(7));
+      await settle();
+
+      verifyNever(() => repository.getChat(any(), limit: any(named: 'limit')));
+    });
+
+    test('a refused chat (403, no chat_evidence grant) keeps the case with chatFailure',
+        () async {
+      const failure = Failure(message: 'no', statusCode: 403, code: 'FORBIDDEN');
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      when(() => repository.getChat(7)).thenAnswer((_) async => const Left(failure));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      bloc.add(const ReportChatRequested());
+      await settle();
+
+      expect(bloc.state, ReportDetailLoaded(detail(), freeze: _open, chatFailure: failure));
+    });
+
+    test('a chat request before a loaded detail is a no-op', () async {
+      final bloc = build()..add(const ReportChatRequested());
+      await settle();
+
+      expect(bloc.state, const ReportDetailInitial());
+      verifyNever(() => repository.getChat(any(), limit: any(named: 'limit')));
     });
   });
 }

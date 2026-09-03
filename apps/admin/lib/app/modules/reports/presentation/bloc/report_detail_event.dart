@@ -21,6 +21,13 @@ class ReportExactPositionRequested extends ReportDetailEvent {
   const ReportExactPositionRequested();
 }
 
+/// The chat-evidence read (C3, decision 175) — grant-gated (`chat_evidence`)
+/// and audited server-side. Never dispatched with the load: the operator
+/// presses "Load chat" knowing the read is recorded.
+class ReportChatRequested extends ReportDetailEvent {
+  const ReportChatRequested();
+}
+
 class ReportFreezeSubmitted extends ReportDetailEvent {
   const ReportFreezeSubmitted(this.reason);
 

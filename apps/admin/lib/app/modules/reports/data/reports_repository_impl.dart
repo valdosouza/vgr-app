@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 
+import '../domain/entity/chat_evidence_entities.dart';
 import '../domain/entity/report_entities.dart';
 import '../domain/repository/reports_repository.dart';
 
@@ -106,4 +107,17 @@ class ReportsRepositoryImpl implements ReportsRepository {
   @override
   Future<Either<Failure, void>> markReviewed(int reportId) =>
       _guard(() => _apiClient.post('/api/reports/$reportId/reviewed', {}));
+
+  // Chat evidence (C3, decision 175): a separate, grant-gated, audited read
+  // on the panel plane — same pattern as `getExactPosition`. The query is
+  // absent when no limit is asked, so the API default applies.
+  @override
+  Future<Either<Failure, ReportChatEntity>> getChat(int reportId, {int? limit}) =>
+      _guard(() async {
+        final uri = Uri(
+          path: '/api/reports/$reportId/chat',
+          queryParameters: limit == null ? null : {'limit': '$limit'},
+        );
+        return ReportChatEntity.fromJson(await _apiClient.get(uri.toString()));
+      });
 }

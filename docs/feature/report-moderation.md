@@ -280,3 +280,55 @@ green.
 The last phase of the front reads what B1–B4 (and every other panel mutation) wrote to
 `tb_admin_audit`: own module at `/admin-audit` (+ `/:id`), own interface `admin_audit` (VIEW),
 read only, reads not audited. Documented in [`admin-audit.md`](./admin-audit.md).
+
+## C3 — chat evidence on the case detail (`modules/reports`, decision 175)
+
+Panel side of the masked chat (round 12, decisions 168–177; plan
+`AI/docs/plans/plano-chat.md` §4). Same module, same detail route, ONE new
+interface: `chat_evidence` (kind 'R', Operations, VIEW only, **no bootstrap**
+— migration 044): nobody holds it until a human grants it, exactly like
+`media_original` (130) and `report_exact_position` (159). API contract:
+`api/docs/feature/chat.md` "Panel read (C3)" — `GET /api/reports/:id/chat`.
+
+### Invariants the screen honours
+
+| Invariant | Where |
+|---|---|
+| Section exists ONLY with `chat_evidence` VIEW (175); the API stacks `reports` VIEW then `chat_evidence` VIEW | `ReportDetailPage` renders `_chatSection` only when `SessionAccess.can('chat_evidence', VIEW)`; a 403 from the server renders by code under the section (`chat-error`) and the case stays |
+| Every read is audited (116/166) → never fetched with the detail | `ReportDetailBloc._fetch` never calls `getChat`; only `ReportChatRequested` (the "Load chat" button, captioned "Reading the chat is audited.") does. A mutation's re-fetch drops the loaded chat — a new "Load chat" is a new audit row, as with the exact position |
+| READ ONLY (175): no composer, no hide/delete per message, no `last_read` | The section has no input and no action; the repository has no write call on `/chat` |
+| The panel is the platform (60), the reporter's anonymity holds (23/160) | `ChatParticipantEvidenceEntity {role, participantToken, accountId?, displayName?, anonymousChoice}` is the ONLY identity shape: helper → name + `#accountId`; reporter → name + id only when the report is not anonymous, else "Anonymous". The page never derives anything from the token |
+| Text as stored, `null` when purged (131/173); timestamps EXACT | Rows render `role · time · text`, `[purged]` when null; `_when` cuts to the minute for display, nothing is degraded client-side |
+| No raw Flutter widget (133) | Guard green: `VgrCard` per thread, `VgrText` rows, `VgrSecondaryButton` to load, `VgrInlineProgress` while loading |
+
+### What changed
+
+- `domain/entity/chat_evidence_entities.dart`: `ReportChatEntity {reportId, tier, threads}`,
+  `ChatThreadEvidenceEntity {threadId, helpOfferId, createdAt, closed, participants, messages,
+  hasMore}` (`hasMore`/`closed` tolerate absence), `ChatParticipantEvidenceEntity`,
+  `ChatMessageEvidenceEntity {messageId, sender: participantToken, text?, purged, createdAt}`.
+- Repository: `getChat(reportId, {limit})` → `GET /api/reports/:id/chat[?limit=]` (query absent
+  when no limit is asked, so the API default 200 applies).
+- Bloc: `ReportChatRequested` → `chatLoading: true` → `chat` or `chatFailure` on the SAME
+  `ReportDetailLoaded`; a no-op before the detail is loaded or while a read is in flight.
+- Detail page: section **Chat (evidence)** between help offers and Moderation — caption, "Load
+  chat" (`load-chat-button`), then one card per thread (`chat-thread-{id}`): `Thread {id} · offer
+  {offer} · {when}`, one participant line each (`Reporter: Anonymous · chose anonymity`,
+  `Helper: João #30`), `Closed` marker (`chat-thread-{id}-closed`), message rows
+  (`chat-message-{id}`), hasMore note (`chat-thread-{id}-has-more`); empty note (`chat-empty`).
+- Translations `reports.chat.*` (en-US, pt-BR): section, audited, load, empty, thread,
+  participant, account, anonymous, choseAnonymity, closed, message, purged, hasMore,
+  role.reporter/helper. No `menu.interfaces` entry — kind 'R' never sits on the menu.
+- `test/helpers/session_access.dart`: `grantAllPrivileges()` deliberately carries NO
+  `chat_evidence`; `grantChatEvidence()` adds it for the tests that exercise the read, so every
+  other page test proves the section stays absent.
+
+### Tests
+
++13 admin: repository (path without query, `?limit=`, full mapping incl. null identities and
+purged text, `hasMore` absent → false, empty threads, 403 as `Left`); bloc (request →
+loading → loaded, never fetched with the detail, refusal keeps the case with `chatFailure`,
+no-op before load); detail page (absent without the grant AND nothing fetched; present with
+the grant, not fetched until pressed, then threads/participants/closed/messages/`[purged]`/
+hasMore and no composer; empty note; 403 rendered by code with the case kept). Guard 133 and
+`translations_catalog_test` green.

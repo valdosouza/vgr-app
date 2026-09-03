@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vgr_admin/app/modules/reports/domain/entity/chat_evidence_entities.dart';
 import 'package:vgr_admin/app/modules/reports/domain/entity/report_entities.dart';
 import 'package:vgr_admin/app/modules/reports/domain/repository/reports_repository.dart';
 import 'package:vgr_admin/app/modules/reports/presentation/bloc/report_detail_bloc.dart';
@@ -444,6 +445,128 @@ void main() {
       await pumpPage(tester);
 
       expect(find.byKey(const Key('mark-reviewed-button')), findsNothing);
+    });
+  });
+
+  group('chat evidence — C3 (decision 175): grant-gated section, fetched only on demand',
+      () {
+    final chat = ReportChatEntity(
+      reportId: 7,
+      tier: 'high',
+      threads: [
+        ChatThreadEvidenceEntity(
+          threadId: 3,
+          helpOfferId: 11,
+          createdAt: '2026-09-03T10:00:00.000Z',
+          closed: true,
+          hasMore: true,
+          participants: [
+            ChatParticipantEvidenceEntity(
+              role: 'reporter',
+              participantToken: 'a' * 32,
+              accountId: null,
+              displayName: null,
+              anonymousChoice: true,
+            ),
+            ChatParticipantEvidenceEntity(
+              role: 'helper',
+              participantToken: 'b' * 32,
+              accountId: 30,
+              displayName: 'João',
+              anonymousChoice: false,
+            ),
+          ],
+          messages: [
+            ChatMessageEvidenceEntity(
+              messageId: 100,
+              sender: 'b' * 32,
+              text: 'Where are you?',
+              purged: false,
+              createdAt: '2026-09-03T10:01:02.000Z',
+            ),
+            ChatMessageEvidenceEntity(
+              messageId: 101,
+              sender: 'a' * 32,
+              text: null,
+              purged: true,
+              createdAt: '2026-09-03T10:02:00.000Z',
+            ),
+          ],
+        ),
+      ],
+    );
+
+    testWidgets('without the chat_evidence grant the section does not exist and nothing is '
+        'fetched (175: no bootstrap, a human must grant it)', (tester) async {
+      // grantAllPrivileges() (setUp) deliberately carries no chat_evidence.
+      stub();
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('chat-evidence-section')), findsNothing);
+      expect(find.byKey(const Key('load-chat-button')), findsNothing);
+      expect(find.text('Chat (evidence)'), findsNothing);
+      verifyNever(() => repository.getChat(any(), limit: any(named: 'limit')));
+    });
+
+    testWidgets('with the grant: the section, the audit caption and "Load chat" render, but '
+        'nothing is fetched until pressed; then threads, participants, closed marker, '
+        'messages, [purged] and the hasMore note render', (tester) async {
+      grantChatEvidence();
+      stub();
+      when(() => repository.getChat(7)).thenAnswer((_) async => Right(chat));
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('chat-evidence-section')), findsOneWidget);
+      expect(find.text('Reading the chat is audited.'), findsOneWidget);
+      verifyNever(() => repository.getChat(any(), limit: any(named: 'limit')));
+      expect(find.byKey(const Key('chat-thread-3')), findsNothing);
+
+      await tapVisible(tester, 'load-chat-button');
+
+      verify(() => repository.getChat(7)).called(1);
+      expect(find.byKey(const Key('load-chat-button')), findsNothing);
+      expect(find.byKey(const Key('chat-thread-3')), findsOneWidget);
+      // Participants line: role, "Anonymous" / displayName, #accountId, anonymity marker.
+      expect(find.text('Reporter: Anonymous · chose anonymity'), findsOneWidget);
+      expect(find.text('Helper: João #30'), findsOneWidget);
+      expect(find.byKey(const Key('chat-thread-3-closed')), findsOneWidget);
+      expect(find.text('Closed'), findsOneWidget);
+      // Messages as plain rows: role · time · text; purged → [purged].
+      expect(find.text('Helper · 2026-09-03 10:01 · Where are you?'), findsOneWidget);
+      expect(find.text('Reporter · 2026-09-03 10:02 · [purged]'), findsOneWidget);
+      expect(find.byKey(const Key('chat-thread-3-has-more')), findsOneWidget);
+      // No composer, no action (175): the ONLY text field on the page is the freeze reason.
+      expect(find.byType(VgrChatComposer), findsNothing);
+      expect(find.byType(VgrTextField), findsOneWidget);
+      expect(find.byKey(const Key('freeze-reason-field')), findsOneWidget);
+    });
+
+    testWidgets('a case without threads renders the empty note', (tester) async {
+      grantChatEvidence();
+      stub();
+      when(() => repository.getChat(7)).thenAnswer((_) async =>
+          const Right(ReportChatEntity(reportId: 7, tier: 'high', threads: [])));
+      await pumpPage(tester);
+
+      await tapVisible(tester, 'load-chat-button');
+
+      expect(find.byKey(const Key('chat-empty')), findsOneWidget);
+      expect(find.text('No chat thread on this case.'), findsOneWidget);
+    });
+
+    testWidgets('a server refusal (403) renders by code under the section; the case stays',
+        (tester) async {
+      grantChatEvidence();
+      stub();
+      when(() => repository.getChat(7)).thenAnswer((_) async =>
+          const Left(Failure(message: 'no', statusCode: 403, code: 'FORBIDDEN')));
+      await pumpPage(tester);
+
+      await tapVisible(tester, 'load-chat-button');
+
+      expect(find.byKey(const Key('chat-error')), findsOneWidget);
+      expect(find.byKey(const Key('report-reporter-anonymous')), findsOneWidget);
+      expect(find.byKey(const Key('load-chat-button')), findsOneWidget);
     });
   });
 }

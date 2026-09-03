@@ -20,7 +20,7 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |
 | [**chat.md**](./feature/chat.md) | Masked reporter ↔ helper chat: cursor polling, offline-queued sends, anti-contact mirror (C2, decisions 54, 168-177). | Optional |
 | [**case-freeze.md**](./feature/case-freeze.md) | Panel screen to freeze/unfreeze a case under dual control (P1). | Optional |
-| [**report-moderation.md**](./feature/report-moderation.md) | Panel report search + case detail with embedded freeze (B1, decisions 158-167). | Optional |
+| [**report-moderation.md**](./feature/report-moderation.md) | Panel report search + case detail with embedded freeze (B1, decisions 158-167); chat evidence on the detail (C3, decision 175). | Optional |
 | [**admin-audit.md**](./feature/admin-audit.md) | Panel screen for the append-only admin audit trail, read only (B5, decisions 116, 158, 165, 166). | Optional |
 | [**legal-policy.md**](./feature/legal-policy.md) | Legal Gate admin screens: jurisdictions kill switch, capability verdicts, versioned rules (L3). | Optional |
 

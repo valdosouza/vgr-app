@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../domain/entity/chat_evidence_entities.dart';
 import '../../domain/entity/report_entities.dart';
 import '../bloc/report_detail_bloc.dart';
 import '../bloc/report_detail_event.dart';
@@ -26,6 +27,10 @@ import '../widget/moderation_reason_form.dart';
 ///   each media — every act through the ONE `ModerationReasonForm`, buttons
 ///   follow the `reports` UPDATE grant, the bloc re-fetches afterwards.
 ///   Nothing here touches retention; the owner never learns the reason.
+/// - Chat (evidence) (C3, decision 175): the section exists ONLY with the
+///   `chat_evidence` VIEW grant (no bootstrap), and the chat is fetched
+///   ONLY when "Load chat" is pressed — every read is audited server-side.
+///   Read only: no composer, no per-message action.
 class ReportDetailPage extends StatefulWidget {
   const ReportDetailPage({super.key, required this.reportId, this.autoload = true});
 
@@ -113,6 +118,10 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                   ],
                   const VgrGap.md(),
                   ..._offers(state.detail.offers),
+                  if (SessionAccess.instance.can('chat_evidence', Privileges.view)) ...[
+                    const VgrGap.md(),
+                    ..._chatSection(state),
+                  ],
                   const VgrGap.lg(),
                   ..._actionError(state),
                   ..._moderationSection(state),
@@ -346,6 +355,92 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               ].join(' · '),
             ),
       ];
+
+  /// Chat evidence (C3, decision 175). Rendered only under the
+  /// `chat_evidence` grant (the caller checks); the chat itself arrives
+  /// only after "Load chat" — the caption says the read is audited. Each
+  /// thread is a card: participants line, closed marker, plain message
+  /// rows, hasMore note. Nothing here writes.
+  List<Widget> _chatSection(ReportDetailLoaded state) {
+    final chat = state.chat;
+    return [
+      VgrText.title('reports.chat.section'.tr(), key: const Key('chat-evidence-section')),
+      VgrText.caption('reports.chat.audited'.tr()),
+      if (state.chatFailure != null) ...[
+        const VgrGap.sm(),
+        VgrText.error(failureText(state.chatFailure!), key: const Key('chat-error')),
+      ],
+      const VgrGap.sm(),
+      if (state.chatLoading)
+        const VgrInlineProgress(key: Key('chat-loading'))
+      else if (chat == null)
+        VgrSecondaryButton(
+          key: const Key('load-chat-button'),
+          label: 'reports.chat.load'.tr(),
+          onPressed: () => context.read<ReportDetailBloc>().add(const ReportChatRequested()),
+        )
+      else if (chat.threads.isEmpty)
+        VgrText.caption('reports.chat.empty'.tr(), key: const Key('chat-empty'))
+      else
+        for (final thread in chat.threads) ...[
+          _chatThread(thread),
+          const VgrGap.sm(),
+        ],
+    ];
+  }
+
+  Widget _chatThread(ChatThreadEvidenceEntity thread) {
+    final roleByToken = {
+      for (final p in thread.participants) p.participantToken: _chatRole(p.role),
+    };
+    return VgrCard(
+      key: Key('chat-thread-${thread.threadId}'),
+      child: VgrPadding(
+        child: VgrColumn(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            VgrText.caption('reports.chat.thread'.tr(namedArgs: {
+              'id': '${thread.threadId}',
+              'offer': '${thread.helpOfferId}',
+              'when': _when(thread.createdAt),
+            })),
+            for (final p in thread.participants) VgrText(_chatParticipant(p)),
+            if (thread.closed)
+              VgrText.error('reports.chat.closed'.tr(),
+                  key: Key('chat-thread-${thread.threadId}-closed')),
+            const VgrGap.sm(),
+            for (final m in thread.messages)
+              VgrText(
+                'reports.chat.message'.tr(namedArgs: {
+                  'role': roleByToken[m.sender] ?? m.sender,
+                  'when': _when(m.createdAt),
+                  'text': m.text ?? 'reports.chat.purged'.tr(),
+                }),
+                key: Key('chat-message-${m.messageId}'),
+              ),
+            if (thread.hasMore)
+              VgrText.caption('reports.chat.hasMore'.tr(),
+                  key: Key('chat-thread-${thread.threadId}-has-more')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _chatRole(String role) => _trOr('reports.chat.role.$role', role);
+
+  /// `Role: displayName|Anonymous [#accountId] [· chose anonymity]` — the
+  /// helper is always identifiable to the platform (60); the reporter only
+  /// when the report is not anonymous (160): both fields arrive null then.
+  String _chatParticipant(ChatParticipantEvidenceEntity p) {
+    final name = p.displayName ?? 'reports.chat.anonymous'.tr();
+    final account =
+        p.accountId == null ? '' : ' ${'reports.chat.account'.tr(namedArgs: {'id': '${p.accountId}'})}';
+    final marker = p.anonymousChoice ? ' · ${'reports.chat.choseAnonymity'.tr()}' : '';
+    final line = 'reports.chat.participant'
+        .tr(namedArgs: {'role': _chatRole(p.role), 'name': '$name$account'});
+    return '$line$marker';
+  }
 
   /// The last action's refusal (freeze or moderation), rendered ONCE by
   /// catalog code (80/83); the case itself stays on screen.
