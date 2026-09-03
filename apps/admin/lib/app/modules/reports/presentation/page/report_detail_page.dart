@@ -9,6 +9,7 @@ import '../../domain/entity/report_entities.dart';
 import '../bloc/report_detail_bloc.dart';
 import '../bloc/report_detail_event.dart';
 import '../bloc/report_detail_state.dart';
+import '../widget/moderation_reason_form.dart';
 
 /// Case detail on the panel plane (B1, decisions 159/160/165/166).
 ///
@@ -21,6 +22,10 @@ import '../bloc/report_detail_state.dart';
 ///   (160). Never an e-mail — the API never sends one.
 /// - The Retention/freeze section EMBEDS P1 (141/141d/165) against
 ///   `/api/case-freeze`; buttons follow the `case_freeze` UPDATE grant.
+/// - Moderation (B2, 162/163/165/167): hide/unhide the case, block/unblock
+///   each media — every act through the ONE `ModerationReasonForm`, buttons
+///   follow the `reports` UPDATE grant, the bloc re-fetches afterwards.
+///   Nothing here touches retention; the owner never learns the reason.
 class ReportDetailPage extends StatefulWidget {
   const ReportDetailPage({super.key, required this.reportId, this.autoload = true});
 
@@ -34,9 +39,17 @@ class ReportDetailPage extends StatefulWidget {
   State<ReportDetailPage> createState() => _ReportDetailPageState();
 }
 
+/// Which moderation act the reason form is open for (B2).
+enum _ModerationAct { hide, unhide, block, unblock }
+
 class _ReportDetailPageState extends State<ReportDetailPage> {
   final _reasonController = TextEditingController();
   String? _reasonError;
+
+  /// The open moderation form, if any; [_actPublicId] names the media
+  /// for block/unblock. One form at a time, always the same widget.
+  _ModerationAct? _act;
+  String? _actPublicId;
 
   @override
   void initState() {
@@ -96,10 +109,13 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                   ],
                   if (state.detail.media.isNotEmpty) ...[
                     const VgrGap.md(),
-                    ..._media(state.detail.media),
+                    ..._media(state),
                   ],
                   const VgrGap.md(),
                   ..._offers(state.detail.offers),
+                  const VgrGap.lg(),
+                  ..._actionError(state),
+                  ..._moderationSection(state),
                   const VgrGap.lg(),
                   ..._freezeSection(state),
                 ],
@@ -217,22 +233,62 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
   /// Attachments are LISTED, not shown: the image is served by
   /// `/api/media` under `media_evidence` with the panel JWT in a header,
   /// which a web `<img>` cannot carry — see `report-moderation.md`.
-  List<Widget> _media(List<ReportMediaEntity> media) => [
-        VgrText.title('reports.detail.media'.tr()),
-        VgrText.caption('reports.detail.mediaNote'.tr()),
-        for (final m in media)
-          VgrListTile(
-            key: Key('report-media-${m.publicId}'),
-            dense: true,
-            leadingIcon: VgrIconName.image,
-            title: m.publicId,
-            subtitle: 'reports.detail.mediaRow'.tr(namedArgs: {
-              'mime': m.mime,
-              'size': m.width != null && m.height != null ? '${m.width}×${m.height}' : '—',
-              'status': _trOr('reports.detail.mediaStatus.${m.status}', m.status),
-            }),
-          ),
-      ];
+  List<Widget> _media(ReportDetailLoaded state) {
+    final canModerate = SessionAccess.instance.can('reports', Privileges.update);
+    return [
+      VgrText.title('reports.detail.media'.tr()),
+      VgrText.caption('reports.detail.mediaNote'.tr()),
+      for (final m in state.detail.media) ...[
+        VgrListTile(
+          key: Key('report-media-${m.publicId}'),
+          dense: true,
+          leadingIcon: VgrIconName.image,
+          title: m.publicId,
+          subtitle: _mediaSubtitle(m),
+          trailing: _mediaAction(state, m, canModerate: canModerate),
+        ),
+        // The one reason form, right under the media it is about.
+        if ((_act == _ModerationAct.block || _act == _ModerationAct.unblock) &&
+            _actPublicId == m.publicId)
+          _moderationForm(state),
+      ],
+    ];
+  }
+
+  String _mediaSubtitle(ReportMediaEntity m) {
+    final row = 'reports.detail.mediaRow'.tr(namedArgs: {
+      'mime': m.mime,
+      'size': m.width != null && m.height != null ? '${m.width}×${m.height}' : '—',
+      'status': _trOr('reports.detail.mediaStatus.${m.status}', m.status),
+    });
+    // Blocked media carry their reason on the panel — never on the app (162).
+    final blocked = [
+      if (m.blockedReasonCode != null)
+        _trOr('reports.moderation.reason.${m.blockedReasonCode}', m.blockedReasonCode!),
+      if (m.blockedNote != null) m.blockedNote!,
+      if (m.blockedAt != null)
+        'reports.moderation.blockedSince'.tr(namedArgs: {'when': _when(m.blockedAt!)}),
+    ];
+    return blocked.isEmpty ? row : '$row · ${blocked.join(' · ')}';
+  }
+
+  /// `available` → Block, `blocked` → Unblock; pending/deleted have no act
+  /// (the API 404s anything else). Disabled without `reports` UPDATE (72).
+  Widget? _mediaAction(ReportDetailLoaded state, ReportMediaEntity m,
+      {required bool canModerate}) {
+    final act = switch (m.status) {
+      'available' => _ModerationAct.block,
+      'blocked' => _ModerationAct.unblock,
+      _ => null,
+    };
+    if (act == null || state.detail.purged) return null;
+    final isBlock = act == _ModerationAct.block;
+    return VgrSecondaryButton(
+      key: Key('${isBlock ? 'block' : 'unblock'}-media-${m.publicId}'),
+      label: (isBlock ? 'reports.moderation.block' : 'reports.moderation.unblock').tr(),
+      onPressed: !canModerate || state.busy ? null : () => _open(act, publicId: m.publicId),
+    );
+  }
 
   List<Widget> _offers(List<ReportOfferEntity> offers) => [
         VgrText.title('reports.detail.offers'.tr()),
@@ -255,6 +311,91 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             ),
       ];
 
+  /// The last action's refusal (freeze or moderation), rendered ONCE by
+  /// catalog code (80/83); the case itself stays on screen.
+  List<Widget> _actionError(ReportDetailLoaded state) => [
+        if (state.failure != null) ...[
+          VgrText.error(failureText(state.failure!), key: const Key('report-action-error')),
+          const VgrGap.sm(),
+        ],
+      ];
+
+  /// Moderation (B2, decisions 162/163/167): the case is either visible
+  /// (→ Hide) or hidden with its reason, note, date and author (→ Unhide).
+  /// Both open the same form; hidden and frozen are independent flags.
+  List<Widget> _moderationSection(ReportDetailLoaded state) {
+    final d = state.detail;
+    final canModerate = SessionAccess.instance.can('reports', Privileges.update);
+    final hiddenReason = d.hiddenReasonCode == null
+        ? null
+        : _trOr('reports.moderation.reason.${d.hiddenReasonCode}', d.hiddenReasonCode!);
+    return [
+      VgrText.title('reports.moderation.title'.tr()),
+      if (d.hidden) ...[
+        VgrText.error('reports.moderation.hiddenBadge'.tr(),
+            key: const Key('report-hidden-badge')),
+        if (hiddenReason != null)
+          VgrText('reports.moderation.reasonLine'.tr(namedArgs: {'reason': hiddenReason})),
+        if (d.hiddenNote != null) VgrText(d.hiddenNote!),
+        VgrText.caption([
+          if (d.hiddenAt != null)
+            'reports.moderation.hiddenSince'.tr(namedArgs: {'when': _when(d.hiddenAt!)}),
+          if (d.hiddenBy != null)
+            'reports.moderation.hiddenBy'.tr(namedArgs: {'user': '${d.hiddenBy}'}),
+        ].join(' · ')),
+      ] else
+        VgrText('reports.moderation.notHidden'.tr(), key: const Key('report-not-hidden-badge')),
+      const VgrGap.sm(),
+      // A purged skeleton has nothing left to moderate (the API 404s).
+      if (!d.purged)
+        VgrPrimaryButton(
+          key: Key(d.hidden ? 'unhide-button' : 'hide-button'),
+          label: (d.hidden ? 'reports.moderation.unhide' : 'reports.moderation.hide').tr(),
+          busy: state.busy,
+          onPressed: !canModerate
+              ? null
+              : () => _open(d.hidden ? _ModerationAct.unhide : _ModerationAct.hide),
+        ),
+      if (_act == _ModerationAct.hide || _act == _ModerationAct.unhide) ...[
+        const VgrGap.sm(),
+        _moderationForm(state),
+      ],
+    ];
+  }
+
+  void _open(_ModerationAct act, {String? publicId}) => setState(() {
+        _act = act;
+        _actPublicId = publicId;
+      });
+
+  void _close() => setState(() {
+        _act = null;
+        _actPublicId = null;
+      });
+
+  /// The ONE form (163). Keyed by act + target so switching from one
+  /// media to another starts a clean form instead of carrying a draft.
+  Widget _moderationForm(ReportDetailLoaded state) {
+    final act = _act!;
+    final publicId = _actPublicId;
+    return ModerationReasonForm(
+      key: ValueKey('moderation-form-${act.name}-${publicId ?? ''}'),
+      title: 'reports.moderation.formTitle.${act.name}'
+          .tr(namedArgs: {'publicId': publicId ?? ''}),
+      busy: state.busy,
+      onCancel: _close,
+      onSubmit: (reasonCode, note) {
+        _close();
+        context.read<ReportDetailBloc>().add(switch (act) {
+          _ModerationAct.hide => ReportHideSubmitted(reasonCode, note),
+          _ModerationAct.unhide => ReportUnhideSubmitted(reasonCode, note),
+          _ModerationAct.block => ReportMediaBlockSubmitted(publicId!, reasonCode, note),
+          _ModerationAct.unblock => ReportMediaUnblockSubmitted(publicId!, reasonCode, note),
+        });
+      },
+    );
+  }
+
   /// P1's three states, verbatim (141/141d): the server state decides
   /// which ONE renders; the bloc re-fetches after every action.
   List<Widget> _freezeSection(ReportDetailLoaded state) {
@@ -262,10 +403,6 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     final canUpdate = SessionAccess.instance.can('case_freeze', Privileges.update);
     return [
       VgrText.title('reports.detail.freezeTitle'.tr()),
-      if (state.failure != null) ...[
-        VgrText.error(failureText(state.failure!), key: const Key('report-action-error')),
-        const VgrGap.sm(),
-      ],
       if (freeze == null)
         VgrText.caption('reports.detail.freezeUnavailable'.tr(),
             key: const Key('freeze-unavailable'))

@@ -6,7 +6,8 @@ import '../../domain/repository/reports_repository.dart';
 import 'report_detail_event.dart';
 import 'report_detail_state.dart';
 
-/// Case detail on the panel plane (B1, decisions 159/160/165/166): loads
+/// Case detail on the panel plane (B1, decisions 159/160/165/166; B2 moderation
+/// 162/163/167): loads
 /// the detail (audited server-side) together with the embedded freeze
 /// state; after every freeze action BOTH are re-fetched — the server is
 /// the only authority on what the case is. The exact position is a
@@ -21,6 +22,16 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
         (event, emit) => _mutate(emit, (id) => _repository.requestUnfreeze(id, event.reason)));
     on<ReportUnfreezeApproveSubmitted>(
         (event, emit) => _mutate(emit, _repository.approveUnfreeze));
+    // Moderation (B2, 162/167): same re-fetch discipline — `hidden` and a
+    // media's `status` are only ever what the server answers.
+    on<ReportHideSubmitted>((event, emit) =>
+        _mutate(emit, (id) => _repository.hide(id, event.reasonCode, event.note)));
+    on<ReportUnhideSubmitted>((event, emit) =>
+        _mutate(emit, (id) => _repository.unhide(id, event.reasonCode, event.note)));
+    on<ReportMediaBlockSubmitted>((event, emit) => _mutate(
+        emit, (_) => _repository.blockMedia(event.publicId, event.reasonCode, event.note)));
+    on<ReportMediaUnblockSubmitted>((event, emit) => _mutate(
+        emit, (_) => _repository.unblockMedia(event.publicId, event.reasonCode, event.note)));
   }
 
   final ReportsRepository _repository;

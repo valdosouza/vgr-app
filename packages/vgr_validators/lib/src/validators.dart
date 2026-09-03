@@ -76,6 +76,14 @@ abstract final class VgrValidators {
             : null;
       };
 
+  /// Mirrors `z.string().max(n)` on a free-text field — e.g. the `note` of
+  /// `moderationReasonDto` (`api/src/shared/moderation/moderation-reason.ts`,
+  /// decision 163: at most 500 characters). Blank passes: whether the
+  /// field is required is a separate rule the screen lists (or not).
+  static VgrValidator maxLength(int max) => (String value) => value.trim().length > max
+      ? VgrFieldError(VgrFieldCode.tooLong, {'max': '$max'})
+      : null;
+
   /// Mirrors the `YYYY-MM-DD` form accepted by the panel report search
   /// `from`/`to` query (`api/src/modules/reports/reports-admin.dto.ts`,
   /// phase B1). Shape AND calendar validity: `2026-02-30` is

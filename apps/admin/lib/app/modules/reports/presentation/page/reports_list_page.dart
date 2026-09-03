@@ -38,6 +38,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
   String _tier = _any;
   String _frozen = _any;
   String _hasMedia = _any;
+  String _hidden = _any;
   Map<String, String> _fieldErrors = const {};
 
   @override
@@ -78,6 +79,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
       tier: opt(_tier),
       frozen: tri(_frozen),
       hasMedia: tri(_hasMedia),
+      hidden: tri(_hidden),
       from: opt(_fromController.text.trim()),
       to: opt(_toController.text.trim()),
     );
@@ -201,6 +203,16 @@ class _ReportsListPageState extends State<ReportsListPage> {
               ),
             ),
             VgrFixedWidth(
+              width: 160,
+              child: VgrDropdownField<String>(
+                key: const Key('reports-filter-hidden'),
+                label: 'reports.list.hidden'.tr(),
+                value: _hidden,
+                options: _triOptions(),
+                onChanged: (v) => setState(() => _hidden = v ?? _any),
+              ),
+            ),
+            VgrFixedWidth(
               width: 180,
               child: VgrTextField(
                 key: const Key('reports-filter-from'),
@@ -261,6 +273,8 @@ class _ReportsListPageState extends State<ReportsListPage> {
     final marks = [
       if (item.frozen) 'reports.list.frozenMark'.tr(),
       if (item.purged) 'reports.list.purgedMark'.tr(),
+      // Moderation mark (B2, 162): hidden cases stay searchable here.
+      if (item.hidden) 'reports.list.hiddenMark'.tr(),
       if (item.anonymous) 'reports.list.anonymousMark'.tr(),
     ];
     final meta = 'reports.list.rowMeta'.tr(namedArgs: {

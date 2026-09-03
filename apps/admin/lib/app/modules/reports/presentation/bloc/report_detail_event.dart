@@ -42,3 +42,48 @@ class ReportUnfreezeRequestSubmitted extends ReportDetailEvent {
 class ReportUnfreezeApproveSubmitted extends ReportDetailEvent {
   const ReportUnfreezeApproveSubmitted();
 }
+
+/// Moderation acts (B2, decisions 162/163): a catalog [reasonCode] plus
+/// an optional [note] (mandatory when `other`). Same shape for hide and
+/// its reversal — reverting is audited exactly like the act (162).
+class ReportHideSubmitted extends ReportDetailEvent {
+  const ReportHideSubmitted(this.reasonCode, this.note);
+
+  final String reasonCode;
+  final String? note;
+
+  @override
+  List<Object?> get props => [reasonCode, note];
+}
+
+class ReportUnhideSubmitted extends ReportDetailEvent {
+  const ReportUnhideSubmitted(this.reasonCode, this.note);
+
+  final String reasonCode;
+  final String? note;
+
+  @override
+  List<Object?> get props => [reasonCode, note];
+}
+
+class ReportMediaBlockSubmitted extends ReportDetailEvent {
+  const ReportMediaBlockSubmitted(this.publicId, this.reasonCode, this.note);
+
+  final String publicId;
+  final String reasonCode;
+  final String? note;
+
+  @override
+  List<Object?> get props => [publicId, reasonCode, note];
+}
+
+class ReportMediaUnblockSubmitted extends ReportDetailEvent {
+  const ReportMediaUnblockSubmitted(this.publicId, this.reasonCode, this.note);
+
+  final String publicId;
+  final String reasonCode;
+  final String? note;
+
+  @override
+  List<Object?> get props => [publicId, reasonCode, note];
+}

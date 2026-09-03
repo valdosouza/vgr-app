@@ -96,6 +96,16 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           const VgrGap.sm(),
           if (view.access == ReportAccess.owner)
             VgrText.caption('detail.yours'.tr(), key: const Key('detail-owner-badge')),
+          // Moderation mark (B2, decision 167): owner/participant only —
+          // third parties never get a hidden case at all. No reason, no
+          // action: the reason belongs to the audit trail, not to the
+          // reporter.
+          if (view.hidden &&
+              (view.access == ReportAccess.owner ||
+                  view.access == ReportAccess.participant)) ...[
+            const VgrGap.sm(),
+            VgrText.error('detail.hiddenNotice'.tr(), key: const Key('detail-hidden-notice')),
+          ],
           VgrText.caption(view.status == 'resolved'
               ? 'detail.status.resolved'.tr()
               : 'detail.status.open'.tr()),

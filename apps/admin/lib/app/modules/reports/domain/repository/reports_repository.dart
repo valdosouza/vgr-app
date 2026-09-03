@@ -25,4 +25,13 @@ abstract class ReportsRepository {
   Future<Either<Failure, void>> freeze(int reportId, String reason);
   Future<Either<Failure, void>> requestUnfreeze(int reportId, String reason);
   Future<Either<Failure, void>> approveUnfreeze(int reportId);
+
+  // Moderation (B2, decisions 162/163/165/167). Each call is ONE human
+  // with the `reports` UPDATE grant, a catalog [reasonCode] and an
+  // optional [note] (mandatory when `other`) — the API audits every one,
+  // reverting included. Nothing here touches retention.
+  Future<Either<Failure, void>> hide(int reportId, String reasonCode, String? note);
+  Future<Either<Failure, void>> unhide(int reportId, String reasonCode, String? note);
+  Future<Either<Failure, void>> blockMedia(String publicId, String reasonCode, String? note);
+  Future<Either<Failure, void>> unblockMedia(String publicId, String reasonCode, String? note);
 }

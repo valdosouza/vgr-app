@@ -90,6 +90,7 @@ class ReportViewEntity extends Equatable {
     this.timeline,
     this.media = const [],
     this.offers,
+    this.hidden = false,
   });
 
   final ReportAccess access;
@@ -106,6 +107,12 @@ class ReportViewEntity extends Equatable {
   final List<TimelineEventEntity>? timeline;
   final List<ReportMediaRefEntity> media;
   final List<OfferViewEntity>? offers;
+
+  /// Hidden by panel moderation (B2, decision 167): the case is gone from
+  /// the feed and from third parties; the OWNER and PARTICIPANTS still get
+  /// it, with this mark only — never the reason (that is audit material).
+  /// Absent from the API → `false`.
+  final bool hidden;
 
   factory ReportViewEntity.fromJson(Map<String, dynamic> json) {
     final position = json['position'] as Map?;
@@ -135,6 +142,7 @@ class ReportViewEntity extends Equatable {
       offers: (json['offers'] as List<dynamic>?)
           ?.map((o) => OfferViewEntity.fromJson((o as Map).cast<String, dynamic>()))
           .toList(),
+      hidden: json['hidden'] as bool? ?? false,
     );
   }
 
@@ -148,6 +156,6 @@ class ReportViewEntity extends Equatable {
   @override
   List<Object?> get props => [
         access, reportId, category, freeTag, subject, tier, status, position,
-        detailFields, createdAt, resolvedAt, timeline, media, offers,
+        detailFields, createdAt, resolvedAt, timeline, media, offers, hidden,
       ];
 }

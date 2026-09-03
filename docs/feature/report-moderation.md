@@ -82,3 +82,60 @@ validation, error, navigation to `/reports/:id` through a ModularApp;
 anonymous vs identified rendering, reveal hidden without grant, freeze
 flow with `TOO_SHORT`, same-user 422, UPDATE-less disabled, freeze state
 refused, purged skeleton, 404). Guard 133 green.
+
+## B2 — moderation (`modules/reports`, decisions 162/163/165/167)
+
+Same module, same routes, no new interface: moderating is the `reports`
+UPDATE grant (165). API contract: `api/docs/feature/report-moderation.md`
+§B2 (`POST /api/reports/:id/hide|unhide`, `POST /api/media/:publicId/block|unblock`).
+
+### Invariants the screens honour
+
+| Invariant | Where |
+|---|---|
+| One human + a catalog reason + one audit row, reverting included — no dual control (162) | Every act (hide, unhide, block, unblock) opens the ONE `ModerationReasonForm`; the bloc posts and re-fetches; the server audits |
+| Reason catalog fixed in code (163): `spam · abuse · illegal_content · duplicate · personal_data · other`; note REQUIRED (3–500) only when `other` | `domain/entity/moderation_reason.dart` mirrors `api/src/shared/moderation/moderation-reason.ts`; the form builds its `VgrValidators` list conditionally: `required` on the code, `minLength(3)` on the note ONLY when `other`, `maxLength(500)` always (new validator in `vgr_validators`, mirrors `z.string().max(500)`) |
+| Moderation never touches retention (162) | Nothing on the screen mentions expiry; the freeze block is untouched and `hidden`/`frozen` render independently |
+| Hidden: gone from feed/public reads; owner and participants see a mark, never the reason (167) | Panel shows reason, note, `hiddenAt`, `hiddenBy`; the mobile owner view shows a `VgrText` notice only (see below) |
+| Blocked media stays readable on the panel (M3) | The detail keeps listing blocked media with status, reason, note, "blocked since" |
+| Buttons follow the grant, the API enforces (72) | Hide/Unhide/Block/Unblock render disabled without `can('reports', UPDATE)` |
+| No raw Flutter widget (133); validation via `vgr_validators` (157) | Guard green; the form is `VgrDropdownField` + `VgrTextField` + `VgrPrimaryButton`/`VgrTextButton` |
+
+### What changed
+
+- Entities: `ReportListItemEntity.hidden`, `ReportFiltersEntity.hidden` (→ `hidden=true|false`),
+  `ReportPanelDetailEntity.hidden/hiddenReasonCode/hiddenNote/hiddenAt/hiddenBy`,
+  `ReportMediaEntity.blockedReasonCode/blockedNote/blockedAt`. Every new field tolerates
+  absence (`false`/`null`) — the API is built from the same contract in parallel.
+- Repository: `hide`, `unhide`, `blockMedia`, `unblockMedia` — body `{reasonCode, note?}`,
+  the note omitted when blank. All answer `void`; the bloc re-fetches (server = authority).
+- Bloc: four events through the same `_mutate` as the freeze actions (busy → post → refetch;
+  a refusal keeps the case with `failure`).
+- Detail page: new **Moderation** section (visible → "Hide report"; hidden → badge + reason
+  label + note + "Hidden since … · By user N" + "Unhide"); each media row gets Block/Unblock
+  by status (`available`/`blocked` only; nothing on a purged skeleton), with the form rendered
+  right under that row. The last action's refusal renders once (`report-action-error`) above
+  the Moderation section, shared with the freeze block.
+- List page: `hidden` tri-state filter (`reports-filter-hidden`) and a `HIDDEN` mark on rows.
+- `presentation/widget/moderation_reason_form.dart`: the reusable form (Components layer only —
+  no bloc, no repository; the page maps `onSubmit` to the event).
+- Translations `reports.moderation.*` and `reports.list.hidden/hiddenMark` (en-US, pt-BR);
+  `menu.interfaces` untouched.
+
+### Mobile — the owner's mark (167)
+
+`ReportViewEntity.hidden` (bool, `false` when absent). `ReportDetailPage` shows, for
+`owner`/`participant` only, `detail.hiddenNotice` ("This report is hidden from the public
+feed by moderation.") — no reason, no action. Third parties never receive a hidden case
+(the API answers 404), so the page has no branch for them.
+
+### Tests
+
++15 admin (166 → 181): repository (four paths + bodies, note omitted, 409 as `Left`,
+`hidden` on list/filter, detail `hidden*`/`blocked*` mapping); bloc (hide → refetch, unhide
+409 keeps the case, block/unblock refetch); detail page (`other` without note blocked
+locally, missing reason blocked, hide → `hide(7,'spam',null)`, unhide with note, blocked row
+shows Unblock + reason + date, available row shows Block → `blockMedia`, cancel, all buttons
+disabled without UPDATE, 409 rendered by code); list page (hidden filter → entity, `HIDDEN`
+mark). +2 `vgr_validators` (`maxLength`). +4 mobile (140 → 144): entity default/flag, owner
+sees the notice, visible case shows none. Guard 133 green in both apps.

@@ -17,6 +17,7 @@
   "detail": {
     "title": "Report",
     "yours": "You submitted this report from this device.",
+    "hiddenNotice": "This report is hidden from the public feed by moderation.",
     "summary": {
       "resolved": "This case was resolved."
     },

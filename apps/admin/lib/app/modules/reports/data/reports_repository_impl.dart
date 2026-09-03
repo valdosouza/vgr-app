@@ -63,4 +63,30 @@ class ReportsRepositoryImpl implements ReportsRepository {
   @override
   Future<Either<Failure, void>> approveUnfreeze(int reportId) =>
       _guard(() => _apiClient.post('/api/case-freeze/$reportId/unfreeze-approve', {}));
+
+  /// `{reasonCode, note?}` — the note travels only when given, so the
+  /// API's optional field stays absent rather than an empty string (163).
+  Map<String, dynamic> _reasonBody(String reasonCode, String? note) => {
+        'reasonCode': reasonCode,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      };
+
+  @override
+  Future<Either<Failure, void>> hide(int reportId, String reasonCode, String? note) =>
+      _guard(() => _apiClient.post('/api/reports/$reportId/hide', _reasonBody(reasonCode, note)));
+
+  @override
+  Future<Either<Failure, void>> unhide(int reportId, String reasonCode, String? note) => _guard(
+      () => _apiClient.post('/api/reports/$reportId/unhide', _reasonBody(reasonCode, note)));
+
+  // Media block/unblock live on `/api/media` (media-admin routes) under the
+  // same `reports` UPDATE grant (165).
+  @override
+  Future<Either<Failure, void>> blockMedia(String publicId, String reasonCode, String? note) =>
+      _guard(() => _apiClient.post('/api/media/$publicId/block', _reasonBody(reasonCode, note)));
+
+  @override
+  Future<Either<Failure, void>> unblockMedia(String publicId, String reasonCode, String? note) =>
+      _guard(
+          () => _apiClient.post('/api/media/$publicId/unblock', _reasonBody(reasonCode, note)));
 }

@@ -126,6 +126,18 @@ void main() {
     });
   });
 
+  group('VgrValidators.maxLength — mirrors z.string().max(n) (moderationReasonDto note, decision 163)', () {
+    test('longer than n after trimming → TOO_LONG with the maximum as param', () {
+      expect(VgrValidators.maxLength(5)('abcdef'), const VgrFieldError(VgrFieldCode.tooLong, {'max': '5'}));
+    });
+
+    test('exactly n or shorter passes, and blank passes (optional field — required is a separate rule)', () {
+      expect(VgrValidators.maxLength(5)('abcde'), isNull);
+      expect(VgrValidators.maxLength(5)('ab'), isNull);
+      expect(VgrValidators.maxLength(5)(''), isNull);
+    });
+  });
+
   group('VgrValidators.isoDate — mirrors the YYYY-MM-DD form of reports-admin.dto.ts from/to', () {
     test('accepts a calendar date', () {
       expect(VgrValidators.isoDate('2026-09-02'), isNull);

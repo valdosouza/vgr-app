@@ -279,6 +279,8 @@
       "rowMeta": "{tier} · {status} · {media} media · {when}",
       "frozenMark": "FROZEN",
       "purgedMark": "PURGED",
+      "hidden": "Hidden",
+      "hiddenMark": "HIDDEN",
       "anonymousMark": "Anonymous",
       "pageOf": "Page {page} of {pages}",
       "prev": "Previous",
@@ -340,6 +342,38 @@
       "pendingBy": "Requested by user {user}",
       "approveHint": "The approver must be a DIFFERENT user than the requester. Approving restarts the retention clock from zero.",
       "approveUnfreeze": "Approve unfreeze"
+    },
+    "moderation": {
+      "title": "Moderation",
+      "hint": "One human, one catalog reason, one audit row — reverting follows the same rule. Retention, expiry and purge are never touched.",
+      "notHidden": "Visible — this case is on the feed and in public reads.",
+      "hiddenBadge": "HIDDEN — gone from the feed and from third-party reads. The owner and participants see a mark, never the reason.",
+      "reasonLine": "Reason: {reason}",
+      "hiddenSince": "Hidden since {when}",
+      "hiddenBy": "By user {user}",
+      "blockedSince": "Blocked since {when}",
+      "hide": "Hide report",
+      "unhide": "Unhide",
+      "block": "Block",
+      "unblock": "Unblock",
+      "formTitle": {
+        "hide": "Hide this report",
+        "unhide": "Unhide this report",
+        "block": "Block media {publicId}",
+        "unblock": "Unblock media {publicId}"
+      },
+      "reasonLabel": "Reason (catalog)",
+      "noteLabel": "Note — required when Other, up to 500 characters",
+      "submit": "Confirm",
+      "cancel": "Cancel",
+      "reason": {
+        "spam": "Spam",
+        "abuse": "Abuse",
+        "illegal_content": "Illegal content",
+        "duplicate": "Duplicate",
+        "personal_data": "Personal data",
+        "other": "Other"
+      }
     },
     "status": {
       "open": "Open",

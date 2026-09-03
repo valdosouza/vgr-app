@@ -13,6 +13,7 @@ class ReportFiltersEntity extends Equatable {
     this.tier,
     this.frozen,
     this.hasMedia,
+    this.hidden,
     this.from,
     this.to,
   });
@@ -24,6 +25,9 @@ class ReportFiltersEntity extends Equatable {
   final String? tier;
   final bool? frozen;
   final bool? hasMedia;
+
+  /// Moderation flag (B2, decision 162): `hidden=true|false`.
+  final bool? hidden;
 
   /// `YYYY-MM-DD` (or ISO date-time) on `created_at`.
   final String? from;
@@ -37,12 +41,14 @@ class ReportFiltersEntity extends Equatable {
         if (tier != null) 'tier': tier!,
         if (frozen != null) 'frozen': '$frozen',
         if (hasMedia != null) 'hasMedia': '$hasMedia',
+        if (hidden != null) 'hidden': '$hidden',
         if (from != null) 'from': from!,
         if (to != null) 'to': to!,
       };
 
   @override
-  List<Object?> get props => [id, status, category, subject, tier, frozen, hasMedia, from, to];
+  List<Object?> get props =>
+      [id, status, category, subject, tier, frozen, hasMedia, hidden, from, to];
 }
 
 /// A DEGRADED grid point (decision 135/159) — never the exact position.
@@ -77,6 +83,7 @@ class ReportListItemEntity extends Equatable {
     required this.anonymous,
     required this.frozen,
     required this.purged,
+    this.hidden = false,
     required this.mediaCount,
     required this.position,
     required this.createdAt,
@@ -94,6 +101,10 @@ class ReportListItemEntity extends Equatable {
 
   /// Statistical skeleton (25/131): kept in the list, content gone.
   final bool purged;
+
+  /// Hidden by moderation (162): gone from the feed and public reads,
+  /// still listed here. `false` when the API does not send it.
+  final bool hidden;
   final int mediaCount;
   final ReportPositionEntity? position;
   final String createdAt;
@@ -109,6 +120,7 @@ class ReportListItemEntity extends Equatable {
         anonymous: json['anonymous'] as bool,
         frozen: json['frozen'] as bool,
         purged: json['purged'] as bool,
+        hidden: json['hidden'] as bool? ?? false,
         mediaCount: (json['mediaCount'] as num).toInt(),
         position: json['position'] == null
             ? null
@@ -120,7 +132,7 @@ class ReportListItemEntity extends Equatable {
   @override
   List<Object?> get props => [
         reportId, category, freeTag, subject, tier, status, anonymous, frozen, purged,
-        mediaCount, position, createdAt, resolvedAt,
+        hidden, mediaCount, position, createdAt, resolvedAt,
       ];
 }
 
@@ -202,6 +214,9 @@ class ReportMediaEntity extends Equatable {
     required this.width,
     required this.height,
     required this.status,
+    this.blockedReasonCode,
+    this.blockedNote,
+    this.blockedAt,
   });
 
   final String publicId;
@@ -212,16 +227,27 @@ class ReportMediaEntity extends Equatable {
   /// pending / available / blocked / deleted.
   final String status;
 
+  /// Set while `status == 'blocked'` (B2, decisions 162/163): the catalog
+  /// code, the optional note and when. The panel keeps listing blocked
+  /// media — a hold preserves evidence (M3).
+  final String? blockedReasonCode;
+  final String? blockedNote;
+  final String? blockedAt;
+
   factory ReportMediaEntity.fromJson(Map<String, dynamic> json) => ReportMediaEntity(
         publicId: json['publicId'] as String,
         mime: json['mime'] as String,
         width: (json['width'] as num?)?.toInt(),
         height: (json['height'] as num?)?.toInt(),
         status: json['status'] as String,
+        blockedReasonCode: json['blockedReasonCode'] as String?,
+        blockedNote: json['blockedNote'] as String?,
+        blockedAt: json['blockedAt'] as String?,
       );
 
   @override
-  List<Object?> get props => [publicId, mime, width, height, status];
+  List<Object?> get props =>
+      [publicId, mime, width, height, status, blockedReasonCode, blockedNote, blockedAt];
 }
 
 class ReportOfferEntity extends Equatable {
@@ -274,6 +300,11 @@ class ReportPanelDetailEntity extends Equatable {
     required this.createdAt,
     required this.resolvedAt,
     required this.expiresAt,
+    this.hidden = false,
+    this.hiddenReasonCode,
+    this.hiddenNote,
+    this.hiddenAt,
+    this.hiddenBy,
     required this.reporter,
     required this.position,
     required this.detailFields,
@@ -296,6 +327,15 @@ class ReportPanelDetailEntity extends Equatable {
   final String createdAt;
   final String? resolvedAt;
   final String? expiresAt;
+
+  /// Moderation (B2, decisions 162/163/167): hidden from the feed and
+  /// from third-party reads, retention untouched. The reason lives HERE
+  /// and in the audit — never in the owner's view.
+  final bool hidden;
+  final String? hiddenReasonCode;
+  final String? hiddenNote;
+  final String? hiddenAt;
+  final int? hiddenBy;
 
   /// `null` when anonymous (decision 160).
   final ReportActorEntity? reporter;
@@ -322,6 +362,11 @@ class ReportPanelDetailEntity extends Equatable {
         createdAt: json['createdAt'] as String,
         resolvedAt: json['resolvedAt'] as String?,
         expiresAt: json['expiresAt'] as String?,
+        hidden: json['hidden'] as bool? ?? false,
+        hiddenReasonCode: json['hiddenReasonCode'] as String?,
+        hiddenNote: json['hiddenNote'] as String?,
+        hiddenAt: json['hiddenAt'] as String?,
+        hiddenBy: (json['hiddenBy'] as num?)?.toInt(),
         reporter: json['reporter'] == null
             ? null
             : ReportActorEntity.fromJson((json['reporter'] as Map).cast<String, dynamic>()),
@@ -343,8 +388,9 @@ class ReportPanelDetailEntity extends Equatable {
   @override
   List<Object?> get props => [
         reportId, category, freeTag, subject, tier, status, anonymous, frozen, frozenReason,
-        frozenAt, purged, createdAt, resolvedAt, expiresAt, reporter, position, detailFields,
-        timeline, media, offers,
+        frozenAt, purged, createdAt, resolvedAt, expiresAt, hidden, hiddenReasonCode,
+        hiddenNote, hiddenAt, hiddenBy, reporter, position, detailFields, timeline, media,
+        offers,
       ];
 }
 

@@ -19,6 +19,8 @@ ReportPanelDetailEntity detail({
   bool anonymous = true,
   bool frozen = false,
   bool purged = false,
+  bool hidden = false,
+  String mediaStatus = 'blocked',
 }) =>
     ReportPanelDetailEntity(
       reportId: 7,
@@ -35,6 +37,11 @@ ReportPanelDetailEntity detail({
       createdAt: '2026-09-01T10:00:00.000Z',
       resolvedAt: null,
       expiresAt: purged ? null : '2026-12-01T10:00:00.000Z',
+      hidden: hidden,
+      hiddenReasonCode: hidden ? 'abuse' : null,
+      hiddenNote: hidden ? 'threats in the free text' : null,
+      hiddenAt: hidden ? '2026-09-02T09:00:00.000Z' : null,
+      hiddenBy: hidden ? 4 : null,
       reporter: anonymous ? null : const ReportActorEntity(accountId: 12, displayName: 'Maria'),
       position: purged
           ? null
@@ -48,9 +55,17 @@ ReportPanelDetailEntity detail({
             ],
       media: purged
           ? const []
-          : const [
+          : [
               ReportMediaEntity(
-                  publicId: 'abc', mime: 'image/jpeg', width: 800, height: 600, status: 'blocked'),
+                publicId: 'abc',
+                mime: 'image/jpeg',
+                width: 800,
+                height: 600,
+                status: mediaStatus,
+                blockedReasonCode: mediaStatus == 'blocked' ? 'illegal_content' : null,
+                blockedNote: null,
+                blockedAt: mediaStatus == 'blocked' ? '2026-09-02T09:05:00.000Z' : null,
+              ),
             ],
       offers: purged
           ? const []
@@ -253,5 +268,136 @@ void main() {
 
     expect(find.byKey(const Key('report-detail-error')), findsOneWidget);
     expect(find.text('Record not found.'), findsOneWidget);
+  });
+
+  group('moderation — B2 (decisions 162/163/165/167)', () {
+    Future<void> pickReason(WidgetTester tester, String label) async {
+      await tester.ensureVisible(find.byKey(const Key('moderation-reason-field')));
+      await tester.tap(find.byKey(const Key('moderation-reason-field')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('not hidden: "Hide report" opens the reason form; `other` without a note '
+        'never leaves the screen; a catalog code posts hide(reasonCode) and the re-fetched '
+        'case shows the reason label, note, date and Unhide', (tester) async {
+      stub();
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('report-hidden-badge')), findsNothing);
+      await tapVisible(tester, 'hide-button');
+      expect(find.byKey(const Key('moderation-reason-field')), findsOneWidget);
+
+      // Missing reason is REQUIRED (163: the catalog code is mandatory).
+      await tapVisible(tester, 'moderation-submit-button');
+      expect(find.text('Required field.'), findsOneWidget);
+
+      // `other` demands a note of at least 3 characters (163).
+      await pickReason(tester, 'Other');
+      await tester.enterText(find.byKey(const Key('moderation-note-field')), 'ab');
+      await tapVisible(tester, 'moderation-submit-button');
+      expect(find.text('Minimum of 3 characters.'), findsOneWidget);
+      verifyNever(() => repository.hide(any(), any(), any()));
+
+      // A catalog code needs no note.
+      when(() => repository.hide(7, 'spam', null)).thenAnswer((_) async => const Right(null));
+      stub(entity: detail(hidden: true));
+      await pickReason(tester, 'Spam');
+      await tester.enterText(find.byKey(const Key('moderation-note-field')), '');
+      await tapVisible(tester, 'moderation-submit-button');
+
+      verify(() => repository.hide(7, 'spam', null)).called(1);
+      expect(find.byKey(const Key('report-hidden-badge')), findsOneWidget);
+      expect(find.textContaining('Abuse'), findsOneWidget);
+      expect(find.text('threats in the free text'), findsOneWidget);
+      expect(find.textContaining('Hidden since 2026-09-02 09:00'), findsOneWidget);
+      expect(find.byKey(const Key('unhide-button')), findsOneWidget);
+      expect(find.byKey(const Key('hide-button')), findsNothing);
+      expect(find.byKey(const Key('moderation-reason-field')), findsNothing);
+    });
+
+    testWidgets('unhide uses the SAME form and posts the note with `other` (162: reverting '
+        'also needs a reason, one human)', (tester) async {
+      stub(entity: detail(hidden: true));
+      when(() => repository.unhide(7, 'other', 'Cleared by legal'))
+          .thenAnswer((_) async => const Right(null));
+      await pumpPage(tester);
+
+      await tapVisible(tester, 'unhide-button');
+      await pickReason(tester, 'Other');
+      await tester.enterText(
+          find.byKey(const Key('moderation-note-field')), 'Cleared by legal');
+      stub();
+      await tapVisible(tester, 'moderation-submit-button');
+
+      verify(() => repository.unhide(7, 'other', 'Cleared by legal')).called(1);
+      expect(find.byKey(const Key('hide-button')), findsOneWidget);
+    });
+
+    testWidgets('a blocked media row shows Unblock with its reason and date; an available one '
+        'shows Block; the form posts blockMedia(publicId, reasonCode)', (tester) async {
+      stub(entity: detail(mediaStatus: 'available'));
+      when(() => repository.blockMedia('abc', 'personal_data', null))
+          .thenAnswer((_) async => const Right(null));
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('block-media-abc')), findsOneWidget);
+      expect(find.byKey(const Key('unblock-media-abc')), findsNothing);
+
+      await tapVisible(tester, 'block-media-abc');
+      await pickReason(tester, 'Personal data');
+      stub(entity: detail(mediaStatus: 'blocked'));
+      await tapVisible(tester, 'moderation-submit-button');
+
+      verify(() => repository.blockMedia('abc', 'personal_data', null)).called(1);
+      expect(find.byKey(const Key('unblock-media-abc')), findsOneWidget);
+      expect(find.byKey(const Key('block-media-abc')), findsNothing);
+      expect(find.textContaining('Blocked since 2026-09-02 09:05'), findsOneWidget);
+      expect(find.textContaining('Illegal content'), findsOneWidget);
+    });
+
+    testWidgets('cancel closes the form without any call', (tester) async {
+      stub();
+      await pumpPage(tester);
+
+      await tapVisible(tester, 'hide-button');
+      await tapVisible(tester, 'moderation-cancel-button');
+
+      expect(find.byKey(const Key('moderation-reason-field')), findsNothing);
+      verifyNever(() => repository.hide(any(), any(), any()));
+    });
+
+    testWidgets('without reports UPDATE every moderation button renders disabled (72/165)',
+        (tester) async {
+      SessionAccess.instance.applyPermissions(const {
+        'reports': [Privileges.view],
+        'case_freeze': [Privileges.view, Privileges.update],
+      });
+      stub();
+      await pumpPage(tester);
+
+      expect(tester.widget<VgrPrimaryButton>(find.byKey(const Key('hide-button'))).onPressed,
+          isNull);
+      expect(
+          tester.widget<VgrSecondaryButton>(find.byKey(const Key('unblock-media-abc'))).onPressed,
+          isNull);
+    });
+
+    testWidgets('a server refusal on hide (409 already hidden) renders by code, case kept',
+        (tester) async {
+      stub();
+      when(() => repository.hide(7, 'spam', null)).thenAnswer((_) async => const Left(
+          Failure(message: 'already hidden', statusCode: 409, code: 'DUPLICATE')));
+      await pumpPage(tester);
+
+      await tapVisible(tester, 'hide-button');
+      await pickReason(tester, 'Spam');
+      await tapVisible(tester, 'moderation-submit-button');
+
+      expect(find.byKey(const Key('report-action-error')), findsOneWidget);
+      expect(find.text('This value already exists.'), findsOneWidget);
+      expect(find.byKey(const Key('hide-button')), findsOneWidget);
+    });
   });
 }

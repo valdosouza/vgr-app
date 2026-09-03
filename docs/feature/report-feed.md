@@ -35,6 +35,9 @@ strictly by it and never tries to show more than it received:
   resolved/media_attached/help_offered), media with dimensions; the owner
   additionally gets the offers list masked by tier (identity only when
   the helper chose it AND tier ≠ high; timestamps never on high — 40/41/60).
+- `hidden` (B2, decision 167): when panel moderation hid the case, owner/participant
+  views carry `hidden: true` and the page shows a `VgrText` notice
+  (`detail.hiddenNotice`) — no reason, no action; third parties get a 404.
 
 ### Media streaming
 

@@ -17,7 +17,7 @@ import '../../../../helpers/session_access.dart';
 
 class MockReportsRepository extends Mock implements ReportsRepository {}
 
-ReportListItemEntity item(int id, {bool frozen = false, bool purged = false}) =>
+ReportListItemEntity item(int id, {bool frozen = false, bool purged = false, bool hidden = false}) =>
     ReportListItemEntity(
       reportId: id,
       category: purged ? null : 'assault',
@@ -28,6 +28,7 @@ ReportListItemEntity item(int id, {bool frozen = false, bool purged = false}) =>
       anonymous: true,
       frozen: frozen,
       purged: purged,
+      hidden: hidden,
       mediaCount: 2,
       position: purged ? null : const ReportPositionEntity(lat: -23.55, lng: -46.63),
       createdAt: '2026-09-01T10:00:00.000Z',
@@ -142,6 +143,24 @@ void main() {
 
     expect(find.byKey(const Key('reports-list-error')), findsOneWidget);
     expect(find.text('You do not have permission for this action.'), findsOneWidget);
+  });
+
+  testWidgets('hidden filter (tri-state) travels as `hidden`; hidden rows carry the mark (B2, 162)',
+      (tester) async {
+    when(() => repository.search(any(), 1, 20)).thenAnswer((_) async => Right(
+        ReportPageEntity(items: [item(7, hidden: true), item(8)], page: 1, pageSize: 20, total: 2)));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('reports-filter-hidden')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yes').last);
+    await tester.pumpAndSettle();
+    await search(tester);
+
+    final filters = verify(() => repository.search(captureAny(), 1, 20)).captured.single
+        as ReportFiltersEntity;
+    expect(filters, const ReportFiltersEntity(hidden: true));
+    expect(find.textContaining('HIDDEN'), findsOneWidget);
   });
 
   group('navigation', () {

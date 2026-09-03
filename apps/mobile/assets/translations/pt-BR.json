@@ -17,6 +17,7 @@
   "detail": {
     "title": "Denúncia",
     "yours": "Você registrou esta denúncia neste aparelho.",
+    "hiddenNotice": "Esta denúncia foi ocultada do feed público pela moderação.",
     "summary": {
       "resolved": "Este caso foi resolvido."
     },

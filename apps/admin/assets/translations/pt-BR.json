@@ -279,6 +279,8 @@
       "rowMeta": "{tier} · {status} · {media} mídia(s) · {when}",
       "frozenMark": "CONGELADO",
       "purgedMark": "EXPURGADO",
+      "hidden": "Oculta",
+      "hiddenMark": "OCULTA",
       "anonymousMark": "Anônimo",
       "pageOf": "Página {page} de {pages}",
       "prev": "Anterior",
@@ -340,6 +342,38 @@
       "pendingBy": "Solicitado pelo usuário {user}",
       "approveHint": "O aprovador deve ser um usuário DIFERENTE de quem solicitou. Ao aprovar, o prazo de retenção recomeça do zero.",
       "approveUnfreeze": "Aprovar descongelamento"
+    },
+    "moderation": {
+      "title": "Moderação",
+      "hint": "Um humano, um motivo do catálogo, uma linha de auditoria — reverter segue a mesma regra. Retenção, expiração e purge nunca são tocados.",
+      "notHidden": "Visível — este caso está no feed e nas leituras públicas.",
+      "hiddenBadge": "OCULTA — sumiu do feed e das leituras de terceiros. Dono e participantes veem uma marca, nunca o motivo.",
+      "reasonLine": "Motivo: {reason}",
+      "hiddenSince": "Oculta desde {when}",
+      "hiddenBy": "Por usuário {user}",
+      "blockedSince": "Bloqueada desde {when}",
+      "hide": "Ocultar denúncia",
+      "unhide": "Reexibir",
+      "block": "Bloquear",
+      "unblock": "Desbloquear",
+      "formTitle": {
+        "hide": "Ocultar esta denúncia",
+        "unhide": "Reexibir esta denúncia",
+        "block": "Bloquear mídia {publicId}",
+        "unblock": "Desbloquear mídia {publicId}"
+      },
+      "reasonLabel": "Motivo (catálogo)",
+      "noteLabel": "Nota — obrigatória quando Outro, até 500 caracteres",
+      "submit": "Confirmar",
+      "cancel": "Cancelar",
+      "reason": {
+        "spam": "Spam",
+        "abuse": "Abuso",
+        "illegal_content": "Conteúdo ilegal",
+        "duplicate": "Duplicada",
+        "personal_data": "Dados pessoais",
+        "other": "Outro"
+      }
     },
     "status": {
       "open": "Aberto",

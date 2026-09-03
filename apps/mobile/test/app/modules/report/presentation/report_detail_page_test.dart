@@ -198,4 +198,45 @@ void main() {
     expect(find.byKey(const Key('detail-error')), findsOneWidget);
     expect(find.text('Record not found.'), findsOneWidget);
   });
+
+  testWidgets('a hidden case shows the owner the moderation mark — no reason, no action '
+      '(B2, decision 167)', (tester) async {
+    await myReports.save(5, 'key-5');
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.owner,
+            reportId: 5,
+            category: 'robbery',
+            subject: 'property',
+            tier: 'medium',
+            status: 'open',
+            hidden: true,
+          ),
+        ));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('detail-hidden-notice')), findsOneWidget);
+    expect(find.text('This report is hidden from the public feed by moderation.'),
+        findsOneWidget);
+    expect(find.textContaining('Reason'), findsNothing);
+  });
+
+  testWidgets('a visible case shows no moderation mark', (tester) async {
+    await myReports.save(5, 'key-5');
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.owner,
+            reportId: 5,
+            category: 'robbery',
+            subject: 'property',
+            tier: 'medium',
+            status: 'open',
+          ),
+        ));
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('detail-hidden-notice')), findsNothing);
+  });
 }

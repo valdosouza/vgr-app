@@ -10,7 +10,8 @@ import 'package:vgr_admin/app/modules/reports/presentation/bloc/report_detail_st
 
 class MockReportsRepository extends Mock implements ReportsRepository {}
 
-ReportPanelDetailEntity detail({bool frozen = false}) => ReportPanelDetailEntity(
+ReportPanelDetailEntity detail({bool frozen = false, bool hidden = false}) =>
+    ReportPanelDetailEntity(
       reportId: 7,
       category: 'assault',
       freeTag: null,
@@ -25,6 +26,11 @@ ReportPanelDetailEntity detail({bool frozen = false}) => ReportPanelDetailEntity
       createdAt: '2026-09-01T10:00:00.000Z',
       resolvedAt: null,
       expiresAt: null,
+      hidden: hidden,
+      hiddenReasonCode: hidden ? 'spam' : null,
+      hiddenNote: null,
+      hiddenAt: hidden ? '2026-09-02T09:00:00.000Z' : null,
+      hiddenBy: hidden ? 4 : null,
       reporter: null,
       position: const ReportPositionEntity(lat: -23.55, lng: -46.63, precisionMeters: 1100),
       detailFields: null,
@@ -169,5 +175,63 @@ void main() {
     expect(bloc.state, const ReportDetailInitial());
     verifyNever(() => repository.freeze(any(), any()));
     verifyNever(() => repository.getExactPosition(any()));
+  });
+
+  group('moderation — B2 (decisions 162/167): every act re-fetches the detail', () {
+    test('hide posts the reason and re-reads the case (hidden arrives from the server)',
+        () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      when(() => repository.hide(7, 'spam', null)).thenAnswer((_) async => const Right(null));
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail(hidden: true)));
+
+      bloc.add(const ReportHideSubmitted('spam', null));
+      await settle();
+
+      expect(bloc.state, ReportDetailLoaded(detail(hidden: true), freeze: _open));
+      verify(() => repository.hide(7, 'spam', null)).called(1);
+      verify(() => repository.getDetail(7)).called(2);
+    });
+
+    test('unhide with `other` carries the note; a 409 keeps the case with the failure',
+        () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail(hidden: true)));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      const failure = Failure(message: 'not hidden', statusCode: 409, code: 'DUPLICATE');
+      when(() => repository.unhide(7, 'other', 'Cleared'))
+          .thenAnswer((_) async => const Left(failure));
+
+      bloc.add(const ReportUnhideSubmitted('other', 'Cleared'));
+      await settle();
+
+      expect(bloc.state, ReportDetailLoaded(detail(hidden: true), freeze: _open, failure: failure));
+      verify(() => repository.getDetail(7)).called(1);
+    });
+
+    test('block / unblock a media re-read the case too', () async {
+      when(() => repository.getDetail(7)).thenAnswer((_) async => Right(detail()));
+      when(() => repository.getFreezeState(7)).thenAnswer((_) async => const Right(_open));
+      when(() => repository.blockMedia('abc', 'illegal_content', null))
+          .thenAnswer((_) async => const Right(null));
+      when(() => repository.unblockMedia('abc', 'duplicate', null))
+          .thenAnswer((_) async => const Right(null));
+      final bloc = build()..add(const ReportDetailRequested(7));
+      await settle();
+
+      bloc.add(const ReportMediaBlockSubmitted('abc', 'illegal_content', null));
+      await settle();
+      bloc.add(const ReportMediaUnblockSubmitted('abc', 'duplicate', null));
+      await settle();
+
+      verify(() => repository.blockMedia('abc', 'illegal_content', null)).called(1);
+      verify(() => repository.unblockMedia('abc', 'duplicate', null)).called(1);
+      verify(() => repository.getDetail(7)).called(3);
+    });
   });
 }

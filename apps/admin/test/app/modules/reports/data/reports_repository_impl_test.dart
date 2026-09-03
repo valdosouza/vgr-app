@@ -267,4 +267,102 @@ void main() {
       verify(() => apiClient.post('/api/case-freeze/7/unfreeze-approve', {})).called(1);
     });
   });
+
+  group('moderation — B2 (decisions 162/163/165)', () {
+    test('hide / unhide post the catalog reason to /api/reports/:id; note omitted when absent',
+        () async {
+      when(() => apiClient.post(any(), any())).thenAnswer((_) async => {});
+
+      expect((await repository.hide(7, 'spam', null)).isRight(), isTrue);
+      expect((await repository.unhide(7, 'other', 'Cleared by legal')).isRight(), isTrue);
+
+      verify(() => apiClient.post('/api/reports/7/hide', {'reasonCode': 'spam'})).called(1);
+      verify(() => apiClient.post('/api/reports/7/unhide',
+          {'reasonCode': 'other', 'note': 'Cleared by legal'})).called(1);
+    });
+
+    test('blockMedia / unblockMedia post to /api/media/:publicId with the same body', () async {
+      when(() => apiClient.post(any(), any())).thenAnswer((_) async => {});
+
+      expect((await repository.blockMedia('abc', 'illegal_content', null)).isRight(), isTrue);
+      expect((await repository.unblockMedia('abc', 'duplicate', '')).isRight(), isTrue);
+
+      verify(() => apiClient.post('/api/media/abc/block', {'reasonCode': 'illegal_content'}))
+          .called(1);
+      verify(() => apiClient.post('/api/media/abc/unblock', {'reasonCode': 'duplicate'}))
+          .called(1);
+    });
+
+    test('a 409 (already hidden) surfaces as Left with the code intact', () async {
+      when(() => apiClient.post('/api/reports/7/hide', any())).thenThrow(
+          const Failure(message: 'already', statusCode: 409, code: 'DUPLICATE'));
+
+      final result = await repository.hide(7, 'abuse', null);
+
+      expect(result.fold((f) => f.code, (_) => null), 'DUPLICATE');
+    });
+
+    test('list items carry `hidden` (false when the field is absent); the filter is sent',
+        () async {
+      when(() => apiClient.get(any())).thenAnswer((_) async => {
+            'items': [
+              {
+                'reportId': 7, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+                'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+                'purged': false, 'hidden': true, 'mediaCount': 0, 'position': null,
+                'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null,
+              },
+              {
+                'reportId': 8, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+                'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+                'purged': false, 'mediaCount': 0, 'position': null,
+                'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null,
+              },
+            ],
+            'page': 1, 'pageSize': 20, 'total': 2,
+          });
+
+      final result = await repository.search(const ReportFiltersEntity(hidden: true), 1, 20);
+
+      final path = verify(() => apiClient.get(captureAny())).captured.single as String;
+      expect(Uri.parse(path).queryParameters['hidden'], 'true');
+      final page = result.getOrElse(() => throw StateError('left'));
+      expect(page.items.first.hidden, isTrue);
+      expect(page.items.last.hidden, isFalse);
+    });
+
+    test("detail maps hidden* and each media item's blocked* fields", () async {
+      when(() => apiClient.get('/api/reports/7')).thenAnswer((_) async => {
+            'reportId': 7, 'category': 'assault', 'freeTag': null, 'subject': 'child',
+            'tier': 'high', 'status': 'open', 'anonymous': true, 'frozen': false,
+            'frozenReason': null, 'frozenAt': null, 'purged': false,
+            'createdAt': '2026-09-01T10:00:00.000Z', 'resolvedAt': null, 'expiresAt': null,
+            'hidden': true, 'hiddenReasonCode': 'abuse', 'hiddenNote': 'threats',
+            'hiddenAt': '2026-09-02T09:00:00.000Z', 'hiddenBy': 4,
+            'reporter': null, 'position': null, 'detailFields': null, 'timeline': [],
+            'media': [
+              {
+                'publicId': 'abc', 'mime': 'image/jpeg', 'width': 800, 'height': 600,
+                'status': 'blocked', 'blockedReasonCode': 'illegal_content',
+                'blockedNote': null, 'blockedAt': '2026-09-02T09:05:00.000Z',
+              },
+              {'publicId': 'def', 'mime': 'image/png', 'width': null, 'height': null, 'status': 'available'},
+            ],
+            'offers': [],
+          });
+
+      final result = await repository.getDetail(7);
+
+      final detail = result.getOrElse(() => throw StateError('left'));
+      expect(detail.hidden, isTrue);
+      expect(detail.hiddenReasonCode, 'abuse');
+      expect(detail.hiddenNote, 'threats');
+      expect(detail.hiddenAt, '2026-09-02T09:00:00.000Z');
+      expect(detail.hiddenBy, 4);
+      expect(detail.media.first.blockedReasonCode, 'illegal_content');
+      expect(detail.media.first.blockedAt, '2026-09-02T09:05:00.000Z');
+      expect(detail.media.last.blockedReasonCode, isNull);
+      expect(detail.media.last.blockedAt, isNull);
+    });
+  });
 }
