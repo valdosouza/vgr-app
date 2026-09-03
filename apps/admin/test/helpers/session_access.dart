@@ -15,6 +15,8 @@ void grantAllPrivileges() {
     'reward_mediation': [Privileges.view, Privileges.update],
     // Report search/detail (B1, decision 165); UPDATE reserved for B2/B3.
     'reports': [Privileges.view, Privileges.update],
+    // Aggregated statistics, own interface, VIEW only (B4, decision 165).
+    'report_stats': [Privileges.view],
     'legal_jurisdictions': all,
     'legal_capabilities': all,
     'legal_rules': all,

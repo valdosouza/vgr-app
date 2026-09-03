@@ -71,6 +71,7 @@
     },
     "interfaces": {
       "reports": "Denúncias",
+      "report_stats": "Estatísticas de denúncias",
       "case_freeze": "Congelamento de Caso",
       "reward_mediation": "Mediação de Recompensa",
       "legal_jurisdictions": "Jurisdições",
@@ -409,6 +410,44 @@
       "environment": "Meio ambiente",
       "other": "Outro"
     }
+  },
+  "reportStats": {
+    "title": "Estatísticas de denúncias",
+    "from": "De (AAAA-MM-DD)",
+    "to": "Até (AAAA-MM-DD)",
+    "granularity": "Granularidade",
+    "granularityOptions": {
+      "day": "Dia",
+      "week": "Semana",
+      "month": "Mês"
+    },
+    "apply": "Aplicar",
+    "rangeLine": "Período: {from} → {to} · por {granularity}",
+    "totals": {
+      "reports": "Denúncias",
+      "open": "Abertas",
+      "resolved": "Resolvidas",
+      "anonymous": "Anônimas",
+      "identified": "Identificadas",
+      "frozen": "Congeladas",
+      "hidden": "Ocultas",
+      "expired": "Expiradas",
+      "purged": "Purgadas",
+      "withMedia": "Com mídia"
+    },
+    "sections": {
+      "byPeriod": "Por período",
+      "byCategory": "Por categoria · nível de risco",
+      "bySubject": "Por sujeito",
+      "byStatus": "Por status",
+      "byTier": "Por nível de risco",
+      "hiddenByReason": "Denúncias ocultas por motivo",
+      "blockedMediaByReason": "Mídias bloqueadas por motivo"
+    },
+    "freeTag": "Tag livre",
+    "floorNote": "Contagens menores que 5 aparecem como \"<5\" para que uma combinação rara não identifique ninguém (piso de agregação k = 5, decisão 164). Um 0 é zero de verdade.",
+    "sectionEmpty": "Nada neste período.",
+    "empty": "Nenhuma denúncia neste período."
   },
   "core": {
     "errors": {

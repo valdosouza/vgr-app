@@ -71,6 +71,7 @@
     },
     "interfaces": {
       "reports": "Reports",
+      "report_stats": "Report Statistics",
       "case_freeze": "Case Freeze",
       "reward_mediation": "Reward Mediation",
       "legal_jurisdictions": "Jurisdictions",
@@ -409,6 +410,44 @@
       "environment": "Environment",
       "other": "Other"
     }
+  },
+  "reportStats": {
+    "title": "Report Statistics",
+    "from": "From (YYYY-MM-DD)",
+    "to": "To (YYYY-MM-DD)",
+    "granularity": "Granularity",
+    "granularityOptions": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "apply": "Apply",
+    "rangeLine": "Range: {from} → {to} · by {granularity}",
+    "totals": {
+      "reports": "Reports",
+      "open": "Open",
+      "resolved": "Resolved",
+      "anonymous": "Anonymous",
+      "identified": "Identified",
+      "frozen": "Frozen",
+      "hidden": "Hidden",
+      "expired": "Expired",
+      "purged": "Purged",
+      "withMedia": "With media"
+    },
+    "sections": {
+      "byPeriod": "By period",
+      "byCategory": "By category · risk tier",
+      "bySubject": "By subject",
+      "byStatus": "By status",
+      "byTier": "By risk tier",
+      "hiddenByReason": "Hidden reports by reason",
+      "blockedMediaByReason": "Blocked media by reason"
+    },
+    "freeTag": "Free tag",
+    "floorNote": "Counts of fewer than 5 are shown as \"<5\" so that a rare combination cannot identify anyone (aggregation floor k = 5, decision 164). A 0 is a real zero.",
+    "sectionEmpty": "Nothing in this range.",
+    "empty": "No reports in this range."
   },
   "core": {
     "errors": {

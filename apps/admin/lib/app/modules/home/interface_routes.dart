@@ -7,6 +7,7 @@ import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension
 const interfaceRoutes = <String, String>{
   'case_freeze': '/case-freeze',
   'reports': '/reports',
+  'report_stats': '/report-stats',
   'reward_mediation': '/reward-mediation',
   'legal_jurisdictions': '/legal/jurisdictions',
   'legal_capabilities': '/legal/capabilities',

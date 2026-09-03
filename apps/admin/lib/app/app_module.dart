@@ -21,6 +21,7 @@ import 'modules/legal-policy/legal_policy_module.dart';
 import 'modules/monetization-config/monetization_config_module.dart';
 import 'modules/panic-responders/panic_responders_module.dart';
 import 'modules/privileges/privileges_module.dart';
+import 'modules/report-stats/report_stats_module.dart';
 import 'modules/reports/reports_module.dart';
 import 'modules/reward-mediation/reward_mediation_module.dart';
 import 'modules/risk-config/risk_config_module.dart';
@@ -118,6 +119,8 @@ class AppModule extends Module {
         ModuleRoute('/case-freeze', module: CaseFreezeModule()),
         // Report search + case detail on the panel plane (B1, decisions 158-167).
         ModuleRoute('/reports', module: ReportsModule()),
+        // Aggregated statistics, k = 5 floor (B4, decisions 164/165).
+        ModuleRoute('/report-stats', module: ReportStatsModule()),
         ModuleRoute('/reward-mediation', module: RewardMediationModule()),
         // Legal Gate admin screens (L3, decisions 103-109).
         ModuleRoute('/legal', module: LegalPolicyModule()),

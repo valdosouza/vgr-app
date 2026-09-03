@@ -139,3 +139,66 @@ shows Unblock + reason + date, available row shows Block → `blockMedia`, cance
 disabled without UPDATE, 409 rendered by code); list page (hidden filter → entity, `HIDDEN`
 mark). +2 `vgr_validators` (`maxLength`). +4 mobile (140 → 144): entity default/flag, owner
 sees the notice, visible case shows none. Guard 133 green in both apps.
+
+## B4 — statistics (`modules/report-stats`, decisions 164/165)
+
+Reaching it: interface `report_stats` (kind 'T', Operations, VIEW only, migration 040 —
+decision 165) shows on the dynamic menu for VIEW holders; route `/report-stats` +
+`interface_routes` entry; guarded by `AdminSessionGuard`. Own folder — modules never import
+each other, so the taxonomy labels are reached through the shared i18n catalog
+(`reports.category.*`, `reports.tier.*`, `reports.subject.*`, `reports.status.*`,
+`reports.moderation.reason.*`), never through `modules/reports` code. API contract:
+`GET /api/reports/stats` in `api/docs/feature/report-moderation.md`.
+
+### Invariants the screen honours
+
+| Invariant | Where |
+|---|---|
+| Aggregates only — no per-report row, id, position or identity (164/135/23) | `ReportStatsEntity` has no field that could hold one; the page renders tiles and `label · count` rows |
+| k = 5 floor: every count is `number \| "<5"`, floored by the API AFTER summing (164) | `StatCount` (`int? value` + `bool belowFloor`) is the ONE place the union is parsed; `label()` prints the number or `<5` exactly as served; the page never sums, subtracts or infers a floored cell. `0` stays `0` |
+| No heat map, no geo aggregation (164) | Nothing in the entity or the page |
+| Not audited — aggregates are not evidence (165) | Server-side; the screen loads on entry without a hint |
+| No chart library; no raw Flutter widget (133); format validation via `vgr_validators` (157) | Counters are `VgrCard` tiles, groupings are `VgrListTile` rows; guard green; `VgrValidators.isoDate` on from/to before the round trip |
+
+### Structure
+
+```
+modules/report-stats/
+├── report_stats_module.dart                      # binds repository + bloc; '/' page
+├── data/report_stats_repository_impl.dart        # GET /api/reports/stats?from&to&granularity (Uri-built; unset → absent)
+├── domain/entity/report_stats_entities.dart      # StatCount, Range, Totals (allZero), PeriodStat, CategoryStat, StatBucket, ModerationStats, ReportStats, Query
+├── domain/repository/report_stats_repository.dart
+└── presentation/
+    ├── bloc/report_stats_*    # Requested(query) → Loading → Loaded | Error; nothing cached
+    └── page/report_stats_page.dart
+```
+
+### Page (`ReportStatsPage`)
+
+- Loads with the API defaults on entry (`to` = now, `from` = `to` − 30 days, `day`) — the
+  query sent is empty; Apply re-reads with from/to/granularity from the form.
+- Filter bar: from/to `VgrTextField` (`YYYY-MM-DD`, `isoDate`), granularity
+  `VgrDropdownField` (day/week/month), Apply. Range rules (from ≤ to, ≤ 366 days) stay on
+  the API and arrive as 422 by field code (83), rendered via `failureText`.
+- Totals: one `VgrCard` tile per contract total (reports, open, resolved, anonymous,
+  identified, frozen, hidden, expired, purged, withMedia).
+- Floor caption (`reportStats.floorNote`) under the tiles — the one thing an operator must
+  know to read the tables.
+- One section per grouping: by period (raw key `YYYY-MM-DD` / `YYYY-Www` / `YYYY-MM`),
+  by category · tier (`category == null` → "Free tag"), by subject, by status, by tier,
+  hidden reports by reason, blocked media by reason (B2 catalog labels).
+- Empty state when every total is a real `0` — a `"<5"` anywhere is NOT empty.
+- No `VgrMeterRow` was added: the contract left the proportional bar optional and a bar
+  cannot be drawn honestly for a `"<5"` cell, so plain rows were kept.
+
+### Tests
+
++24 admin (181 → 205): `StatCount` (number / 0 / `"<5"` / numeric string / rejection;
+`label()`; `allZero` treats `"<5"` as non-empty); repository (no parameter on defaults,
+from/to/granularity under the contract names, `"<5"` and numbers mapped across every
+group, free-tag bucket, missing groups → empty lists, 422 as `Left`); bloc (idle until
+asked, loading → loaded, Apply re-reads under the new query, refusal keeps the query);
+page (default load sends no filter, tiles + `<5` + floor note, one section per grouping
+with translated taxonomy/reasons and the free-tag label, malformed date blocked locally,
+Apply sends the form values, all-zero → empty state, 403 rendered by code). Guard 133
+green.
