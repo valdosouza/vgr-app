@@ -8,6 +8,7 @@ const interfaceRoutes = <String, String>{
   'case_freeze': '/case-freeze',
   'reports': '/reports',
   'report_stats': '/report-stats',
+  'admin_audit': '/admin-audit',
   'reward_mediation': '/reward-mediation',
   'legal_jurisdictions': '/legal/jurisdictions',
   'legal_capabilities': '/legal/capabilities',

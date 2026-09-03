@@ -17,6 +17,8 @@ void grantAllPrivileges() {
     'reports': [Privileges.view, Privileges.update],
     // Aggregated statistics, own interface, VIEW only (B4, decision 165).
     'report_stats': [Privileges.view],
+    // Admin audit trail, own interface, VIEW only (B5, decision 165).
+    'admin_audit': [Privileges.view],
     'legal_jurisdictions': all,
     'legal_capabilities': all,
     'legal_rules': all,

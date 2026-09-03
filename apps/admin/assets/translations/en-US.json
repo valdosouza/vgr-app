@@ -72,6 +72,7 @@
     "interfaces": {
       "reports": "Reports",
       "report_stats": "Report Statistics",
+      "admin_audit": "Admin Audit",
       "case_freeze": "Case Freeze",
       "reward_mediation": "Reward Mediation",
       "legal_jurisdictions": "Jurisdictions",
@@ -433,6 +434,52 @@
       "weapon": "Weapon",
       "environment": "Environment",
       "other": "Other"
+    }
+  },
+  "adminAudit": {
+    "title": "Admin Audit",
+    "hint": "Every panel mutation and evidence read leaves a row here. Reading this trail is not audited.",
+    "filters": {
+      "actorId": "Actor id",
+      "action": "Action",
+      "entity": "Entity",
+      "entityId": "Entity id",
+      "from": "From (YYYY-MM-DD)",
+      "to": "To (YYYY-MM-DD)",
+      "any": "Any",
+      "apply": "Apply"
+    },
+    "action": {
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "grant": "Grant",
+      "state_change": "State change",
+      "read": "Read"
+    },
+    "columns": {
+      "when": "When",
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "summary": "Summary"
+    },
+    "row": "{when} · {actor} · {action}",
+    "actor": "{name} (#{id})",
+    "unknownActor": "Unknown user",
+    "noSummary": "No summary recorded.",
+    "empty": "No audit entries match the filters.",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}",
+    "detail": {
+      "title": "Audit entry #{id}",
+      "back": "Back",
+      "who": "Who · what · when",
+      "summary": "Summary (as recorded, secrets redacted)",
+      "ip": "Operator IP",
+      "ipCaption": "Personal data: shown only in this detail, under the Admin Audit grant. It never appears in the list.",
+      "noIp": "—"
     }
   },
   "reportStats": {

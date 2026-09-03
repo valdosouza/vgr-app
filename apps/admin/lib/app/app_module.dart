@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import 'modules/admin-audit/admin_audit_module.dart';
 import 'modules/auth/data/auth_repository_impl.dart';
 import 'modules/auth/presentation/bloc/login_bloc.dart';
 import 'modules/auth/presentation/bloc/login_event.dart';
@@ -121,6 +122,8 @@ class AppModule extends Module {
         ModuleRoute('/reports', module: ReportsModule()),
         // Aggregated statistics, k = 5 floor (B4, decisions 164/165).
         ModuleRoute('/report-stats', module: ReportStatsModule()),
+        // Admin audit trail, read only (B5, decisions 116/165/166).
+        ModuleRoute('/admin-audit', module: AdminAuditModule()),
         ModuleRoute('/reward-mediation', module: RewardMediationModule()),
         // Legal Gate admin screens (L3, decisions 103-109).
         ModuleRoute('/legal', module: LegalPolicyModule()),

@@ -274,3 +274,9 @@ page (default load sends no filter, tiles + `<5` + floor note, one section per g
 with translated taxonomy/reasons and the free-tag label, malformed date blocked locally,
 Apply sends the form values, all-zero → empty state, 403 rendered by code). Guard 133
 green.
+
+## B5 — audit trail screen (`modules/admin-audit`, decisions 116/158/165/166)
+
+The last phase of the front reads what B1–B4 (and every other panel mutation) wrote to
+`tb_admin_audit`: own module at `/admin-audit` (+ `/:id`), own interface `admin_audit` (VIEW),
+read only, reads not audited. Documented in [`admin-audit.md`](./admin-audit.md).

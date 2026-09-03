@@ -72,6 +72,7 @@
     "interfaces": {
       "reports": "Denúncias",
       "report_stats": "Estatísticas de denúncias",
+      "admin_audit": "Auditoria administrativa",
       "case_freeze": "Congelamento de Caso",
       "reward_mediation": "Mediação de Recompensa",
       "legal_jurisdictions": "Jurisdições",
@@ -433,6 +434,52 @@
       "weapon": "Arma",
       "environment": "Meio ambiente",
       "other": "Outro"
+    }
+  },
+  "adminAudit": {
+    "title": "Auditoria administrativa",
+    "hint": "Toda mutação do painel e toda leitura de evidência deixa uma linha aqui. Ler esta trilha não é auditado.",
+    "filters": {
+      "actorId": "Id do operador",
+      "action": "Ação",
+      "entity": "Entidade",
+      "entityId": "Id da entidade",
+      "from": "De (AAAA-MM-DD)",
+      "to": "Até (AAAA-MM-DD)",
+      "any": "Qualquer",
+      "apply": "Aplicar"
+    },
+    "action": {
+      "create": "Criação",
+      "update": "Atualização",
+      "delete": "Exclusão",
+      "grant": "Concessão",
+      "state_change": "Mudança de estado",
+      "read": "Leitura"
+    },
+    "columns": {
+      "when": "Quando",
+      "actor": "Operador",
+      "action": "Ação",
+      "entity": "Entidade",
+      "summary": "Resumo"
+    },
+    "row": "{when} · {actor} · {action}",
+    "actor": "{name} (#{id})",
+    "unknownActor": "Usuário desconhecido",
+    "noSummary": "Nenhum resumo registrado.",
+    "empty": "Nenhum registro de auditoria corresponde aos filtros.",
+    "prev": "Anterior",
+    "next": "Próxima",
+    "pageOf": "Página {page} de {pages}",
+    "detail": {
+      "title": "Registro de auditoria #{id}",
+      "back": "Voltar",
+      "who": "Quem · o quê · quando",
+      "summary": "Resumo (como registrado, segredos redigidos)",
+      "ip": "IP do operador",
+      "ipCaption": "Dado pessoal: exibido apenas neste detalhe, sob a permissão de Auditoria administrativa. Nunca aparece na lista.",
+      "noIp": "—"
     }
   },
   "reportStats": {
