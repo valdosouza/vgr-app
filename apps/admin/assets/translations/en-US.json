@@ -41,21 +41,6 @@
       "recoverAction": "Sign in and reset 2FA"
     }
   },
-  "legal": {
-    "blockedTitle": "Unavailable in this jurisdiction",
-    "blockedGeneric": "This action is blocked here by a registered legal decision.",
-    "retry": "Try again",
-    "reasons": {
-      "unreviewed": "This action has not been legally reviewed for this country yet, so the system refuses to run it.",
-      "no_control": "The controls this action requires do not exist here yet.",
-      "legislation": "Local legislation does not allow this action.",
-      "self_preservation": "This action is blocked by a deliberate protection decision.",
-      "dependency": "Another capability this action depends on is not enabled here.",
-      "suspended": "Operations are temporarily suspended in this jurisdiction.",
-      "restricted": "Operations are restricted in this jurisdiction.",
-      "unavailable": "The legal rules cannot be verified right now — the action is blocked until they can."
-    }
-  },
   "home": {
     "title": "VGR Admin",
     "retry": "Try again",
@@ -113,6 +98,18 @@
     "user": "User #{}"
   },
   "legal": {
+    "blockedTitle": "Unavailable in this jurisdiction",
+    "blockedGeneric": "This action is blocked here by a registered legal decision.",
+    "reasons": {
+      "unreviewed": "This action has not been legally reviewed for this country yet, so the system refuses to run it.",
+      "no_control": "The controls this action requires do not exist here yet.",
+      "legislation": "Local legislation does not allow this action.",
+      "self_preservation": "This action is blocked by a deliberate protection decision.",
+      "dependency": "Another capability this action depends on is not enabled here.",
+      "suspended": "Operations are temporarily suspended in this jurisdiction.",
+      "restricted": "Operations are restricted in this jurisdiction.",
+      "unavailable": "The legal rules cannot be verified right now — the action is blocked until they can."
+    },
     "retry": "Try again",
     "state": {
       "live": "Live",

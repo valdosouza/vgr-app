@@ -41,21 +41,6 @@
       "recoverAction": "Entrar e zerar 2FA"
     }
   },
-  "legal": {
-    "blockedTitle": "Indisponível nesta jurisdição",
-    "blockedGeneric": "Esta ação está bloqueada aqui por uma decisão legal registrada.",
-    "retry": "Tentar de novo",
-    "reasons": {
-      "unreviewed": "Esta ação ainda não passou por avaliação legal para este país, então o sistema se recusa a executá-la.",
-      "no_control": "Os controles que esta ação exige ainda não existem aqui.",
-      "legislation": "A legislação local não permite esta ação.",
-      "self_preservation": "Esta ação está bloqueada por uma decisão deliberada de proteção.",
-      "dependency": "Outra capacidade da qual esta ação depende não está habilitada aqui.",
-      "suspended": "As operações estão temporariamente suspensas nesta jurisdição.",
-      "restricted": "As operações estão restritas nesta jurisdição.",
-      "unavailable": "As regras legais não podem ser verificadas agora — a ação fica bloqueada até que possam."
-    }
-  },
   "home": {
     "title": "VGR Admin",
     "retry": "Tentar novamente",
@@ -113,6 +98,18 @@
     "user": "Usuário nº {}"
   },
   "legal": {
+    "blockedTitle": "Indisponível nesta jurisdição",
+    "blockedGeneric": "Esta ação está bloqueada aqui por uma decisão legal registrada.",
+    "reasons": {
+      "unreviewed": "Esta ação ainda não passou por avaliação legal para este país, então o sistema se recusa a executá-la.",
+      "no_control": "Os controles que esta ação exige ainda não existem aqui.",
+      "legislation": "A legislação local não permite esta ação.",
+      "self_preservation": "Esta ação está bloqueada por uma decisão deliberada de proteção.",
+      "dependency": "Outra capacidade da qual esta ação depende não está habilitada aqui.",
+      "suspended": "As operações estão temporariamente suspensas nesta jurisdição.",
+      "restricted": "As operações estão restritas nesta jurisdição.",
+      "unavailable": "As regras legais não podem ser verificadas agora — a ação fica bloqueada até que possam."
+    },
     "retry": "Tentar novamente",
     "state": {
       "live": "Ativa",
