@@ -38,7 +38,9 @@ void main() {
         final end = text.indexOf('"', i + 1);
         final token = text.substring(i + 1, end);
         var j = end + 1;
-        while (j < text.length && text[j] == ' ') j++;
+        while (j < text.length && text[j] == ' ') {
+          j++;
+        }
         if (j < text.length && text[j] == ':') {
           final scope = stack.last;
           scope[token] = (scope[token] ?? 0) + 1;

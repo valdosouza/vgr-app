@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Analyze and test (workspace)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.3
+          cache: true
+
+      # Pub workspace: one resolution for both apps and every package.
+      - run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      # Each app carries its own guards (design system, decision 133;
+      # translation catalogs); packages carry the API mirrors (154).
+      - name: Test packages
+        run: |
+          flutter test packages/core
+          flutter test packages/vgr_validators
+          flutter test packages/vgr_widgets
+
+      - name: Test mobile
+        working-directory: apps/mobile
+        run: flutter test
+
+      - name: Test admin
+        working-directory: apps/admin
+        run: flutter test
