@@ -31,6 +31,7 @@ void main() {
     WidgetTester tester, {
     int reportId = 5,
     void Function(int reportId)? onOfferHelp,
+    void Function(String route)? onOpenChat,
   }) async {
     await pumpLocalized(
       tester,
@@ -41,6 +42,7 @@ void main() {
           reportId: reportId,
           mediaBaseUrl: 'http://api.test',
           onOfferHelp: onOfferHelp,
+          onOpenChat: onOpenChat,
         ),
       ),
     );
@@ -238,5 +240,96 @@ void main() {
     await pumpPage(tester);
 
     expect(find.byKey(const Key('detail-hidden-notice')), findsNothing);
+  });
+
+  group('chat entry (C2, decision 169 — only when the served view carries `chat`)', () {
+    testWidgets('owner with threads: button with the unread count → thread list', (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+              chat: ReportChatFacetEntity(threads: 2, unread: 3),
+            ),
+          ));
+
+      String? route;
+      await pumpPage(tester, onOpenChat: (r) => route = r);
+
+      final button = find.byKey(const Key('detail-chat-button'));
+      expect(button, findsOneWidget);
+      expect(find.text('Chat (3 unread)'), findsOneWidget);
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      expect(route, '/chat/threads/5');
+    });
+
+    testWidgets('helper participant with a thread → straight to the conversation', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.participant,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+              chat: ReportChatFacetEntity(threadId: 9, unread: 0),
+            ),
+          ));
+
+      String? route;
+      await pumpPage(tester, onOpenChat: (r) => route = r);
+
+      expect(find.text('Chat'), findsOneWidget);
+      final button = find.byKey(const Key('detail-chat-button'));
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      expect(route, '/chat/5/thread/9');
+    });
+
+    testWidgets('helper participant with threadId null STILL gets the button — the first '
+        'message creates the thread (173)', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.participant,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+              chat: ReportChatFacetEntity(threadId: null, unread: 0),
+            ),
+          ));
+
+      String? route;
+      await pumpPage(tester, onOpenChat: (r) => route = r);
+
+      final button = find.byKey(const Key('detail-chat-button'));
+      expect(button, findsOneWidget);
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      expect(route, '/chat/5/thread/new');
+    });
+
+    testWidgets('no `chat` facet (public view, anonymous helper) → no button', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-chat-button')), findsNothing);
+    });
   });
 }

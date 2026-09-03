@@ -42,6 +42,8 @@ when the reward front lands. With round-6 auth in place, a logged-in
 helper will get the identification choice (6) — the bloc already
 carries `anonymous` per submission.
 
+Since C2 (decision 169) the same card also warns the anonymous helper that without an account there is NO chat with the reporter (`offer-anonymous-no-chat-notice`, `offer.anonymousNoChatNotice`) — before submitting, never blocking; see `chat.md`.
+
 ## Data layer
 
 `POST /app-help-offers` on the app plane (MA10) with

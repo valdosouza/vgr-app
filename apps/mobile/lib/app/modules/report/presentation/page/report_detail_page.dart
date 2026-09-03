@@ -17,6 +17,7 @@ class ReportDetailPage extends StatefulWidget {
     required this.reportId,
     required this.mediaBaseUrl,
     this.onOfferHelp,
+    this.onOpenChat,
   });
 
   final int reportId;
@@ -26,6 +27,9 @@ class ReportDetailPage extends StatefulWidget {
 
   /// Test seam — default navigation goes through Modular.
   final void Function(int reportId)? onOfferHelp;
+
+  /// Test seam for the chat entry — receives the route it would push.
+  final void Function(String route)? onOpenChat;
 
   @override
   State<ReportDetailPage> createState() => _ReportDetailPageState();
@@ -178,6 +182,21 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           '${_when(offer.createdAt!)}',
                 ),
           ],
+          // Masked chat (C2, decision 169): the entry exists ONLY when the
+          // server put `chat` on this view — owner → thread list, helper
+          // participant → their conversation (created on the first
+          // message when threadId is still null, 173).
+          if (view.chat != null) ...[
+            const VgrGap.lg(),
+            VgrPrimaryButton(
+              key: const Key('detail-chat-button'),
+              icon: VgrIconName.chat,
+              label: view.chat!.unread > 0
+                  ? 'detail.chatUnread'.tr(namedArgs: {'count': '${view.chat!.unread}'})
+                  : 'detail.chat'.tr(),
+              onPressed: () => _openChat(view),
+            ),
+          ],
           // Offering help (A3, decisions 10/34/35): open cases only (18),
           // third parties only — the owner sees offers, never the button
           // (20), and a participant already offered (one per report).
@@ -204,6 +223,20 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     // A successful offer changed the case (timeline event) — reload so
     // the view reflects it.
     if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(reportId));
+  }
+
+  Future<void> _openChat(ReportViewEntity view) async {
+    final chat = view.chat!;
+    final route = chat.isOwner
+        ? '/chat/threads/${view.reportId}'
+        : '/chat/${view.reportId}/thread/${chat.threadId ?? 'new'}';
+    if (widget.onOpenChat != null) {
+      widget.onOpenChat!(route);
+      return;
+    }
+    await Modular.to.pushNamed(route);
+    // Unread count changed while reading — reload the facet.
+    if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(view.reportId));
   }
 
   String _when(String iso) =>

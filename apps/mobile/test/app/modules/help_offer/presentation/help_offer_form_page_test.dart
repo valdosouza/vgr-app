@@ -171,4 +171,21 @@ void main() {
 
     expect(popped, isTrue);
   });
+
+  testWidgets('anonymous helper is told BEFORE offering that without an account there is '
+      'no chat (decisions 169/34) — and can still submit', (tester) async {
+    await pumpPage(tester, owns: false, identified: false);
+
+    expect(find.byKey(const Key('offer-anonymous-no-chat-notice')), findsOneWidget);
+    expect(find.textContaining('no chat'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('offer-type-share')));
+    await tester.pumpAndSettle();
+    expect(submitEnabled(tester), isTrue);
+  });
+
+  testWidgets('identified helper gets no such notice', (tester) async {
+    await pumpPage(tester, owns: false, identified: true);
+
+    expect(find.byKey(const Key('offer-anonymous-no-chat-notice')), findsNothing);
+  });
 }

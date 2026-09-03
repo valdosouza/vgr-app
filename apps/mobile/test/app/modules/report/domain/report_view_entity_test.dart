@@ -23,4 +23,28 @@ void main() {
       expect(hidden, isNot(ReportViewEntity.fromJson(_owner(hidden: false))));
     });
   });
+
+  group('ReportViewEntity.chat — the served chat facet (C2, decision 169)', () {
+    test('absent → null (public and summary views, anonymous helper)', () {
+      expect(ReportViewEntity.fromJson(_owner()).chat, isNull);
+    });
+
+    test('owner: {threads, unread}', () {
+      final view = ReportViewEntity.fromJson({..._owner(), 'chat': {'threads': 2, 'unread': 3}});
+      expect(view.chat, const ReportChatFacetEntity(threads: 2, unread: 3));
+      expect(view.chat!.isOwner, isTrue);
+    });
+
+    test('helper participant: {threadId, unread}, threadId null before the first message', () {
+      final withThread = ReportViewEntity.fromJson(
+          {..._owner(), 'access': 'participant', 'chat': {'threadId': 9, 'unread': 1}});
+      expect(withThread.chat, const ReportChatFacetEntity(threadId: 9, unread: 1));
+      expect(withThread.chat!.isOwner, isFalse);
+
+      final noThread = ReportViewEntity.fromJson(
+          {..._owner(), 'access': 'participant', 'chat': {'threadId': null, 'unread': 0}});
+      expect(noThread.chat!.threadId, isNull);
+      expect(noThread.chat!.isOwner, isFalse);
+    });
+  });
 }

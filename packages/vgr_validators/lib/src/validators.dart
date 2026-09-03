@@ -1,4 +1,5 @@
 import 'br_tax_id.dart';
+import 'contact_filter.dart';
 import 'field_error.dart';
 import 'mask.dart';
 
@@ -102,6 +103,20 @@ abstract final class VgrValidators {
         '${parsed.month.toString().padLeft(2, '0')}-'
         '${parsed.day.toString().padLeft(2, '0')}';
     return roundTrip == v ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
+  }
+
+  /// Mirrors the anti-contact rule of the masked chat — `findContact` in
+  /// `api/src/shared/chat/contact-filter.ts`, applied by `chat.service.post`
+  /// (decision 171). A hit is `CONTACT_NOT_ALLOWED {kind, match}`, the
+  /// API's own field error, so the screen translates local and server
+  /// refusals through one key. Blank passes: `required` is a separate rule.
+  static VgrFieldError? noDirectContact(String value) {
+    final hit = findContact(value);
+    if (hit == null) return null;
+    return VgrFieldError(
+      VgrFieldCode.contactNotAllowed,
+      {'kind': hit.kind.name, 'match': hit.match},
+    );
   }
 
   /// Runs each field's validators in order and keeps the first error per

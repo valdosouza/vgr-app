@@ -72,6 +72,34 @@ class OfferViewEntity extends Equatable {
   List<Object?> get props => [helpOfferId, helpType, helperDisplayName, createdAt];
 }
 
+/// The `chat` facet of an owner/participant view (C2, decision 169): the
+/// SERVER says whether this viewer can chat — the owner gets
+/// `{threads, unread}`, a helper participant `{threadId, unread}` with
+/// `threadId` null before their first message (173). Absent → no chat.
+class ReportChatFacetEntity extends Equatable {
+  const ReportChatFacetEntity({this.threads, this.threadId, required this.unread});
+
+  /// Owner only: how many helpers opened a thread.
+  final int? threads;
+
+  /// Helper participant only: their own thread, null until they write.
+  final int? threadId;
+  final int unread;
+
+  /// The owner's shape carries `threads`; the helper's carries `threadId`
+  /// (possibly null), never `threads`.
+  bool get isOwner => threads != null;
+
+  factory ReportChatFacetEntity.fromJson(Map<String, dynamic> json) => ReportChatFacetEntity(
+        threads: json['threads'] as int?,
+        threadId: json['threadId'] as int?,
+        unread: json['unread'] as int? ?? 0,
+      );
+
+  @override
+  List<Object?> get props => [threads, threadId, unread];
+}
+
 /// `GET /app-reports/:id` — shape varies by [access]; absent facets are
 /// null (a summary has no timeline, a public view has no offers, etc.).
 class ReportViewEntity extends Equatable {
@@ -91,6 +119,7 @@ class ReportViewEntity extends Equatable {
     this.media = const [],
     this.offers,
     this.hidden = false,
+    this.chat,
   });
 
   final ReportAccess access;
@@ -113,6 +142,10 @@ class ReportViewEntity extends Equatable {
   /// it, with this mark only — never the reason (that is audit material).
   /// Absent from the API → `false`.
   final bool hidden;
+
+  /// Served only to the owner and to a helper participant with an account
+  /// (decision 169); null means this viewer has no chat on this case.
+  final ReportChatFacetEntity? chat;
 
   factory ReportViewEntity.fromJson(Map<String, dynamic> json) {
     final position = json['position'] as Map?;
@@ -143,6 +176,9 @@ class ReportViewEntity extends Equatable {
           ?.map((o) => OfferViewEntity.fromJson((o as Map).cast<String, dynamic>()))
           .toList(),
       hidden: json['hidden'] as bool? ?? false,
+      chat: json['chat'] == null
+          ? null
+          : ReportChatFacetEntity.fromJson((json['chat'] as Map).cast<String, dynamic>()),
     );
   }
 
@@ -156,6 +192,6 @@ class ReportViewEntity extends Equatable {
   @override
   List<Object?> get props => [
         access, reportId, category, freeTag, subject, tier, status, position,
-        detailFields, createdAt, resolvedAt, timeline, media, offers, hidden,
+        detailFields, createdAt, resolvedAt, timeline, media, offers, hidden, chat,
       ];
 }

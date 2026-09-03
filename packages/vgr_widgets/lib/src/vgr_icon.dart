@@ -32,6 +32,8 @@ enum VgrIconName {
   image,
   camera,
   gallery,
+  chat,
+  send,
 }
 
 class VgrIcon extends StatelessWidget {
@@ -68,6 +70,8 @@ class VgrIcon extends StatelessWidget {
         VgrIconName.image => Icons.image_outlined,
         VgrIconName.camera => Icons.photo_camera_outlined,
         VgrIconName.gallery => Icons.photo_library_outlined,
+        VgrIconName.chat => Icons.chat_bubble_outline,
+        VgrIconName.send => Icons.send_outlined,
       };
 
   @override

@@ -35,6 +35,7 @@ strictly by it and never tries to show more than it received:
   resolved/media_attached/help_offered), media with dimensions; the owner
   additionally gets the offers list masked by tier (identity only when
   the helper chose it AND tier ≠ high; timestamps never on high — 40/41/60).
+- `chat` (C2, decision 169): owner/participant views may carry the served chat facet (`ReportChatFacetEntity`) — the `detail-chat-button` renders ONLY then and routes to the thread list (owner) or the conversation (helper, `new` before the first message); see `chat.md`.
 - `hidden` (B2, decision 167): when panel moderation hid the case, owner/participant
   views carry `hidden: true` and the page shows a `VgrText` notice
   (`detail.hiddenNotice`) — no reason, no action; third parties get a 404.

@@ -13,6 +13,7 @@
 library;
 
 export 'src/br_tax_id.dart';
+export 'src/contact_filter.dart';
 export 'src/field_error.dart';
 export 'src/mask.dart';
 export 'src/validators.dart';

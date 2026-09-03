@@ -45,7 +45,9 @@
       "remote_support": "Remote support",
       "share": "Share",
       "financial_contribution": "Financial contribution"
-    }
+    },
+    "chat": "Chat",
+    "chatUnread": "Chat ({count} unread)"
   },
   "report": {
     "title": "Report",
@@ -164,7 +166,26 @@
       "message": "The reporter will see that help is available. Thank you.",
       "back": "Back",
       "rewardOnboardingLink": "Register to be able to receive a reward"
-    }
+    },
+    "anonymousNoChatNotice": "Without an account there is no chat: the reporter cannot reach you after your offer. Create an account to talk — you can stay anonymous."
+  },
+  "chat": {
+    "threadsTitle": "Conversations",
+    "role": {
+      "reporter": "Reporter",
+      "helper": "Helper"
+    },
+    "empty": "No conversations yet.",
+    "emptyConversation": "No messages yet. The chat is masked: nobody sees more than the offer showed.",
+    "noMessages": "No messages yet",
+    "closedMarker": "Closed",
+    "closedNotice": "This conversation is closed — the case was resolved or hidden. You can still read it.",
+    "pending": "Sending…",
+    "failed": "Not sent: {reason}",
+    "send": "Send",
+    "composerHint": "No phone numbers, e-mails or links — the chat is masked",
+    "purged": "[message removed]",
+    "retry": "Try again"
   },
   "rewardOnboarding": {
     "title": "Reward payout registration",
@@ -209,7 +230,9 @@
       "LOCATION_OFF": "Location services are turned off.",
       "LOCATION_DENIED": "Location permission denied — the report needs where it happened.",
       "LOCATION_ERROR": "Could not read your location.",
-      "SELF_DEALING": "You cannot offer help on your own report."
+      "SELF_DEALING": "You cannot offer help on your own report.",
+      "CHAT_CLOSED": "This conversation is closed.",
+      "RATE_LIMITED": "Too many messages — wait a moment and try again."
     },
     "fieldErrors": {
       "REQUIRED": "Required field.",
@@ -217,7 +240,8 @@
       "TOO_LONG": "Maximum of {max} characters.",
       "INVALID_FORMAT": "Invalid format.",
       "INVALID_OPTION": "Invalid option.",
-      "INVALID_VALUE": "Invalid value."
+      "INVALID_VALUE": "Invalid value.",
+      "CONTACT_NOT_ALLOWED": "Direct contact is not allowed ({kind}: \"{match}\"). The chat is masked."
     }
   }
 }

@@ -2,6 +2,9 @@ import 'package:core/core.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'modules/auth/auth_module.dart';
+import 'modules/chat/chat_module.dart';
+import 'modules/chat/data/chat_queue_tasks.dart';
+import 'modules/chat/data/chat_send_outcomes.dart';
 import 'modules/help_offer/help_offer_module.dart';
 import 'modules/report/data/my_reports_store.dart';
 import 'modules/report/data/report_queue_tasks.dart';
@@ -17,6 +20,8 @@ class AppModule extends Module {
         // prod) once that decision is made — same note as apps/admin.
         Bind.singleton((i) => ApiClient(baseUrl: 'http://localhost:3002')),
         Bind.singleton((i) => MyReportsStore()),
+        // Settles/fails optimistic chat bubbles from the queue (172).
+        Bind.singleton((i) => ChatSendOutcomes()),
         // Offline queue (decision 28): handlers wired before anything can
         // flush; boot flush drains what a previous run left behind, the
         // periodic retry covers connectivity coming back mid-session.
@@ -24,6 +29,9 @@ class AppModule extends Module {
           final queue = OfflineQueueService();
           ReportQueueTasks.register(queue, i.get<ApiClient>(),
               myReports: i.get<MyReportsStore>());
+          // Masked chat rides the same queue (decision 172).
+          ChatQueueTasks.register(queue, i.get<ApiClient>(), i.get<MyReportsStore>(),
+              outcomes: i.get<ChatSendOutcomes>());
           queue.startAutoFlush();
           // ignore: unawaited_futures
           queue.flush();
@@ -42,6 +50,8 @@ class AppModule extends Module {
         // Email+password auth (decisions 119/151/152) — optional, never a
         // gate in front of reporting (decision 123).
         ModuleRoute('/auth', module: AuthModule()),
+        // Masked chat (decisions 54/168-177) — reached from the report detail.
+        ModuleRoute('/chat', module: ChatModule()),
         // The feed is the home (A2); the form stays one tap away (123).
         ModuleRoute('/', module: ReportModule()),
       ];

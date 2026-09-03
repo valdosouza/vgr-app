@@ -10,6 +10,10 @@ abstract final class VgrFieldCode {
   static const invalidFormat = 'INVALID_FORMAT';
   static const invalidOption = 'INVALID_OPTION';
   static const invalidValue = 'INVALID_VALUE';
+
+  /// Masked chat (decision 171): the text carries a way to continue
+  /// off-platform. Params `kind` and `match` name the excerpt.
+  static const contactNotAllowed = 'CONTACT_NOT_ALLOWED';
 }
 
 /// A validator's verdict: a code and its interpolation params (decision

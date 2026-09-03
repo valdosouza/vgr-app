@@ -132,9 +132,22 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
             // submit, and never block it.
             VgrCard(
               child: VgrPadding(
-                child: VgrText.caption(
-                  'offer.anonymousNotice'.tr(),
-                  key: const Key('offer-anonymous-notice'),
+                child: VgrColumn(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    VgrText.caption(
+                      'offer.anonymousNotice'.tr(),
+                      key: const Key('offer-anonymous-notice'),
+                    ),
+                    const VgrGap.sm(),
+                    // Decision 169: without an account there is no routable
+                    // identity, so no chat with the reporter — said BEFORE
+                    // the offer, never blocking it (same pattern as 34).
+                    VgrText.caption(
+                      'offer.anonymousNoChatNotice'.tr(),
+                      key: const Key('offer-anonymous-no-chat-notice'),
+                    ),
+                  ],
                 ),
               ),
             ),

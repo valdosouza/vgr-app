@@ -18,6 +18,7 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**report-form.md**](./feature/report-form.md) | Mobile report submission with offline queue and per-photo EXIF choice (A1). | Optional |
 | [**report-feed.md**](./feature/report-feed.md) | Nearby feed (home) and server-resolved report detail (A2). | Optional |
 | [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |
+| [**chat.md**](./feature/chat.md) | Masked reporter ↔ helper chat: cursor polling, offline-queued sends, anti-contact mirror (C2, decisions 54, 168-177). | Optional |
 | [**case-freeze.md**](./feature/case-freeze.md) | Panel screen to freeze/unfreeze a case under dual control (P1). | Optional |
 | [**report-moderation.md**](./feature/report-moderation.md) | Panel report search + case detail with embedded freeze (B1, decisions 158-167). | Optional |
 | [**admin-audit.md**](./feature/admin-audit.md) | Panel screen for the append-only admin audit trail, read only (B5, decisions 116, 158, 165, 166). | Optional |

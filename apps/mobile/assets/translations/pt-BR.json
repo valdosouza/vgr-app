@@ -45,7 +45,9 @@
       "remote_support": "Apoio remoto",
       "share": "Divulgar",
       "financial_contribution": "Contribuição financeira"
-    }
+    },
+    "chat": "Conversar",
+    "chatUnread": "Conversar ({count} não lidas)"
   },
   "report": {
     "title": "Denunciar",
@@ -164,7 +166,26 @@
       "message": "Quem denunciou verá que há ajuda disponível. Obrigado.",
       "back": "Voltar",
       "rewardOnboardingLink": "Cadastrar para poder receber recompensa"
-    }
+    },
+    "anonymousNoChatNotice": "Sem conta não há chat: quem denunciou não consegue falar com você depois da oferta. Crie uma conta para conversar — você pode continuar anônimo."
+  },
+  "chat": {
+    "threadsTitle": "Conversas",
+    "role": {
+      "reporter": "Denunciante",
+      "helper": "Ajudante"
+    },
+    "empty": "Ainda não há conversas.",
+    "emptyConversation": "Ainda não há mensagens. O chat é mascarado: ninguém vê mais do que a oferta mostrou.",
+    "noMessages": "Sem mensagens ainda",
+    "closedMarker": "Encerrada",
+    "closedNotice": "Esta conversa está encerrada — o caso foi resolvido ou ocultado. Você ainda pode ler.",
+    "pending": "Enviando…",
+    "failed": "Não enviada: {reason}",
+    "send": "Enviar",
+    "composerHint": "Sem telefone, e-mail ou link — o chat é mascarado",
+    "purged": "[mensagem removida]",
+    "retry": "Tentar novamente"
   },
   "rewardOnboarding": {
     "title": "Cadastro para receber recompensa",
@@ -209,7 +230,9 @@
       "LOCATION_OFF": "Os serviços de localização estão desligados.",
       "LOCATION_DENIED": "Permissão de localização negada — a denúncia precisa de onde aconteceu.",
       "LOCATION_ERROR": "Não foi possível ler sua localização.",
-      "SELF_DEALING": "Não é possível oferecer ajuda na própria denúncia."
+      "SELF_DEALING": "Não é possível oferecer ajuda na própria denúncia.",
+      "CHAT_CLOSED": "Esta conversa está encerrada.",
+      "RATE_LIMITED": "Mensagens demais — aguarde um instante e tente de novo."
     },
     "fieldErrors": {
       "REQUIRED": "Campo obrigatório.",
@@ -217,7 +240,8 @@
       "TOO_LONG": "Máximo de {max} caracteres.",
       "INVALID_FORMAT": "Formato inválido.",
       "INVALID_OPTION": "Opção inválida.",
-      "INVALID_VALUE": "Valor inválido."
+      "INVALID_VALUE": "Valor inválido.",
+      "CONTACT_NOT_ALLOWED": "Contato direto não é permitido ({kind}: \"{match}\"). O chat é mascarado."
     }
   }
 }
