@@ -18,6 +18,7 @@ export 'src/vgr_layout.dart';
 export 'src/vgr_menu.dart';
 export 'src/vgr_photo.dart';
 export 'src/vgr_progress.dart';
+export 'src/vgr_rating.dart';
 export 'src/vgr_scaffold.dart';
 export 'src/vgr_text.dart';
 export 'src/vgr_tile.dart';

@@ -20,6 +20,10 @@ abstract final class ReportQueueTasks {
   static const mediaUpload = 'report_media_upload';
   static const mediaAttach = 'report_media_attach';
 
+  /// RT2 (decisions 18/131/179): the owner's close, queued when the device
+  /// was offline at the moment of tapping "Encerrar".
+  static const resolve = 'report_resolve';
+
   /// Wires the three handlers. Call once at bootstrap, before any flush.
   static void register(OfflineQueueService queue, ApiClient apiClient,
       {MyReportsStore? myReports}) {
@@ -88,6 +92,21 @@ abstract final class ReportQueueTasks {
       }
       return QueueTaskResult.done;
     });
+
+    queue.register(resolve, (payload) async {
+      final reportId = payload['reportId'] as int;
+      final ownerKey = await myReports?.clientKeyOf(reportId);
+      try {
+        await apiClient.post(
+          '/app-reports/$reportId/resolve',
+          const {},
+          headers: ownerKey == null ? null : {'x-client-key': ownerKey},
+        );
+      } on Failure catch (failure) {
+        return _judgeResolve(failure);
+      }
+      return QueueTaskResult.done;
+    });
   }
 
   /// A replay answers 200 with the same resource — success by contract
@@ -105,4 +124,21 @@ abstract final class ReportQueueTasks {
   /// the task).
   static QueueTaskResult _judge(Failure failure) =>
       (failure.statusCode ?? 0) >= 500 ? QueueTaskResult.retry : QueueTaskResult.drop;
+
+  /// The resolve endpoint's ONLY business-rule refusal is "already
+  /// resolved" (api `reports.service.resolveReport`) — a judgment call: an
+  /// ack that never reached this device (dropped connection) after a
+  /// first attempt DID succeed lands here as the SAME 422 BUSINESS_RULE a
+  /// genuine double-close would. Since the resolve endpoint has no other
+  /// business-rule error path, treating it as `done` is safe and matches
+  /// the user's actual goal — the case IS resolved either way — rather
+  /// than the generic [_judge]'s silent `drop`, which would also stop
+  /// retrying but never actually confirms the outcome either way.
+  static QueueTaskResult _judgeResolve(Failure failure) {
+    if ((failure.statusCode ?? 0) >= 500) return QueueTaskResult.retry;
+    if (failure.statusCode == 422 && failure.code == 'BUSINESS_RULE') {
+      return QueueTaskResult.done;
+    }
+    return QueueTaskResult.drop;
+  }
 }

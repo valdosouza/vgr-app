@@ -30,4 +30,12 @@ abstract class ReportRepository {
   /// decision 50). Sends the stored clientKey as `x-client-key` when this
   /// device submitted the report (decision 134 — bearer ownership).
   Future<Either<Failure, ReportViewEntity>> getReport(int reportId);
+
+  /// Owner-only close (`POST /app-reports/:id/resolve`, decisions 18/131/
+  /// 179 — no "outcome" field, just the confirmation before this call).
+  /// Same two-tier pattern as [submit]: a transport failure falls back to
+  /// the offline queue (28); an API rejection (404 non-owner, 422 already
+  /// resolved) is a Left and is NEVER enqueued — a retry would fail
+  /// identically.
+  Future<Either<Failure, void>> resolve(int reportId);
 }

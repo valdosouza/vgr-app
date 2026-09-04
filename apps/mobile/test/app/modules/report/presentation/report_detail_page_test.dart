@@ -5,11 +5,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vgr_mobile/app/modules/rating/domain/entity/rating_entities.dart';
+import 'package:vgr_mobile/app/modules/rating/domain/repository/rating_repository.dart';
+import 'package:vgr_mobile/app/modules/rating/domain/usecase/rate_offer_usecase.dart';
 import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/report_view_entity.dart';
 import 'package:vgr_mobile/app/modules/report/domain/gateway/location_gateway.dart';
 import 'package:vgr_mobile/app/modules/report/domain/repository/report_repository.dart';
 import 'package:vgr_mobile/app/modules/report/domain/usecase/get_report_view_usecase.dart';
+import 'package:vgr_mobile/app/modules/report/domain/usecase/resolve_report_usecase.dart';
 import 'package:vgr_mobile/app/modules/report/presentation/bloc/report_detail_bloc.dart';
 import 'package:vgr_mobile/app/modules/report/presentation/page/report_detail_page.dart';
 
@@ -17,13 +21,17 @@ import '../../../../helpers/pump_localized.dart';
 
 class MockReportRepository extends Mock implements ReportRepository {}
 
+class MockRatingRepository extends Mock implements RatingRepository {}
+
 void main() {
   late MockReportRepository repository;
+  late MockRatingRepository ratingRepository;
   late MyReportsStore myReports;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     repository = MockReportRepository();
+    ratingRepository = MockRatingRepository();
     myReports = MyReportsStore(prefs: await SharedPreferences.getInstance());
   });
 
@@ -36,8 +44,12 @@ void main() {
     await pumpLocalized(
       tester,
       BlocProvider<ReportDetailBloc>(
-        create: (_) =>
-            ReportDetailBloc(GetReportViewUsecase(repository), myReports),
+        create: (_) => ReportDetailBloc(
+          GetReportViewUsecase(repository),
+          myReports,
+          ResolveReportUsecase(repository),
+          RateOfferUsecase(ratingRepository),
+        ),
         child: ReportDetailPage(
           reportId: reportId,
           mediaBaseUrl: 'http://api.test',
@@ -330,6 +342,236 @@ void main() {
       await pumpPage(tester);
 
       expect(find.byKey(const Key('detail-chat-button')), findsNothing);
+    });
+  });
+
+  group('Encerrar denúncia (RT2, decisions 18/131/179)', () {
+    testWidgets('the owner sees the close button on an open case; confirming resolves '
+        'and the view reloads', (tester) async {
+      await myReports.save(5, 'key-5');
+      var reads = 0;
+      when(() => repository.getReport(5)).thenAnswer((_) async {
+        reads++;
+        return Right(reads == 1
+            ? const ReportViewEntity(
+                access: ReportAccess.owner,
+                reportId: 5,
+                category: 'robbery',
+                subject: 'property',
+                tier: 'medium',
+                status: 'open',
+              )
+            : const ReportViewEntity(
+                access: ReportAccess.owner,
+                reportId: 5,
+                category: 'robbery',
+                subject: 'property',
+                tier: 'medium',
+                status: 'resolved',
+              ));
+      });
+      when(() => repository.resolve(5)).thenAnswer((_) async => const Right(null));
+
+      await pumpPage(tester);
+
+      final button = find.byKey(const Key('detail-resolve-button'));
+      expect(button, findsOneWidget);
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('detail-resolve-confirm')));
+      await tester.pumpAndSettle();
+
+      verify(() => repository.resolve(5)).called(1);
+      expect(find.text('Resolved'), findsWidgets);
+    });
+
+    testWidgets('cancelling the confirm dialog never calls resolve', (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      final button = find.byKey(const Key('detail-resolve-button'));
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('detail-resolve-cancel')));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => repository.resolve(5));
+    });
+
+    testWidgets('a non-owner never sees the close button', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-resolve-button')), findsNothing);
+    });
+
+    testWidgets('an already-resolved owner view has no close button either', (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'resolved',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-resolve-button')), findsNothing);
+    });
+  });
+
+  group('helper rating control on a resolved case (RT2, decisions 48/180-184)', () {
+    testWidgets('a ratable offer shows interactive stars; tapping one dispatches the rating',
+        (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'resolved',
+              offers: [
+                OfferViewEntity(
+                  helpOfferId: 1,
+                  helpType: 'physical_presence',
+                  rating: OfferRatingEntity(score: null, ratable: true),
+                ),
+              ],
+            ),
+          ));
+      when(() => ratingRepository.rateOffer(reportId: 5, offerId: 1, score: 4)).thenAnswer(
+        (_) async => const Right(RateOutcome.online(RatingEntity(
+          ratingId: 1, reportId: 5, helpOfferId: 1, score: 4, createdAt: 'now',
+        ))),
+      );
+
+      await pumpPage(tester);
+
+      final control = find.byKey(const Key('detail-offer-rating-1'));
+      expect(control, findsOneWidget);
+      final star4 = find.descendant(of: control, matching: find.byKey(const Key('rating-star-4')));
+      await tester.scrollUntilVisible(star4, 200);
+      await tester.tap(star4);
+      await tester.pumpAndSettle();
+
+      verify(() => ratingRepository.rateOffer(reportId: 5, offerId: 1, score: 4)).called(1);
+    });
+
+    testWidgets('an already-rated offer shows a read-only score, no tap dispatches anything',
+        (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'resolved',
+              offers: [
+                OfferViewEntity(
+                  helpOfferId: 1,
+                  helpType: 'physical_presence',
+                  rating: OfferRatingEntity(score: 4, ratable: false),
+                ),
+              ],
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      final control = find.byKey(const Key('detail-offer-rating-1'));
+      expect(control, findsOneWidget);
+      final star5 = find.descendant(of: control, matching: find.byKey(const Key('rating-star-5')));
+      await tester.scrollUntilVisible(star5, 200);
+      await tester.tap(star5);
+      await tester.pumpAndSettle();
+
+      verifyNever(() => ratingRepository.rateOffer(
+          reportId: any(named: 'reportId'),
+          offerId: any(named: 'offerId'),
+          score: any(named: 'score')));
+    });
+
+    testWidgets('a not-ratable offer with no score (helper has no account) shows no control',
+        (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'resolved',
+              offers: [
+                OfferViewEntity(
+                  helpOfferId: 1,
+                  helpType: 'physical_presence',
+                  rating: OfferRatingEntity(score: null, ratable: false),
+                ),
+              ],
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-offer-rating-1')), findsNothing);
+    });
+
+    testWidgets('an OPEN case never shows a rating control even if `rating` were present',
+        (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+              offers: [
+                OfferViewEntity(
+                  helpOfferId: 1,
+                  helpType: 'physical_presence',
+                  rating: OfferRatingEntity(score: null, ratable: true),
+                ),
+              ],
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-offer-rating-1')), findsNothing);
     });
   });
 }

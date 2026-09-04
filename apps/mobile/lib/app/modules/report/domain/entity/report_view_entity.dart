@@ -46,6 +46,25 @@ class ReportMediaRefEntity extends Equatable {
   List<Object?> get props => [publicId, mime, width, height];
 }
 
+/// The `rating` facet of an owner-view offer (RT2 — decisions 48/180/
+/// 183/184): `ratable` is computed server-side (resolved, not hidden, the
+/// helper has an account, not yet rated) — the app trusts it as-is and
+/// NEVER recomputes the rule. `score` is null until a rating exists.
+class OfferRatingEntity extends Equatable {
+  const OfferRatingEntity({this.score, required this.ratable});
+
+  final int? score;
+  final bool ratable;
+
+  factory OfferRatingEntity.fromJson(Map<String, dynamic> json) => OfferRatingEntity(
+        score: json['score'] as int?,
+        ratable: json['ratable'] as bool,
+      );
+
+  @override
+  List<Object?> get props => [score, ratable];
+}
+
 /// Offer row as the OWNER sees it — identity only when the helper chose
 /// it and the tier allows (6/40/60); no timestamp on high tier (41).
 class OfferViewEntity extends Equatable {
@@ -54,6 +73,7 @@ class OfferViewEntity extends Equatable {
     required this.helpType,
     this.helperDisplayName,
     this.createdAt,
+    this.rating,
   });
 
   final int helpOfferId;
@@ -61,15 +81,22 @@ class OfferViewEntity extends Equatable {
   final String? helperDisplayName;
   final String? createdAt;
 
+  /// Absent on every non-owner view (185); the owner view always sends it,
+  /// but parsing stays defensive rather than assuming it.
+  final OfferRatingEntity? rating;
+
   factory OfferViewEntity.fromJson(Map<String, dynamic> json) => OfferViewEntity(
         helpOfferId: json['helpOfferId'] as int,
         helpType: json['helpType'] as String,
         helperDisplayName: json['helperDisplayName'] as String?,
         createdAt: json['createdAt'] as String?,
+        rating: json['rating'] == null
+            ? null
+            : OfferRatingEntity.fromJson((json['rating'] as Map).cast<String, dynamic>()),
       );
 
   @override
-  List<Object?> get props => [helpOfferId, helpType, helperDisplayName, createdAt];
+  List<Object?> get props => [helpOfferId, helpType, helperDisplayName, createdAt, rating];
 }
 
 /// The `chat` facet of an owner/participant view (C2, decision 169): the
@@ -181,6 +208,28 @@ class ReportViewEntity extends Equatable {
           : ReportChatFacetEntity.fromJson((json['chat'] as Map).cast<String, dynamic>()),
     );
   }
+
+  /// Patches only the offers list — used after a rating settles so the one
+  /// affected row updates without a network round trip (RT2, decisions
+  /// 181/183); every other field is carried over unchanged.
+  ReportViewEntity copyWithOffers(List<OfferViewEntity> offers) => ReportViewEntity(
+        access: access,
+        reportId: reportId,
+        category: category,
+        freeTag: freeTag,
+        subject: subject,
+        tier: tier,
+        status: status,
+        position: position,
+        detailFields: detailFields,
+        createdAt: createdAt,
+        resolvedAt: resolvedAt,
+        timeline: timeline,
+        media: media,
+        offers: offers,
+        hidden: hidden,
+        chat: chat,
+      );
 
   /// The one derivative this viewer may fetch for feed/detail thumbnails:
   /// third parties on a high-tier case get ONLY the blur (decision 128).

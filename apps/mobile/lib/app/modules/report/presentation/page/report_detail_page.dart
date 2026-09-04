@@ -62,14 +62,26 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                 ),
               ]),
             ),
-          DetailLoaded(view: final view, clientKey: final clientKey) =>
-            _loaded(view, clientKey),
+          DetailLoaded(
+            view: final view,
+            clientKey: final clientKey,
+            resolving: final resolving,
+            ratingOfferId: final ratingOfferId,
+            actionFailure: final actionFailure,
+          ) =>
+            _loaded(view, clientKey, resolving, ratingOfferId, actionFailure),
         },
       ),
     );
   }
 
-  Widget _loaded(ReportViewEntity view, String? clientKey) {
+  Widget _loaded(
+    ReportViewEntity view,
+    String? clientKey,
+    bool resolving,
+    int? ratingOfferId,
+    Failure? actionFailure,
+  ) {
     // Resolved case, non-participant: ONLY the closure status renders —
     // no timeline, no details (decision 50, spec scenario).
     if (view.access == ReportAccess.summary) {
@@ -180,7 +192,23 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                       ? 'detail.helpType.${offer.helpType}'.tr()
                       : '${'detail.helpType.${offer.helpType}'.tr()} · '
                           '${_when(offer.createdAt!)}',
+                  trailing: _ratingControl(view, offer, ratingOfferId),
                 ),
+          ],
+          // Owner-only close (RT2, decisions 18/131/179): no "outcome"
+          // field, just this confirmation before the resolve call.
+          if (view.access == ReportAccess.owner && view.status == 'open') ...[
+            const VgrGap.lg(),
+            VgrPrimaryButton(
+              key: const Key('detail-resolve-button'),
+              label: 'detail.resolve'.tr(),
+              busy: resolving,
+              onPressed: resolving ? null : () => _resolve(view.reportId),
+            ),
+          ],
+          if (actionFailure != null) ...[
+            const VgrGap.sm(),
+            VgrText.error(failureText(actionFailure), key: const Key('detail-action-error')),
           ],
           // Masked chat (C2, decision 169): the entry exists ONLY when the
           // server put `chat` on this view — owner → thread list, helper
@@ -212,6 +240,56 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         ],
       ),
     );
+  }
+
+  /// Confirms before closing (179) — `showVgrConfirm` already exists for
+  /// exactly this, never a hand-rolled dialog.
+  Future<void> _resolve(int reportId) async {
+    final confirmed = await showVgrConfirm(
+      context,
+      title: 'detail.resolveConfirmTitle'.tr(),
+      message: 'detail.resolveConfirmMessage'.tr(),
+      confirmLabel: 'detail.resolveConfirm'.tr(),
+      cancelLabel: 'detail.resolveCancel'.tr(),
+      confirmKey: const Key('detail-resolve-confirm'),
+      cancelKey: const Key('detail-resolve-cancel'),
+    );
+    if (confirmed && mounted) {
+      context.read<ReportDetailBloc>().add(const DetailResolvePressed());
+    }
+  }
+
+  /// The rating control per offer row (RT2, decisions 48/180-184) — shown
+  /// ONLY on a resolved, owner-visible view, and only when the SERVER sent
+  /// a `rating` facet for this offer; the app trusts `ratable` as-is and
+  /// never recomputes the rule. Works both right after closing and on any
+  /// later revisit (181), since the whole page reloads on `DetailStarted`.
+  Widget? _ratingControl(ReportViewEntity view, OfferViewEntity offer, int? ratingOfferId) {
+    if (view.access != ReportAccess.owner || view.status != 'resolved') return null;
+    final rating = offer.rating;
+    if (rating == null) return null;
+
+    if (rating.ratable) {
+      return VgrRating(
+        key: Key('detail-offer-rating-${offer.helpOfferId}'),
+        value: null,
+        onChanged: ratingOfferId != null
+            ? null
+            : (score) => context.read<ReportDetailBloc>().add(
+                  DetailRatePressed(offerId: offer.helpOfferId, score: score),
+                ),
+      );
+    }
+    if (rating.score != null) {
+      return VgrRating(
+        key: Key('detail-offer-rating-${offer.helpOfferId}'),
+        value: rating.score,
+        onChanged: null,
+      );
+    }
+    // ratable == false and no score: the helper had no account (180) —
+    // nothing to show.
+    return null;
   }
 
   Future<void> _offerHelp(int reportId) async {

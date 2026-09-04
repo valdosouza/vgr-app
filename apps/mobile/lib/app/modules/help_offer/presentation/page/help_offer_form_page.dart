@@ -147,6 +147,15 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
                       'offer.anonymousNoChatNotice'.tr(),
                       key: const Key('offer-anonymous-no-chat-notice'),
                     ),
+                    const VgrGap.sm(),
+                    // Decision 180 (extends 169): the same missing-account
+                    // reason blocks rating too — no identity to accumulate
+                    // reputation on. Said BEFORE the offer, never blocking
+                    // it.
+                    VgrText.caption(
+                      'offer.anonymousNoRatingNotice'.tr(),
+                      key: const Key('offer-anonymous-no-rating-notice'),
+                    ),
                   ],
                 ),
               ),

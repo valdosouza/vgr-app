@@ -47,4 +47,63 @@ void main() {
       expect(noThread.chat!.isOwner, isFalse);
     });
   });
+
+  group('OfferViewEntity.rating — the owner-view rating facet (RT2, decisions 180/183/184)', () {
+    test('absent → null, handled defensively even though the owner view always sends it', () {
+      final offer = OfferViewEntity.fromJson({'helpOfferId': 1, 'helpType': 'physical_presence'});
+      expect(offer.rating, isNull);
+    });
+
+    test('ratable, not yet rated: {score: null, ratable: true}', () {
+      final offer = OfferViewEntity.fromJson({
+        'helpOfferId': 1,
+        'helpType': 'physical_presence',
+        'rating': {'score': null, 'ratable': true},
+      });
+      expect(offer.rating, const OfferRatingEntity(score: null, ratable: true));
+    });
+
+    test('already rated: {score, ratable: false} — immutable (183)', () {
+      final offer = OfferViewEntity.fromJson({
+        'helpOfferId': 1,
+        'helpType': 'physical_presence',
+        'rating': {'score': 4, 'ratable': false},
+      });
+      expect(offer.rating, const OfferRatingEntity(score: 4, ratable: false));
+    });
+
+    test('helper has no account: {score: null, ratable: false} — never ratable (180)', () {
+      final offer = OfferViewEntity.fromJson({
+        'helpOfferId': 1,
+        'helpType': 'physical_presence',
+        'rating': {'score': null, 'ratable': false},
+      });
+      expect(offer.rating!.score, isNull);
+      expect(offer.rating!.ratable, isFalse);
+    });
+  });
+
+  group('ReportViewEntity.copyWithOffers', () {
+    test('replaces only the offers list, keeping every other field', () {
+      final view = ReportViewEntity.fromJson({
+        ..._owner(hidden: true),
+        'offers': [
+          {'helpOfferId': 1, 'helpType': 'physical_presence'},
+        ],
+      });
+
+      final patched = view.copyWithOffers(const [
+        OfferViewEntity(
+          helpOfferId: 1,
+          helpType: 'physical_presence',
+          rating: OfferRatingEntity(score: 5, ratable: false),
+        ),
+      ]);
+
+      expect(patched.offers!.single.rating!.score, 5);
+      expect(patched.reportId, view.reportId);
+      expect(patched.hidden, view.hidden);
+      expect(patched.access, view.access);
+    });
+  });
 }

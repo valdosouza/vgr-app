@@ -2,6 +2,8 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '../rating/domain/repository/rating_repository.dart';
+import '../rating/domain/usecase/get_my_reputation_usecase.dart';
 import 'data/auth_repository_impl.dart';
 import 'data/google_sign_in_gateway.dart';
 import 'domain/gateway/social_sign_in_gateway.dart';
@@ -60,6 +62,7 @@ class AuthModule extends Module {
               SignOutUsecase(i.get<AuthRepository>()),
               i.get<IdentityBloc>(),
               i.get<LocalPrefs>(),
+              GetMyReputationUsecase(i.get<RatingRepository>()),
             )),
       ];
 

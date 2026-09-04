@@ -6,6 +6,9 @@ import 'modules/chat/chat_module.dart';
 import 'modules/chat/data/chat_queue_tasks.dart';
 import 'modules/chat/data/chat_send_outcomes.dart';
 import 'modules/help_offer/help_offer_module.dart';
+import 'modules/rating/data/rating_queue_tasks.dart';
+import 'modules/rating/data/rating_repository_impl.dart';
+import 'modules/rating/domain/repository/rating_repository.dart';
 import 'modules/report/data/my_reports_store.dart';
 import 'modules/report/data/report_queue_tasks.dart';
 import 'modules/report/report_module.dart';
@@ -22,6 +25,16 @@ class AppModule extends Module {
         Bind.singleton((i) => MyReportsStore()),
         // Settles/fails optimistic chat bubbles from the queue (172).
         Bind.singleton((i) => ChatSendOutcomes()),
+        // RT2 (decisions 48/178-189): reachable from both the report
+        // module (rating an offer) and the auth module (reading "my
+        // reputation") — bound once here, same as `MyReportsStore`.
+        Bind.lazySingleton<RatingRepository>(
+          (i) => RatingRepositoryImpl(
+            i.get<ApiClient>(),
+            i.get<OfflineQueueService>(),
+            i.get<MyReportsStore>(),
+          ),
+        ),
         // Offline queue (decision 28): handlers wired before anything can
         // flush; boot flush drains what a previous run left behind, the
         // periodic retry covers connectivity coming back mid-session.
@@ -32,6 +45,9 @@ class AppModule extends Module {
           // Masked chat rides the same queue (decision 172).
           ChatQueueTasks.register(queue, i.get<ApiClient>(), i.get<MyReportsStore>(),
               outcomes: i.get<ChatSendOutcomes>());
+          // Helper rating rides the same queue too (decision 181/RT2).
+          RatingQueueTasks.register(queue, i.get<ApiClient>(),
+              myReports: i.get<MyReportsStore>());
           queue.startAutoFlush();
           // ignore: unawaited_futures
           queue.flush();

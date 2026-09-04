@@ -47,7 +47,12 @@
       "financial_contribution": "Financial contribution"
     },
     "chat": "Chat",
-    "chatUnread": "Chat ({count} unread)"
+    "chatUnread": "Chat ({count} unread)",
+    "resolve": "Close report",
+    "resolveConfirmTitle": "Close this report?",
+    "resolveConfirmMessage": "This marks the case as resolved. Existing help offers stay linked; new ones are no longer accepted.",
+    "resolveConfirm": "Close",
+    "resolveCancel": "Cancel"
   },
   "report": {
     "title": "Report",
@@ -139,7 +144,11 @@
       "title": "My account",
       "verifyEmail": "Confirm email",
       "verifyEmailHint": "Only needed to offer or receive a reward",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "reputationTitle": "My reputation",
+      "reputationCount": "{count} rating(s) received",
+      "reputationAverage": "Average score: {average} / 5",
+      "reputationNotEnough": "Still not enough ratings yet."
     },
     "verifyEmail": {
       "title": "Confirm email",
@@ -167,7 +176,8 @@
       "back": "Back",
       "rewardOnboardingLink": "Register to be able to receive a reward"
     },
-    "anonymousNoChatNotice": "Without an account there is no chat: the reporter cannot reach you after your offer. Create an account to talk — you can stay anonymous."
+    "anonymousNoChatNotice": "Without an account there is no chat: the reporter cannot reach you after your offer. Create an account to talk — you can stay anonymous.",
+    "anonymousNoRatingNotice": "Without an account you cannot be rated either: there is no identity to build a reputation on. Create an account to be eligible — you can stay anonymous."
   },
   "chat": {
     "threadsTitle": "Conversations",
@@ -232,7 +242,10 @@
       "LOCATION_ERROR": "Could not read your location.",
       "SELF_DEALING": "You cannot offer help on your own report.",
       "CHAT_CLOSED": "This conversation is closed.",
-      "RATE_LIMITED": "Too many messages — wait a moment and try again."
+      "RATE_LIMITED": "Too many messages — wait a moment and try again.",
+      "RATING_NOT_ALLOWED": "This helper cannot be rated.",
+      "RATING_CLOSED": "You can only rate after the case is closed ({reason}).",
+      "ALREADY_RATED": "This offer has already been rated."
     },
     "fieldErrors": {
       "REQUIRED": "Required field.",

@@ -90,6 +90,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(submitEnabled(tester), isTrue);
 
+    await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
     await tester.tap(find.byKey(const Key('offer-submit-button')));
     await tester.pumpAndSettle();
 
@@ -124,6 +125,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('offer-type-share')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
     await tester.tap(find.byKey(const Key('offer-submit-button')));
     await tester.pumpAndSettle();
 
@@ -139,6 +141,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('offer-type-share')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
     await tester.tap(find.byKey(const Key('offer-submit-button')));
     await tester.pumpAndSettle();
 
@@ -152,6 +155,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('offer-type-share')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
     await tester.tap(find.byKey(const Key('offer-submit-button')));
     await tester.pumpAndSettle();
 
@@ -165,6 +169,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('offer-type-share')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
     await tester.tap(find.byKey(const Key('offer-submit-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('offer-done-button')));
@@ -187,5 +192,22 @@ void main() {
     await pumpPage(tester, owns: false, identified: true);
 
     expect(find.byKey(const Key('offer-anonymous-no-chat-notice')), findsNothing);
+  });
+
+  testWidgets('anonymous helper is ALSO told they cannot be rated without an account '
+      '(decision 180, extends 169) — and can still submit', (tester) async {
+    await pumpPage(tester, owns: false, identified: false);
+
+    expect(find.byKey(const Key('offer-anonymous-no-rating-notice')), findsOneWidget);
+    expect(find.textContaining('rated'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('offer-type-share')));
+    await tester.pumpAndSettle();
+    expect(submitEnabled(tester), isTrue);
+  });
+
+  testWidgets('identified helper gets no rating notice either', (tester) async {
+    await pumpPage(tester, owns: false, identified: true);
+
+    expect(find.byKey(const Key('offer-anonymous-no-rating-notice')), findsNothing);
   });
 }

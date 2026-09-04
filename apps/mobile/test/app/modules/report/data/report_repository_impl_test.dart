@@ -237,6 +237,53 @@ void main() {
     });
   });
 
+  group('resolve (decisions 18/131/179)', () {
+    test('online: posts to /app-reports/:id/resolve with the owner header', () async {
+      await myReports.save(9, 'key-9');
+      when(() => apiClient.post('/app-reports/9/resolve', const {},
+              headers: {'x-client-key': 'key-9'}))
+          .thenAnswer((_) async => {'reportId': 9, 'status': 'resolved'});
+
+      final result = await repository.resolve(9);
+
+      expect(result.isRight(), isTrue);
+      verify(() => apiClient.post('/app-reports/9/resolve', const {},
+          headers: {'x-client-key': 'key-9'})).called(1);
+    });
+
+    test('no stored key → no header (a logged-in owner rides the bearer)', () async {
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null))
+          .thenAnswer((_) async => {'reportId': 9, 'status': 'resolved'});
+
+      final result = await repository.resolve(9);
+
+      expect(result.isRight(), isTrue);
+    });
+
+    test('API rejection (already resolved / non-owner) surfaces as Left, never enqueued',
+        () async {
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null)).thenThrow(
+        const Failure(
+            message: 'Report is already resolved', statusCode: 422, code: 'BUSINESS_RULE'),
+      );
+
+      final result = await repository.resolve(9);
+
+      expect(result.fold((f) => f.code, (_) => null), 'BUSINESS_RULE');
+      expect(await queue.pendingCount(), 0);
+    });
+
+    test('transport failure queues the close under report_resolve (28)', () async {
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null))
+          .thenThrow(Exception('SocketException'));
+
+      final result = await repository.resolve(9);
+
+      expect(result.isRight(), isTrue);
+      expect(await queue.pendingCount(), 1);
+    });
+  });
+
   group('offline chain handlers (ReportQueueTasks)', () {
     test('queued draft drains submit → upload → attach in one flush, '
         'persisting ownership', () async {
@@ -286,6 +333,57 @@ void main() {
           const Failure(message: 'blocked', statusCode: 451, code: 'LEGAL_BLOCKED'));
       await queue.flush();
       expect(await queue.pendingCount(), 0); // dropped — retrying cannot succeed
+    });
+  });
+
+  group('resolve queue task (ReportQueueTasks.resolve)', () {
+    test('posts to /app-reports/:id/resolve with the owner header; done on success', () async {
+      ReportQueueTasks.register(queue, apiClient, myReports: myReports);
+      await myReports.save(9, 'key-9');
+      when(() => apiClient.post('/app-reports/9/resolve', const {},
+              headers: {'x-client-key': 'key-9'}))
+          .thenAnswer((_) async => {'reportId': 9, 'status': 'resolved'});
+
+      await queue.enqueue(ReportQueueTasks.resolve, {'reportId': 9});
+      await queue.flush();
+
+      expect(await queue.pendingCount(), 0);
+    });
+
+    test('5xx keeps the task for a later retry', () async {
+      ReportQueueTasks.register(queue, apiClient);
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null))
+          .thenThrow(const Failure(message: 'boom', statusCode: 500));
+
+      await queue.enqueue(ReportQueueTasks.resolve, {'reportId': 9});
+      await queue.flush();
+
+      expect(await queue.pendingCount(), 1);
+    });
+
+    test('422 BUSINESS_RULE "already resolved" is treated as done — the ack that '
+        'never arrived after a first attempt DID succeed, the goal is met either way',
+        () async {
+      ReportQueueTasks.register(queue, apiClient);
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null)).thenThrow(
+          const Failure(
+              message: 'Report is already resolved', statusCode: 422, code: 'BUSINESS_RULE'));
+
+      await queue.enqueue(ReportQueueTasks.resolve, {'reportId': 9});
+      await queue.flush();
+
+      expect(await queue.pendingCount(), 0);
+    });
+
+    test('a genuine refusal (404 non-owner) is dropped, not retried forever', () async {
+      ReportQueueTasks.register(queue, apiClient);
+      when(() => apiClient.post('/app-reports/9/resolve', const {}, headers: null)).thenThrow(
+          const Failure(message: 'nf', statusCode: 404, code: 'NOT_FOUND'));
+
+      await queue.enqueue(ReportQueueTasks.resolve, {'reportId': 9});
+      await queue.flush();
+
+      expect(await queue.pendingCount(), 0);
     });
   });
 }

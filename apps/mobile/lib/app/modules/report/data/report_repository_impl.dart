@@ -124,4 +124,29 @@ class ReportRepositoryImpl implements ReportRepository {
       return const Left(Failure(message: 'No connection', code: 'OFFLINE'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> resolve(int reportId) async {
+    try {
+      final clientKey = await _myReports.clientKeyOf(reportId);
+      await _apiClient.post(
+        '/app-reports/$reportId/resolve',
+        const {},
+        headers: clientKey == null ? null : {'x-client-key': clientKey},
+      );
+      return const Right(null);
+    } on Failure catch (failure) {
+      // The API judged (404 non-owner, 422 already resolved): a queued
+      // retry would fail identically — surface it, never enqueue (same
+      // rule as submit's rejection path).
+      return Left(failure);
+    } catch (_) {
+      // Transport failure — the close survives offline exactly like a
+      // report submission does (decisions 28/179).
+      await _queue.enqueue(ReportQueueTasks.resolve, {'reportId': reportId});
+      // ignore: unawaited_futures
+      _queue.flush();
+      return const Right(null);
+    }
+  }
 }

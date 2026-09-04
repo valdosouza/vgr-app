@@ -2,6 +2,8 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '../rating/domain/repository/rating_repository.dart';
+import '../rating/domain/usecase/rate_offer_usecase.dart';
 import 'data/geolocator_location_gateway.dart';
 import 'data/image_picker_photo_gateway.dart';
 import 'data/my_reports_store.dart';
@@ -11,6 +13,7 @@ import 'domain/gateway/photo_gateway.dart';
 import 'domain/repository/report_repository.dart';
 import 'domain/usecase/get_report_view_usecase.dart';
 import 'domain/usecase/list_nearby_reports_usecase.dart';
+import 'domain/usecase/resolve_report_usecase.dart';
 import 'domain/usecase/submit_report_usecase.dart';
 import 'presentation/bloc/nearby_feed_bloc.dart';
 import 'presentation/bloc/report_detail_bloc.dart';
@@ -49,6 +52,8 @@ class ReportModule extends Module {
           (i) => ReportDetailBloc(
             GetReportViewUsecase(i.get<ReportRepository>()),
             i.get<MyReportsStore>(),
+            ResolveReportUsecase(i.get<ReportRepository>()),
+            RateOfferUsecase(i.get<RatingRepository>()),
           ),
         ),
       ];

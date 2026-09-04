@@ -47,7 +47,12 @@
       "financial_contribution": "Contribuição financeira"
     },
     "chat": "Conversar",
-    "chatUnread": "Conversar ({count} não lidas)"
+    "chatUnread": "Conversar ({count} não lidas)",
+    "resolve": "Encerrar denúncia",
+    "resolveConfirmTitle": "Encerrar esta denúncia?",
+    "resolveConfirmMessage": "Isso marca o caso como resolvido. Ofertas de ajuda existentes continuam vinculadas; novas ofertas não são mais aceitas.",
+    "resolveConfirm": "Encerrar",
+    "resolveCancel": "Cancelar"
   },
   "report": {
     "title": "Denunciar",
@@ -139,7 +144,11 @@
       "title": "Minha conta",
       "verifyEmail": "Confirmar e-mail",
       "verifyEmailHint": "Necessário só para oferecer ou receber recompensa",
-      "signOut": "Sair"
+      "signOut": "Sair",
+      "reputationTitle": "Minha reputação",
+      "reputationCount": "{count} avaliação(ões) recebida(s)",
+      "reputationAverage": "Nota média: {average} / 5",
+      "reputationNotEnough": "Ainda não há avaliações suficientes."
     },
     "verifyEmail": {
       "title": "Confirmar e-mail",
@@ -167,7 +176,8 @@
       "back": "Voltar",
       "rewardOnboardingLink": "Cadastrar para poder receber recompensa"
     },
-    "anonymousNoChatNotice": "Sem conta não há chat: quem denunciou não consegue falar com você depois da oferta. Crie uma conta para conversar — você pode continuar anônimo."
+    "anonymousNoChatNotice": "Sem conta não há chat: quem denunciou não consegue falar com você depois da oferta. Crie uma conta para conversar — você pode continuar anônimo.",
+    "anonymousNoRatingNotice": "Sem conta você também não pode ser avaliado: não há identidade para acumular reputação. Crie uma conta para ficar elegível — você pode continuar anônimo."
   },
   "chat": {
     "threadsTitle": "Conversas",
@@ -232,7 +242,10 @@
       "LOCATION_ERROR": "Não foi possível ler sua localização.",
       "SELF_DEALING": "Não é possível oferecer ajuda na própria denúncia.",
       "CHAT_CLOSED": "Esta conversa está encerrada.",
-      "RATE_LIMITED": "Mensagens demais — aguarde um instante e tente de novo."
+      "RATE_LIMITED": "Mensagens demais — aguarde um instante e tente de novo.",
+      "RATING_NOT_ALLOWED": "Este ajudante não pode ser avaliado.",
+      "RATING_CLOSED": "Só é possível avaliar depois que o caso for encerrado ({reason}).",
+      "ALREADY_RATED": "Esta oferta já foi avaliada."
     },
     "fieldErrors": {
       "REQUIRED": "Campo obrigatório.",
