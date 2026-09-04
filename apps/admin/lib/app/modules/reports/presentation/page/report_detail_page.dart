@@ -353,8 +353,21 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                 _trOr('reports.detail.helpType.${offer.helpType}', offer.helpType),
                 _when(offer.createdAt),
               ].join(' · '),
+              trailing: _offerRating(offer),
             ),
       ];
+
+  /// The score the report owner already gave this offer (RT3, decision
+  /// 186) — read-only, the panel never rates. Null (unrated, or a
+  /// helper without an account who was never ratable — the panel does
+  /// not need to tell those apart) renders nothing extra.
+  Widget? _offerRating(ReportOfferEntity offer) => offer.ratingScore == null
+      ? null
+      : VgrRating(
+          key: Key('report-offer-rating-${offer.helpOfferId}'),
+          value: offer.ratingScore,
+          onChanged: null,
+        );
 
   /// Chat evidence (C3, decision 175). Rendered only under the
   /// `chat_evidence` grant (the caller checks); the chat itself arrives

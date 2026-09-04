@@ -23,6 +23,7 @@ ReportPanelDetailEntity detail({
   bool hidden = false,
   bool reviewed = false,
   String mediaStatus = 'blocked',
+  List<ReportOfferEntity>? offers,
 }) =>
     ReportPanelDetailEntity(
       reviewedAt: reviewed ? '2026-09-02T09:00:00.000Z' : null,
@@ -73,22 +74,23 @@ ReportPanelDetailEntity detail({
             ],
       offers: purged
           ? const []
-          : const [
-              ReportOfferEntity(
-                helpOfferId: 1,
-                helpType: 'share',
-                anonymous: false,
-                helper: ReportActorEntity(accountId: 30, displayName: 'João'),
-                createdAt: '2026-09-01T12:00:00.000Z',
-              ),
-              ReportOfferEntity(
-                helpOfferId: 2,
-                helpType: 'remote_support',
-                anonymous: true,
-                helper: null,
-                createdAt: '2026-09-01T13:00:00.000Z',
-              ),
-            ],
+          : offers ??
+              const [
+                ReportOfferEntity(
+                  helpOfferId: 1,
+                  helpType: 'share',
+                  anonymous: false,
+                  helper: ReportActorEntity(accountId: 30, displayName: 'João'),
+                  createdAt: '2026-09-01T12:00:00.000Z',
+                ),
+                ReportOfferEntity(
+                  helpOfferId: 2,
+                  helpType: 'remote_support',
+                  anonymous: true,
+                  helper: null,
+                  createdAt: '2026-09-01T13:00:00.000Z',
+                ),
+              ],
     );
 
 const _open = ReportFreezeStateEntity(reportId: 7, status: 'open', frozen: false);
@@ -185,6 +187,49 @@ void main() {
     expect(find.textContaining('image/jpeg · 800×600 · blocked'), findsOneWidget);
     expect(find.text('Report created'), findsOneWidget);
     expect(find.text('weapon: knife'), findsOneWidget);
+  });
+
+  testWidgets('an offer already rated by its owner shows the score as read-only stars (RT3, decision 186)',
+      (tester) async {
+    stub(
+      entity: detail(anonymous: false, offers: const [
+        ReportOfferEntity(
+          helpOfferId: 1,
+          helpType: 'share',
+          anonymous: false,
+          helper: ReportActorEntity(accountId: 30, displayName: 'João'),
+          createdAt: '2026-09-01T12:00:00.000Z',
+          ratingScore: 4,
+        ),
+      ]),
+    );
+    await pumpPage(tester);
+
+    final control = find.byKey(const Key('report-offer-rating-1'));
+    await tester.ensureVisible(control);
+    expect(control, findsOneWidget);
+    final rating = tester.widget<VgrRating>(control);
+    expect(rating.value, 4);
+    // Read-only on the panel — the admin never rates (186).
+    expect(rating.onChanged, isNull);
+  });
+
+  testWidgets('an unrated offer shows no rating control (decision 186)', (tester) async {
+    stub(
+      entity: detail(anonymous: false, offers: const [
+        ReportOfferEntity(
+          helpOfferId: 1,
+          helpType: 'share',
+          anonymous: false,
+          helper: ReportActorEntity(accountId: 30, displayName: 'João'),
+          createdAt: '2026-09-01T12:00:00.000Z',
+        ),
+      ]),
+    );
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('report-offer-1')), findsOneWidget);
+    expect(find.byKey(const Key('report-offer-rating-1')), findsNothing);
   });
 
   testWidgets('freeze section: mandatory reason via VgrValidators.minLength(3), then the '

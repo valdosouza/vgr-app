@@ -148,7 +148,15 @@ encapsulating raw widgets is the job; the guard scans `apps/*/lib` and
 ## Deliberately NOT here
 
 - RT3 (panel: the score per offer on the report-moderation case detail,
-  decision 186) — separate front, `apps/admin`.
+  decision 186) — separate front, `apps/admin`. DONE: `ReportOfferEntity.
+  ratingScore` (`apps/admin/lib/app/modules/reports/domain/entity/
+  report_entities.dart`) parsed from the SAME `GET /api/reports/:id` the
+  rest of the case detail already used, rendered read-only via `VgrRating`
+  in the offer row's `trailing` slot
+  (`apps/admin/lib/app/modules/reports/presentation/page/
+  report_detail_page.dart`, `_offerRating`). No aggregate-by-helper
+  screen, matching the decision. Details: `api/docs/feature/
+  report-moderation.md`.
 - Per-case reputation for anyone, editing/removing a given rating, a
   reporter-rates-helper "outcome" field: none of these exist anywhere —
   registered as visions in the plan, not built (per RT1's own doc).

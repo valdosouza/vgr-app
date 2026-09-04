@@ -328,6 +328,7 @@ class ReportOfferEntity extends Equatable {
     required this.anonymous,
     required this.helper,
     required this.createdAt,
+    this.ratingScore,
   });
 
   final int helpOfferId;
@@ -338,6 +339,12 @@ class ReportOfferEntity extends Equatable {
   final ReportActorEntity? helper;
   final String createdAt;
 
+  /// The score already given by the report owner, or `null` until rated
+  /// (RT3, decision 186). Bare number only — the panel never rates, so
+  /// there is no `ratable` flag here, unlike the owner's own
+  /// `OfferRatingEntity` on the mobile side.
+  final int? ratingScore;
+
   factory ReportOfferEntity.fromJson(Map<String, dynamic> json) => ReportOfferEntity(
         helpOfferId: (json['helpOfferId'] as num).toInt(),
         helpType: json['helpType'] as String,
@@ -346,10 +353,11 @@ class ReportOfferEntity extends Equatable {
             ? null
             : ReportActorEntity.fromJson((json['helper'] as Map).cast<String, dynamic>()),
         createdAt: json['createdAt'] as String,
+        ratingScore: (json['ratingScore'] as num?)?.toInt(),
       );
 
   @override
-  List<Object?> get props => [helpOfferId, helpType, anonymous, helper, createdAt];
+  List<Object?> get props => [helpOfferId, helpType, anonymous, helper, createdAt, ratingScore];
 }
 
 /// `GET /api/reports/:id` (`ReportPanelDetail`). Opening it is AUDITED
