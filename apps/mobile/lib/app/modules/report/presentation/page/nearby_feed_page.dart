@@ -14,11 +14,16 @@ import '../bloc/nearby_feed_state.dart';
 /// Everything shown is tier-degraded by the API; the screen renders what
 /// it gets and adds nothing.
 class NearbyFeedPage extends StatefulWidget {
-  const NearbyFeedPage({super.key, this.onOpenReport, this.onNewReport});
+  const NearbyFeedPage({super.key, this.onOpenReport, this.onNewReport, this.onOpenPanic});
 
   /// Test seams — default navigation goes through Modular.
   final void Function(int reportId)? onOpenReport;
   final VoidCallback? onNewReport;
+
+  /// The panic button is independent of the report flow, reachable from
+  /// this menu at ANY time (decision 62) — the feed is the one screen
+  /// every user, including a fully anonymous one, always reaches.
+  final VoidCallback? onOpenPanic;
 
   @override
   State<NearbyFeedPage> createState() => _NearbyFeedPageState();
@@ -38,6 +43,9 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
   void _newReport() =>
       widget.onNewReport != null ? widget.onNewReport!() : Modular.to.pushNamed('/new');
 
+  void _openPanic() =>
+      widget.onOpenPanic != null ? widget.onOpenPanic!() : Modular.to.pushNamed('/panic/');
+
   @override
   Widget build(BuildContext context) {
     // Auth is optional and never blocks reporting (decision 123) — this is
@@ -48,6 +56,15 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
       title: 'feed.title'.tr(),
       padded: false,
       actions: [
+        // The ONE required entry point (decision 62 — "reachable at any
+        // time"): the feed is the one screen every user, including a
+        // fully anonymous one, always reaches.
+        VgrIconButton(
+          key: const Key('feed-panic-button'),
+          icon: VgrIconName.panic,
+          tooltip: 'panic.hub.title'.tr(),
+          onPressed: _openPanic,
+        ),
         VgrIconButton(
           key: Key(identified ? 'feed-account-button' : 'feed-login-button'),
           icon: VgrIconName.person,

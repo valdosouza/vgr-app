@@ -148,7 +148,17 @@
       "reputationTitle": "Minha reputação",
       "reputationCount": "{count} avaliação(ões) recebida(s)",
       "reputationAverage": "Nota média: {average} / 5",
-      "reputationNotEnough": "Ainda não há avaliações suficientes."
+      "reputationNotEnough": "Ainda não há avaliações suficientes.",
+      "becomeResponder": "Tornar-se um Respondente Autorizado",
+      "becomeResponderHint": "Voluntarie-se para receber alertas de pânico próximos. Sujeito à análise de um administrador.",
+      "becomeResponderSending": "Enviando solicitação…",
+      "becomeResponderSent": "Solicitação enviada — aguardando análise",
+      "becomeResponderConfirmTitle": "Solicitar tornar-se um Respondente Autorizado?",
+      "becomeResponderConfirmMessage": "Um administrador vai avaliar sua solicitação por critério próprio. Não há garantia de aprovação.",
+      "becomeResponderConfirmConfirm": "Solicitar",
+      "becomeResponderConfirmCancel": "Cancelar",
+      "myAlerts": "Meus Alertas",
+      "myAlertsHint": "Alertas de pânico que você pode ter recebido como respondente"
     },
     "verifyEmail": {
       "title": "Confirmar e-mail",
@@ -245,7 +255,9 @@
       "RATE_LIMITED": "Mensagens demais — aguarde um instante e tente de novo.",
       "RATING_NOT_ALLOWED": "Este ajudante não pode ser avaliado.",
       "RATING_CLOSED": "Só é possível avaliar depois que o caso for encerrado ({reason}).",
-      "ALREADY_RATED": "Esta oferta já foi avaliada."
+      "ALREADY_RATED": "Esta oferta já foi avaliada.",
+      "PANIC_ALERT_ACTIVE": "Você já tem um alerta de pânico ativo. Aguarde ele ser resolvido antes de disparar um novo.",
+      "PANIC_ALERT_ALREADY_RESOLVED": "Este alerta já foi resolvido."
     },
     "fieldErrors": {
       "REQUIRED": "Campo obrigatório.",
@@ -255,6 +267,28 @@
       "INVALID_OPTION": "Opção inválida.",
       "INVALID_VALUE": "Valor inválido.",
       "CONTACT_NOT_ALLOWED": "Contato direto não é permitido ({kind}: \"{match}\"). O chat é mascarado."
+    }
+  },
+  "panic": {
+    "hub": {
+      "title": "Botão de pânico",
+      "confirmTitle": "Disparar alerta de pânico?",
+      "confirmMessage": "Isso notifica imediatamente os Respondentes Autorizados próximos com sua localização atual. Use somente em uma emergência real.",
+      "confirmConfirm": "Disparar alerta",
+      "confirmCancel": "Cancelar",
+      "trigger": "Preciso de ajuda agora",
+      "activeTitle": "Alerta enviado",
+      "activeNotified": "{count} respondente(s) próximo(s) notificado(s).",
+      "activeNoCount": "Seu alerta está ativo.",
+      "activeQueued": "Seu alerta será enviado assim que você estiver online novamente.",
+      "resolve": "Estou seguro(a) agora"
+    },
+    "alerts": {
+      "title": "Alertas de pânico",
+      "empty": "Nada por aqui ainda.",
+      "retry": "Tentar novamente",
+      "template": "Alerta de pânico — {distance} km de distância",
+      "resolved": "Resolvido"
     }
   }
 }

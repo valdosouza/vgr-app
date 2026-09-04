@@ -2,6 +2,9 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '../panic/domain/repository/panic_repository.dart';
+import '../panic/domain/usecase/check_responder_request_sent_usecase.dart';
+import '../panic/domain/usecase/request_responder_authorization_usecase.dart';
 import '../rating/domain/repository/rating_repository.dart';
 import '../rating/domain/usecase/get_my_reputation_usecase.dart';
 import 'data/auth_repository_impl.dart';
@@ -63,6 +66,11 @@ class AuthModule extends Module {
               i.get<IdentityBloc>(),
               i.get<LocalPrefs>(),
               GetMyReputationUsecase(i.get<RatingRepository>()),
+              // PP2 (decision 190) — the now-reachable responder-request
+              // tile, mirrors how the reputation section above reaches
+              // the rating module's repository.
+              CheckResponderRequestSentUsecase(i.get<PanicRepository>()),
+              RequestResponderAuthorizationUsecase(i.get<PanicRepository>()),
             )),
       ];
 

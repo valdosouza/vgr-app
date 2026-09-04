@@ -148,7 +148,17 @@
       "reputationTitle": "My reputation",
       "reputationCount": "{count} rating(s) received",
       "reputationAverage": "Average score: {average} / 5",
-      "reputationNotEnough": "Still not enough ratings yet."
+      "reputationNotEnough": "Still not enough ratings yet.",
+      "becomeResponder": "Become an Authorized Responder",
+      "becomeResponderHint": "Volunteer to receive nearby panic alerts. Subject to admin review.",
+      "becomeResponderSending": "Sending request…",
+      "becomeResponderSent": "Request sent — pending review",
+      "becomeResponderConfirmTitle": "Request to become an Authorized Responder?",
+      "becomeResponderConfirmMessage": "An administrator will review your request by their own judgment. There is no guarantee of approval.",
+      "becomeResponderConfirmConfirm": "Request",
+      "becomeResponderConfirmCancel": "Cancel",
+      "myAlerts": "My Alerts",
+      "myAlertsHint": "Panic alerts you may have received as a responder"
     },
     "verifyEmail": {
       "title": "Confirm email",
@@ -245,7 +255,9 @@
       "RATE_LIMITED": "Too many messages — wait a moment and try again.",
       "RATING_NOT_ALLOWED": "This helper cannot be rated.",
       "RATING_CLOSED": "You can only rate after the case is closed ({reason}).",
-      "ALREADY_RATED": "This offer has already been rated."
+      "ALREADY_RATED": "This offer has already been rated.",
+      "PANIC_ALERT_ACTIVE": "You already have an active panic alert. Wait for it to be resolved before triggering a new one.",
+      "PANIC_ALERT_ALREADY_RESOLVED": "This alert was already resolved."
     },
     "fieldErrors": {
       "REQUIRED": "Required field.",
@@ -255,6 +267,28 @@
       "INVALID_OPTION": "Invalid option.",
       "INVALID_VALUE": "Invalid value.",
       "CONTACT_NOT_ALLOWED": "Direct contact is not allowed ({kind}: \"{match}\"). The chat is masked."
+    }
+  },
+  "panic": {
+    "hub": {
+      "title": "Panic button",
+      "confirmTitle": "Trigger panic alert?",
+      "confirmMessage": "This immediately notifies nearby Authorized Responders of your current location. Use only in a real emergency.",
+      "confirmConfirm": "Trigger alert",
+      "confirmCancel": "Cancel",
+      "trigger": "I need help now",
+      "activeTitle": "Alert sent",
+      "activeNotified": "{count} nearby responder(s) notified.",
+      "activeNoCount": "Your alert is active.",
+      "activeQueued": "Your alert will be sent as soon as you're back online.",
+      "resolve": "I'm safe now"
+    },
+    "alerts": {
+      "title": "Panic alerts",
+      "empty": "Nothing here yet.",
+      "retry": "Try again",
+      "template": "Panic alert — {distance} km away",
+      "resolved": "Resolved"
     }
   }
 }

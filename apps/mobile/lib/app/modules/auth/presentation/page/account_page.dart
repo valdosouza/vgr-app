@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +27,24 @@ class _AccountPageState extends State<AccountPage> {
     context.read<AccountBloc>().add(const AccountStarted());
   }
 
+  /// The responder request is a real commitment (decision 190 — an admin
+  /// will judge it) — confirmed here, same posture as the panic trigger,
+  /// BEFORE the bloc ever sees `AccountResponderRequestPressed`.
+  Future<void> _requestResponder() async {
+    final confirmed = await showVgrConfirm(
+      context,
+      title: 'auth.account.becomeResponderConfirmTitle'.tr(),
+      message: 'auth.account.becomeResponderConfirmMessage'.tr(),
+      confirmLabel: 'auth.account.becomeResponderConfirmConfirm'.tr(),
+      cancelLabel: 'auth.account.becomeResponderConfirmCancel'.tr(),
+      confirmKey: const Key('account-become-responder-confirm'),
+      cancelKey: const Key('account-become-responder-cancel'),
+    );
+    if (confirmed && mounted) {
+      context.read<AccountBloc>().add(const AccountResponderRequestPressed());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return VgrScaffold(
@@ -39,6 +58,10 @@ class _AccountPageState extends State<AccountPage> {
         builder: (context, state) {
           final signingOut = state is AccountSigningOut;
           final reputation = state is AccountReady ? state.reputation : null;
+          final responderRequestSent = state is AccountReady && state.responderRequestSent;
+          final responderRequestSending = state is AccountReady && state.responderRequestSending;
+          final responderRequestFailure =
+              state is AccountReady ? state.responderRequestFailure : null;
           return VgrScrollView(
             child: VgrColumn(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,6 +72,37 @@ class _AccountPageState extends State<AccountPage> {
                   title: 'auth.account.verifyEmail'.tr(),
                   subtitle: 'auth.account.verifyEmailHint'.tr(),
                   onTap: () => Modular.to.pushNamed('/auth/verify-email/'),
+                ),
+                // The now-reachable responder-authorization request
+                // (decision 190, PP2) — a local flag is the ONLY guard
+                // against re-inviting a duplicate `POST`, since no PP1
+                // endpoint reads membership status back (see
+                // `panic_repository.dart`'s doc comment): once sent, this
+                // tile never re-invites a tap.
+                VgrListTile(
+                  key: const Key('account-become-responder-tile'),
+                  leadingIcon: VgrIconName.panic,
+                  title: 'auth.account.becomeResponder'.tr(),
+                  subtitle: responderRequestSent
+                      ? 'auth.account.becomeResponderSent'.tr()
+                      : responderRequestSending
+                          ? 'auth.account.becomeResponderSending'.tr()
+                          : 'auth.account.becomeResponderHint'.tr(),
+                  onTap: responderRequestSent || responderRequestSending
+                      ? null
+                      : _requestResponder,
+                ),
+                if (responderRequestFailure != null)
+                  VgrText.error(
+                    failureText(responderRequestFailure),
+                    key: const Key('account-become-responder-error'),
+                  ),
+                VgrListTile(
+                  key: const Key('account-my-alerts-tile'),
+                  leadingIcon: VgrIconName.alert,
+                  title: 'auth.account.myAlerts'.tr(),
+                  subtitle: 'auth.account.myAlertsHint'.tr(),
+                  onTap: () => Modular.to.pushNamed('/panic/alerts'),
                 ),
                 if (reputation != null) ...[
                   const VgrGap.lg(),

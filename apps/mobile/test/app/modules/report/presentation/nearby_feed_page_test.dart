@@ -46,6 +46,7 @@ void main() {
   Future<void> pumpPage(WidgetTester tester,
       {void Function(int)? onOpenReport,
       VoidCallback? onNewReport,
+      VoidCallback? onOpenPanic,
       bool identified = false}) async {
     await pumpLocalized(
       tester,
@@ -69,7 +70,11 @@ void main() {
                 NearbyFeedBloc(ListNearbyReportsUsecase(repository), location),
           ),
         ],
-        child: NearbyFeedPage(onOpenReport: onOpenReport, onNewReport: onNewReport),
+        child: NearbyFeedPage(
+          onOpenReport: onOpenReport,
+          onNewReport: onNewReport,
+          onOpenPanic: onOpenPanic,
+        ),
       ),
     );
   }
@@ -165,6 +170,19 @@ void main() {
 
     expect(find.byKey(const Key('feed-login-button')), findsOneWidget);
     expect(find.byKey(const Key('feed-account-button')), findsNothing);
+  });
+
+  testWidgets('the panic action is reachable from the feed at any time (decision 62), '
+      'independent of the report flow', (tester) async {
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency)).thenAnswer(
+        (_) async => const Right(FeedPageEntity(
+            items: [], page: 1, hasMore: false, order: FeedOrder.recency)));
+
+    var openedPanic = false;
+    await pumpPage(tester, onOpenPanic: () => openedPanic = true);
+    await tester.tap(find.byKey(const Key('feed-panic-button')));
+
+    expect(openedPanic, isTrue);
   });
 
   testWidgets('identified user sees the account action, not the login one',

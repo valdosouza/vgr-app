@@ -36,6 +36,11 @@ enum VgrIconName {
   send,
   starFilled,
   starOutline,
+
+  /// The panic-button trigger (decisions 62/65, PP2) — reachable from a
+  /// menu at any time, deliberately distinct from `alert` (report feed
+  /// items) so it reads as a different, more urgent action.
+  panic,
 }
 
 class VgrIcon extends StatelessWidget {
@@ -76,6 +81,7 @@ class VgrIcon extends StatelessWidget {
         VgrIconName.send => Icons.send_outlined,
         VgrIconName.starFilled => Icons.star,
         VgrIconName.starOutline => Icons.star_border,
+        VgrIconName.panic => Icons.sos,
       };
 
   @override
