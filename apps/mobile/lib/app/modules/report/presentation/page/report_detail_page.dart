@@ -5,8 +5,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../direction_sighting/domain/entity/direction_sighting_entities.dart';
 import '../../domain/entity/report_view_entity.dart';
 import '../bloc/report_detail_bloc.dart';
+
+/// Client-side, NON-AUTHORITATIVE mirror of decision 201's SERVER-side
+/// fixed eligibility list ("things that move" — `dynamic-radius.ts`'s own
+/// subset). A UX hint ONLY: hides the picker for a category that would
+/// always be refused with 422 DIRECTION_SIGHTING_NOT_ELIGIBLE server-side
+/// anyway. NEVER trusted for anything beyond hiding a button — the server
+/// enforces this independently and never consults the app's copy.
+const _directionSightingEligibleCategories = {'robbery', 'kidnapping', 'fugitive', 'missing'};
 
 /// Report detail (spec task 22, decision 50). The SERVER resolves what
 /// this viewer may see — the page renders strictly by `access` and never
@@ -68,8 +77,12 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             resolving: final resolving,
             ratingOfferId: final ratingOfferId,
             actionFailure: final actionFailure,
+            sightedDirection: final sightedDirection,
+            sighting: final sighting,
+            sightFeedback: final sightFeedback,
           ) =>
-            _loaded(view, clientKey, resolving, ratingOfferId, actionFailure),
+            _loaded(view, clientKey, resolving, ratingOfferId, actionFailure, sightedDirection,
+                sighting, sightFeedback),
         },
       ),
     );
@@ -81,6 +94,9 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     bool resolving,
     int? ratingOfferId,
     Failure? actionFailure,
+    Direction? sightedDirection,
+    bool sighting,
+    DirectionSightingResult? sightFeedback,
   ) {
     // Resolved case, non-participant: ONLY the closure status renders —
     // no timeline, no details (decision 50, spec scenario).
@@ -143,6 +159,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               ),
             ]),
           ],
+          ..._directionSightingSection(view, sightedDirection, sighting, sightFeedback),
           if (view.detailFields != null && view.detailFields!.isNotEmpty) ...[
             const VgrGap.md(),
             VgrText.title('detail.fields'.tr()),
@@ -258,6 +275,71 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       context.read<ReportDetailBloc>().add(const DetailResolvePressed());
     }
   }
+
+  /// Direction sighting (DS2 — decisions 200-207). Two independent parts:
+  /// the shared, floor-gated READ facet (202-204, `view.directionEstimate`
+  /// — resolved entirely server-side, rendered whenever non-null
+  /// regardless of category/access/status) and, ONLY for an eligible
+  /// non-owner viewer of a still-open, eligible-category report, the
+  /// picker to log a sighting of this device's own (200/201) — replaced
+  /// by a read-only confirmation once logged (either just now, or in a
+  /// previous session per `DirectionSightingLocalStore`'s soft, local-only
+  /// record).
+  List<Widget> _directionSightingSection(
+    ReportViewEntity view,
+    Direction? sightedDirection,
+    bool sighting,
+    DirectionSightingResult? sightFeedback,
+  ) {
+    final eligible = view.access != ReportAccess.owner &&
+        view.status == 'open' &&
+        _directionSightingEligibleCategories.contains(view.category);
+
+    return [
+      if (view.directionEstimate != null) ...[
+        const VgrGap.sm(),
+        VgrText.caption(
+          'detail.directionEstimate'
+              .tr(namedArgs: {'direction': _compassLabel(view.directionEstimate!)}),
+          key: const Key('detail-direction-estimate'),
+        ),
+      ],
+      if (eligible) ...[
+        const VgrGap.md(),
+        if (sightedDirection != null)
+          VgrText.caption(
+            'detail.directionSighted'
+                .tr(namedArgs: {'direction': _compassLabel(sightedDirection)}),
+            key: const Key('detail-direction-sighted'),
+          )
+        else ...[
+          VgrText.title('detail.directionPrompt'.tr()),
+          const VgrGap.sm(),
+          VgrCompass(
+            key: const Key('detail-direction-picker'),
+            value: null,
+            onChanged: sighting
+                ? null
+                : (code) => context.read<ReportDetailBloc>().add(
+                      DetailSightPressed(DirectionJson.fromJson(code)),
+                    ),
+          ),
+        ],
+        if (sightFeedback?.estimate != null) ...[
+          const VgrGap.sm(),
+          VgrText.caption(
+            'detail.directionFeedback'.tr(namedArgs: {
+              'direction': _compassLabel(sightFeedback!.estimate!),
+              'count': '${sightFeedback.count}',
+            }),
+            key: const Key('detail-direction-feedback'),
+          ),
+        ],
+      ],
+    ];
+  }
+
+  String _compassLabel(Direction direction) => 'compass.${direction.name}'.tr();
 
   /// The rating control per offer row (RT2, decisions 48/180-184) — shown
   /// ONLY on a resolved, owner-visible view, and only when the SERVER sent

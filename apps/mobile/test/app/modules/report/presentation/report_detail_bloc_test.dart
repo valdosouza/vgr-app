@@ -5,6 +5,10 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/data/direction_sighting_local_store.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/entity/direction_sighting_entities.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/repository/direction_sighting_repository.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/usecase/log_sighting_usecase.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/entity/rating_entities.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/repository/rating_repository.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/usecase/rate_offer_usecase.dart';
@@ -18,6 +22,8 @@ import 'package:vgr_mobile/app/modules/report/presentation/bloc/report_detail_bl
 class MockReportRepository extends Mock implements ReportRepository {}
 
 class MockRatingRepository extends Mock implements RatingRepository {}
+
+class MockDirectionSightingRepository extends Mock implements DirectionSightingRepository {}
 
 const _view = ReportViewEntity(
   access: ReportAccess.public,
@@ -47,15 +53,24 @@ const _resolvedOwnerView = ReportViewEntity(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() {
+    registerFallbackValue(Direction.n);
+  });
+
   late MockReportRepository repository;
   late MockRatingRepository ratingRepository;
+  late MockDirectionSightingRepository directionSightingRepository;
   late MyReportsStore myReports;
+  late DirectionSightingLocalStore directionSightingLocalStore;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     repository = MockReportRepository();
     ratingRepository = MockRatingRepository();
-    myReports = MyReportsStore(prefs: await SharedPreferences.getInstance());
+    directionSightingRepository = MockDirectionSightingRepository();
+    final prefs = await SharedPreferences.getInstance();
+    myReports = MyReportsStore(prefs: prefs);
+    directionSightingLocalStore = DirectionSightingLocalStore(prefs: prefs);
   });
 
   ReportDetailBloc build() => ReportDetailBloc(
@@ -63,6 +78,8 @@ void main() {
         myReports,
         ResolveReportUsecase(repository),
         RateOfferUsecase(ratingRepository),
+        LogSightingUsecase(directionSightingRepository),
+        directionSightingLocalStore,
       );
 
   Future<void> settle() => Future<void>.delayed(Duration.zero);
@@ -330,6 +347,152 @@ void main() {
 
       verify(() => ratingRepository.rateOffer(reportId: 5, offerId: 1, score: 3)).called(1);
       completer.complete(const Right(RateOutcome.queued()));
+    });
+  });
+
+  group('DetailSightPressed (DS2 — decisions 200-207)', () {
+    test('DetailStarted carries null when this device never sighted this report',
+        () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+
+      expect((bloc.state as DetailLoaded).sightedDirection, isNull);
+    });
+
+    test('DetailStarted carries the locally-remembered direction (a previous session '
+        'already sighted this report)', () async {
+      await directionSightingLocalStore.saveSighting(reportId: 5, direction: Direction.ne);
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+
+      expect((bloc.state as DetailLoaded).sightedDirection, Direction.ne);
+    });
+
+    test('a successful ONLINE sighting sets sightedDirection and surfaces the private '
+        'write-response feedback (estimate/count)', () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .thenAnswer((_) async => const Right(SightOutcome.online(DirectionSightingResult(
+                sightingId: 501, reportId: 5, estimate: Direction.n, count: 6,
+              ))));
+
+      bloc.add(const DetailSightPressed(Direction.n));
+      await settle();
+
+      final loaded = bloc.state as DetailLoaded;
+      expect(loaded.sightedDirection, Direction.n);
+      expect(loaded.sighting, isFalse);
+      expect(loaded.sightFeedback?.estimate, Direction.n);
+      expect(loaded.sightFeedback?.count, 6);
+    });
+
+    test('a QUEUED (offline) sighting sets sightedDirection optimistically, with no '
+        'private feedback yet (decision 28)', () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.sw))
+          .thenAnswer((_) async => const Right(SightOutcome.queued()));
+
+      bloc.add(const DetailSightPressed(Direction.sw));
+      await settle();
+
+      final loaded = bloc.state as DetailLoaded;
+      expect(loaded.sightedDirection, Direction.sw);
+      expect(loaded.sightFeedback, isNull);
+    });
+
+    test('sets sighting true while in flight so the picker can disable itself', () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+      final completer = Completer<Either<Failure, SightOutcome>>();
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.e))
+          .thenAnswer((_) => completer.future);
+
+      bloc.add(const DetailSightPressed(Direction.e));
+      await settle();
+
+      expect((bloc.state as DetailLoaded).sighting, isTrue);
+      completer.complete(const Right(SightOutcome.queued()));
+    });
+
+    test('a Failure the API judged surfaces via actionFailure — nothing recorded, '
+        'the picker stays offered', () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .thenAnswer((_) async => const Left(Failure(
+              message: 'not eligible', statusCode: 422,
+              code: 'DIRECTION_SIGHTING_NOT_ELIGIBLE')));
+
+      bloc.add(const DetailSightPressed(Direction.n));
+      await settle();
+
+      final loaded = bloc.state as DetailLoaded;
+      expect(loaded.sighting, isFalse);
+      expect(loaded.sightedDirection, isNull);
+      expect(loaded.actionFailure?.code, 'DIRECTION_SIGHTING_NOT_ELIGIBLE');
+    });
+
+    test('the owner never dispatches a sighting — ignored, repository never called',
+        () async {
+      const ownerView = ReportViewEntity(
+        access: ReportAccess.owner,
+        reportId: 5,
+        category: 'robbery',
+        subject: 'property',
+        tier: 'medium',
+        status: 'open',
+      );
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(ownerView));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+
+      bloc.add(const DetailSightPressed(Direction.n));
+      await settle();
+
+      verifyNever(() => directionSightingRepository.logSighting(
+          reportId: any(named: 'reportId'), direction: any(named: 'direction')));
+    });
+
+    test('already sighted (locally remembered) — ignored, never re-calls the repository',
+        () async {
+      await directionSightingLocalStore.saveSighting(reportId: 5, direction: Direction.w);
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+
+      bloc.add(const DetailSightPressed(Direction.n));
+      await settle();
+
+      verifyNever(() => directionSightingRepository.logSighting(
+          reportId: any(named: 'reportId'), direction: any(named: 'direction')));
+    });
+
+    test('ignored while a sighting is already in flight — no second race', () async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(_view));
+      final bloc = build()..add(const DetailStarted(5));
+      await settle();
+      final completer = Completer<Either<Failure, SightOutcome>>();
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .thenAnswer((_) => completer.future);
+
+      bloc.add(const DetailSightPressed(Direction.n));
+      await settle();
+      bloc.add(const DetailSightPressed(Direction.s)); // second tap while in flight
+      await settle();
+
+      verify(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .called(1);
+      completer.complete(const Right(SightOutcome.queued()));
     });
   });
 }

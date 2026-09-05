@@ -5,6 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/data/direction_sighting_local_store.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/entity/direction_sighting_entities.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/repository/direction_sighting_repository.dart';
+import 'package:vgr_mobile/app/modules/direction_sighting/domain/usecase/log_sighting_usecase.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/entity/rating_entities.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/repository/rating_repository.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/usecase/rate_offer_usecase.dart';
@@ -23,16 +27,27 @@ class MockReportRepository extends Mock implements ReportRepository {}
 
 class MockRatingRepository extends Mock implements RatingRepository {}
 
+class MockDirectionSightingRepository extends Mock implements DirectionSightingRepository {}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(Direction.n);
+  });
+
   late MockReportRepository repository;
   late MockRatingRepository ratingRepository;
+  late MockDirectionSightingRepository directionSightingRepository;
   late MyReportsStore myReports;
+  late DirectionSightingLocalStore directionSightingLocalStore;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     repository = MockReportRepository();
     ratingRepository = MockRatingRepository();
-    myReports = MyReportsStore(prefs: await SharedPreferences.getInstance());
+    directionSightingRepository = MockDirectionSightingRepository();
+    final prefs = await SharedPreferences.getInstance();
+    myReports = MyReportsStore(prefs: prefs);
+    directionSightingLocalStore = DirectionSightingLocalStore(prefs: prefs);
   });
 
   Future<void> pumpPage(
@@ -49,6 +64,8 @@ void main() {
           myReports,
           ResolveReportUsecase(repository),
           RateOfferUsecase(ratingRepository),
+          LogSightingUsecase(directionSightingRepository),
+          directionSightingLocalStore,
         ),
         child: ReportDetailPage(
           reportId: reportId,
@@ -572,6 +589,159 @@ void main() {
       await pumpPage(tester);
 
       expect(find.byKey(const Key('detail-offer-rating-1')), findsNothing);
+    });
+  });
+
+  group('direction sighting (DS2 — decisions 200-207)', () {
+    testWidgets('the shared read-only estimate shows whenever the server sent one '
+        '(202-204) — regardless of eligibility for the picker', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'assault', // not in the eligible-category mirror
+              subject: 'adult',
+              tier: 'medium',
+              status: 'resolved',
+              directionEstimate: Direction.n,
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-estimate')), findsOneWidget);
+      expect(find.text('Estimated direction: North'), findsOneWidget);
+    });
+
+    testWidgets('no estimate on the view → nothing rendered', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-estimate')), findsNothing);
+    });
+
+    testWidgets('an eligible non-owner viewer of an open, eligible-category report sees '
+        'the picker; tapping a point dispatches and shows the read-only confirmation '
+        'plus the private write-response feedback', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+      when(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .thenAnswer((_) async => const Right(SightOutcome.online(DirectionSightingResult(
+                sightingId: 501, reportId: 5, estimate: Direction.n, count: 6,
+              ))));
+
+      await pumpPage(tester);
+
+      final picker = find.byKey(const Key('detail-direction-picker'));
+      expect(picker, findsOneWidget);
+      final pointN = find.descendant(of: picker, matching: find.byKey(const Key('direction-N')));
+      await tester.scrollUntilVisible(pointN, 200);
+      await tester.tap(pointN);
+      await tester.pumpAndSettle();
+
+      verify(() => directionSightingRepository.logSighting(reportId: 5, direction: Direction.n))
+          .called(1);
+      expect(find.byKey(const Key('detail-direction-picker')), findsNothing);
+      expect(find.byKey(const Key('detail-direction-sighted')), findsOneWidget);
+      expect(find.text('You pointed North — thanks!'), findsOneWidget);
+      expect(find.byKey(const Key('detail-direction-feedback')), findsOneWidget);
+      expect(find.text('Current best guess so far: North (6 sightings).'), findsOneWidget);
+    });
+
+    testWidgets('a device that already sighted this report (local record) sees the '
+        'read-only confirmation instead of the picker, from the first frame', (tester) async {
+      await directionSightingLocalStore.saveSighting(reportId: 5, direction: Direction.sw);
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'kidnapping',
+              subject: 'adult',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-picker')), findsNothing);
+      expect(find.byKey(const Key('detail-direction-sighted')), findsOneWidget);
+      expect(find.text('You pointed Southwest — thanks!'), findsOneWidget);
+      verifyNever(() => directionSightingRepository.logSighting(
+          reportId: any(named: 'reportId'), direction: any(named: 'direction')));
+    });
+
+    testWidgets('the owner never sees the picker, even on an open eligible-category case '
+        '(200)', (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-picker')), findsNothing);
+      expect(find.byKey(const Key('detail-direction-sighted')), findsNothing);
+    });
+
+    testWidgets('a non-eligible category never shows the picker (client-side, '
+        'non-authoritative mirror of decision 201)', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'assault',
+              subject: 'adult',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-picker')), findsNothing);
+    });
+
+    testWidgets('a resolved report never shows the picker', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.public,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'resolved',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('detail-direction-picker')), findsNothing);
     });
   });
 }

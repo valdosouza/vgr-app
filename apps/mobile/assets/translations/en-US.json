@@ -52,7 +52,11 @@
     "resolveConfirmTitle": "Close this report?",
     "resolveConfirmMessage": "This marks the case as resolved. Existing help offers stay linked; new ones are no longer accepted.",
     "resolveConfirm": "Close",
-    "resolveCancel": "Cancel"
+    "resolveCancel": "Cancel",
+    "directionEstimate": "Estimated direction: {direction}",
+    "directionPrompt": "Which direction did you see them go?",
+    "directionSighted": "You pointed {direction} — thanks!",
+    "directionFeedback": "Current best guess so far: {direction} ({count} sightings)."
   },
   "report": {
     "title": "Report",
@@ -257,7 +261,8 @@
       "RATING_CLOSED": "You can only rate after the case is closed ({reason}).",
       "ALREADY_RATED": "This offer has already been rated.",
       "PANIC_ALERT_ACTIVE": "You already have an active panic alert. Wait for it to be resolved before triggering a new one.",
-      "PANIC_ALERT_ALREADY_RESOLVED": "This alert was already resolved."
+      "PANIC_ALERT_ALREADY_RESOLVED": "This alert was already resolved.",
+      "DIRECTION_SIGHTING_NOT_ELIGIBLE": "Direction sightings are not available for this kind of report."
     },
     "fieldErrors": {
       "REQUIRED": "Required field.",
@@ -290,5 +295,15 @@
       "template": "Panic alert — {distance} km away",
       "resolved": "Resolved"
     }
+  },
+  "compass": {
+    "n": "North",
+    "ne": "Northeast",
+    "e": "East",
+    "se": "Southeast",
+    "s": "South",
+    "sw": "Southwest",
+    "w": "West",
+    "nw": "Northwest"
   }
 }

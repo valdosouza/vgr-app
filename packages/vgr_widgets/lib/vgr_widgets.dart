@@ -11,6 +11,7 @@ library;
 
 export 'src/vgr_button.dart';
 export 'src/vgr_chat.dart';
+export 'src/vgr_compass.dart';
 export 'src/vgr_feedback.dart';
 export 'src/vgr_field.dart';
 export 'src/vgr_icon.dart';

@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/report_view_entity.dart';
 
@@ -80,6 +81,50 @@ void main() {
       });
       expect(offer.rating!.score, isNull);
       expect(offer.rating!.ratable, isFalse);
+    });
+  });
+
+  group('ReportViewEntity.directionEstimate — the shared READ facet '
+      '(decisions 202-204)', () {
+    test('absent → null (below the floor, ineligible category, or summary tier)', () {
+      expect(ReportViewEntity.fromJson(_owner()).directionEstimate, isNull);
+    });
+
+    test('present → the single winning Direction, never a count or distribution (203)', () {
+      final view = ReportViewEntity.fromJson({
+        ..._owner(),
+        'directionEstimate': {'direction': 'N'},
+      });
+      expect(view.directionEstimate, Direction.n);
+    });
+
+    test('parses every one of the 8 compass points', () {
+      for (final direction in Direction.values) {
+        final view = ReportViewEntity.fromJson({
+          ..._owner(),
+          'directionEstimate': {'direction': direction.wire},
+        });
+        expect(view.directionEstimate, direction);
+      }
+    });
+
+    test('it takes part in equality', () {
+      final withEstimate = ReportViewEntity.fromJson({
+        ..._owner(),
+        'directionEstimate': {'direction': 'S'},
+      });
+      expect(withEstimate, isNot(ReportViewEntity.fromJson(_owner())));
+    });
+
+    test('copyWithOffers carries the estimate over unchanged', () {
+      final view = ReportViewEntity.fromJson({
+        ..._owner(),
+        'directionEstimate': {'direction': 'E'},
+      });
+
+      final patched = view.copyWithOffers(const []);
+
+      expect(patched.directionEstimate, Direction.e);
     });
   });
 

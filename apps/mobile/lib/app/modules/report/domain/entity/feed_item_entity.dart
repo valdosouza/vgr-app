@@ -1,6 +1,8 @@
+import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 
 import '../gateway/location_gateway.dart';
+import 'report_view_entity.dart' show directionEstimateFromJson;
 
 /// Feed ordering (decision 21) — deterministic and documented server-side.
 enum FeedOrder { recency, relevance }
@@ -18,6 +20,7 @@ class FeedItemEntity extends Equatable {
     required this.position,
     required this.distanceKm,
     required this.createdAt,
+    this.directionEstimate,
   });
 
   final int reportId;
@@ -31,6 +34,11 @@ class FeedItemEntity extends Equatable {
   /// Degraded ISO timestamp (minute/15min/hour bucket by tier).
   final String createdAt;
 
+  /// The shared, floor-gated READ facet (DS2 — decisions 202-204) — the
+  /// SECOND place it is served (the first is `ReportViewEntity`), parsed
+  /// identically; null below the floor / for an ineligible category.
+  final Direction? directionEstimate;
+
   factory FeedItemEntity.fromJson(Map<String, dynamic> json) => FeedItemEntity(
         reportId: json['reportId'] as int,
         category: json['category'] as String?,
@@ -43,11 +51,14 @@ class FeedItemEntity extends Equatable {
         ),
         distanceKm: (json['distanceKm'] as num).toDouble(),
         createdAt: json['createdAt'] as String,
+        directionEstimate: directionEstimateFromJson(json['directionEstimate']),
       );
 
   @override
-  List<Object?> get props =>
-      [reportId, category, freeTag, subject, tier, position, distanceKm, createdAt];
+  List<Object?> get props => [
+        reportId, category, freeTag, subject, tier, position, distanceKm, createdAt,
+        directionEstimate,
+      ];
 }
 
 class FeedPageEntity extends Equatable {

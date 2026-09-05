@@ -1,6 +1,17 @@
+import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 
 import '../gateway/location_gateway.dart';
+
+/// Parses the shared READ facet of decisions 202-204: `{ direction } |
+/// null`. Never a count, never a distribution (203) — this is the ONLY
+/// place a `directionEstimate` JSON value is turned into a [Direction],
+/// reused identically by `FeedItemEntity`.
+Direction? directionEstimateFromJson(dynamic json) {
+  if (json == null) return null;
+  final wire = (json as Map)['direction'] as String?;
+  return wire == null ? null : DirectionJson.fromJson(wire);
+}
 
 /// Who the server judged the viewer to be (GetReportVisibility,
 /// decision 50). The APP never computes this — it renders what it got.
@@ -147,6 +158,7 @@ class ReportViewEntity extends Equatable {
     this.offers,
     this.hidden = false,
     this.chat,
+    this.directionEstimate,
   });
 
   final ReportAccess access;
@@ -173,6 +185,13 @@ class ReportViewEntity extends Equatable {
   /// Served only to the owner and to a helper participant with an account
   /// (decision 169); null means this viewer has no chat on this case.
   final ReportChatFacetEntity? chat;
+
+  /// The shared, floor-gated READ facet (DS2 — decisions 202-204): the
+  /// single winning direction once this OPEN report has enough sightings,
+  /// or null below the floor / for an ineligible category / not yet
+  /// computed. Absent on the `summary` tier — parsed defensively wherever
+  /// the key appears, exactly like [chat].
+  final Direction? directionEstimate;
 
   factory ReportViewEntity.fromJson(Map<String, dynamic> json) {
     final position = json['position'] as Map?;
@@ -206,6 +225,7 @@ class ReportViewEntity extends Equatable {
       chat: json['chat'] == null
           ? null
           : ReportChatFacetEntity.fromJson((json['chat'] as Map).cast<String, dynamic>()),
+      directionEstimate: directionEstimateFromJson(json['directionEstimate']),
     );
   }
 
@@ -229,6 +249,7 @@ class ReportViewEntity extends Equatable {
         offers: offers,
         hidden: hidden,
         chat: chat,
+        directionEstimate: directionEstimate,
       );
 
   /// The one derivative this viewer may fetch for feed/detail thumbnails:
@@ -242,5 +263,6 @@ class ReportViewEntity extends Equatable {
   List<Object?> get props => [
         access, reportId, category, freeTag, subject, tier, status, position,
         detailFields, createdAt, resolvedAt, timeline, media, offers, hidden, chat,
+        directionEstimate,
       ];
 }

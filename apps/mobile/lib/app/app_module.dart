@@ -5,6 +5,8 @@ import 'modules/auth/auth_module.dart';
 import 'modules/chat/chat_module.dart';
 import 'modules/chat/data/chat_queue_tasks.dart';
 import 'modules/chat/data/chat_send_outcomes.dart';
+import 'modules/direction_sighting/data/direction_sighting_local_store.dart';
+import 'modules/direction_sighting/data/direction_sighting_queue_tasks.dart';
 import 'modules/help_offer/help_offer_module.dart';
 import 'modules/panic/data/panic_local_store.dart';
 import 'modules/panic/data/panic_queue_tasks.dart';
@@ -45,6 +47,13 @@ class AppModule extends Module {
         // PP2's own "remember an id locally" store (decisions 62/65/191/
         //198) — mirrors `MyReportsStore`'s shape, a different entity.
         Bind.singleton((i) => PanicLocalStore()),
+        // DS2's own "remember an id locally" store (decisions 200-207) —
+        // mirrors `PanicLocalStore`'s shape. Bound HERE (not module-scoped
+        // inside `ReportModule`, unlike `DirectionSightingRepository`
+        // itself) because the offline-queue task registration below needs
+        // it too; `ReportModule`'s own binds reach it via `i.get<...>()`
+        // exactly like they already do for `ApiClient`/`OfflineQueueService`.
+        Bind.singleton((i) => DirectionSightingLocalStore()),
         // `ReportModule` binds this too (module-scoped, sibling modules
         // never import each other — ARCHITECTURE.md); it is ALSO needed
         // here because `PanicRepositoryImpl.trigger()` reads the device's
@@ -84,6 +93,10 @@ class AppModule extends Module {
           // PP2).
           PanicQueueTasks.register(queue, i.get<ApiClient>(),
               localStore: i.get<PanicLocalStore>());
+          // The direction-sighting write rides it too (decision 28 applied
+          // to DS2).
+          DirectionSightingQueueTasks.register(queue, i.get<ApiClient>(),
+              localStore: i.get<DirectionSightingLocalStore>());
           queue.startAutoFlush();
           // ignore: unawaited_futures
           queue.flush();

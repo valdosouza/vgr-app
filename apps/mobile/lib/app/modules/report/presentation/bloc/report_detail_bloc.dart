@@ -2,6 +2,9 @@ import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../direction_sighting/data/direction_sighting_local_store.dart';
+import '../../../direction_sighting/domain/entity/direction_sighting_entities.dart';
+import '../../../direction_sighting/domain/usecase/log_sighting_usecase.dart';
 import '../../../rating/domain/usecase/rate_offer_usecase.dart';
 import '../../data/my_reports_store.dart';
 import '../../domain/entity/report_view_entity.dart';
@@ -43,6 +46,21 @@ class DetailRatePressed extends ReportDetailEvent {
   List<Object?> get props => [offerId, score];
 }
 
+/// A non-owner viewer of an open, eligible-category report logs a
+/// direction sighting (DS2 — decisions 200-207). The page only offers
+/// this affordance under its own client-side mirror of decision 201's
+/// category list — a non-authoritative UX hint, never trusted for
+/// anything beyond hiding a button that would otherwise always fail
+/// server-side.
+class DetailSightPressed extends ReportDetailEvent {
+  const DetailSightPressed(this.direction);
+
+  final Direction direction;
+
+  @override
+  List<Object?> get props => [direction];
+}
+
 sealed class ReportDetailState extends Equatable {
   const ReportDetailState();
 
@@ -61,6 +79,9 @@ class DetailLoaded extends ReportDetailState {
     this.resolving = false,
     this.ratingOfferId,
     this.actionFailure,
+    this.sightedDirection,
+    this.sighting = false,
+    this.sightFeedback,
   });
 
   final ReportViewEntity view;
@@ -78,9 +99,29 @@ class DetailLoaded extends ReportDetailState {
   /// one rating per offer, immutable).
   final int? ratingOfferId;
 
-  /// The last resolve/rate refusal, surfaced inline; cleared on the next
-  /// attempt of either action.
+  /// The last resolve/rate/sight refusal, surfaced inline; cleared on the
+  /// next attempt of any of those actions.
   final Failure? actionFailure;
+
+  /// This device's own previously-logged sighting for this report, if
+  /// any (DS2's local, soft spam-mitigation record — see
+  /// `DirectionSightingLocalStore`; NOT a security boundary, just a UX
+  /// nicety that stops re-offering the picker — a reinstall or another
+  /// device bypasses it entirely). Non-null switches the section into
+  /// its read-only "you already pointed X" state.
+  final Direction? sightedDirection;
+
+  /// True while `DetailSightPressed` is in flight — the picker disables
+  /// itself so a second tap cannot race the first.
+  final bool sighting;
+
+  /// The write response's PRIVATE, synchronous feedback (decisions 22/
+  /// 200-207) right after THIS device's own successful online sighting —
+  /// `estimate`/`count` exist ONLY here, never confused with the shared,
+  /// floor-gated `view.directionEstimate` facet. Null for a queued
+  /// sighting (no synchronous feedback exists yet) and cleared by the
+  /// next full reload (a fresh `DetailStarted`).
+  final DirectionSightingResult? sightFeedback;
 
   DetailLoaded copyWith({
     ReportViewEntity? view,
@@ -90,6 +131,9 @@ class DetailLoaded extends ReportDetailState {
     bool clearRatingOfferId = false,
     Failure? actionFailure,
     bool clearActionFailure = false,
+    Direction? sightedDirection,
+    bool? sighting,
+    DirectionSightingResult? sightFeedback,
   }) =>
       DetailLoaded(
         view ?? this.view,
@@ -97,10 +141,16 @@ class DetailLoaded extends ReportDetailState {
         resolving: resolving ?? this.resolving,
         ratingOfferId: clearRatingOfferId ? null : (ratingOfferId ?? this.ratingOfferId),
         actionFailure: clearActionFailure ? null : (actionFailure ?? this.actionFailure),
+        sightedDirection: sightedDirection ?? this.sightedDirection,
+        sighting: sighting ?? this.sighting,
+        sightFeedback: sightFeedback ?? this.sightFeedback,
       );
 
   @override
-  List<Object?> get props => [view, clientKey, resolving, ratingOfferId, actionFailure];
+  List<Object?> get props => [
+        view, clientKey, resolving, ratingOfferId, actionFailure,
+        sightedDirection, sighting, sightFeedback,
+      ];
 }
 
 class DetailError extends ReportDetailState {
@@ -121,16 +171,21 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
     this._myReports,
     this._resolveReport,
     this._rateOffer,
+    this._logSighting,
+    this._directionSightingLocalStore,
   ) : super(const DetailLoading()) {
     on<DetailStarted>(_onStarted);
     on<DetailResolvePressed>(_onResolvePressed);
     on<DetailRatePressed>(_onRatePressed);
+    on<DetailSightPressed>(_onSightPressed);
   }
 
   final GetReportViewUsecase _getReportView;
   final MyReportsStore _myReports;
   final ResolveReportUsecase _resolveReport;
   final RateOfferUsecase _rateOffer;
+  final LogSightingUsecase _logSighting;
+  final DirectionSightingLocalStore _directionSightingLocalStore;
 
   int? _reportId;
 
@@ -144,9 +199,14 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
     final result = await _getReportView(reportId);
     if (emit.isDone) return;
     final clientKey = await _myReports.clientKeyOf(reportId);
+    // DS2's local, soft spam-mitigation record (never a security
+    // boundary) — read alongside the server view so the page knows
+    // whether to offer the picker or the read-only "already sighted"
+    // state right from the first frame.
+    final sightedDirection = await _directionSightingLocalStore.sightingFor(reportId);
     result.fold(
       (failure) => emit(DetailError(failure)),
-      (view) => emit(DetailLoaded(view, clientKey: clientKey)),
+      (view) => emit(DetailLoaded(view, clientKey: clientKey, sightedDirection: sightedDirection)),
     );
   }
 
@@ -234,5 +294,41 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
       if (offer.helpOfferId == offerId) return offer;
     }
     return null;
+  }
+
+  Future<void> _onSightPressed(
+    DetailSightPressed event,
+    Emitter<ReportDetailState> emit,
+  ) async {
+    final current = state;
+    final reportId = _reportId;
+    if (current is! DetailLoaded || reportId == null) return;
+    if (current.sighting) return; // already submitting one
+    if (current.sightedDirection != null) return; // never re-offered once sighted
+    // Defensive, UX-only guard mirroring the page's own gating (decision
+    // 200 is enforced server-side regardless) — avoids a pointless call
+    // on a stale UI, e.g. the report's own owner.
+    if (current.view.access == ReportAccess.owner) return;
+
+    emit(current.copyWith(sighting: true, clearActionFailure: true));
+    final result = await _logSighting(reportId: reportId, direction: event.direction);
+    if (emit.isDone) return;
+    final latest = state;
+    if (latest is! DetailLoaded) return;
+
+    result.fold(
+      (failure) => emit(latest.copyWith(sighting: false, actionFailure: failure)),
+      (outcome) => emit(latest.copyWith(
+        sighting: false,
+        // Optimistic either way (online or queued, decision 28) — the
+        // repository already persisted the same local mark, this just
+        // reflects it in the CURRENT session's UI immediately rather
+        // than waiting for a future reload.
+        sightedDirection: event.direction,
+        // Null on a queued outcome: no synchronous feedback exists yet
+        // (only the online write response carries estimate/count).
+        sightFeedback: outcome.result,
+      )),
+    );
   }
 }

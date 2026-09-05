@@ -2,6 +2,10 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '../direction_sighting/data/direction_sighting_local_store.dart';
+import '../direction_sighting/data/direction_sighting_repository_impl.dart';
+import '../direction_sighting/domain/repository/direction_sighting_repository.dart';
+import '../direction_sighting/domain/usecase/log_sighting_usecase.dart';
 import '../rating/domain/repository/rating_repository.dart';
 import '../rating/domain/usecase/rate_offer_usecase.dart';
 import 'data/geolocator_location_gateway.dart';
@@ -34,6 +38,19 @@ class ReportModule extends Module {
             i.get<MyReportsStore>(),
           ),
         ),
+        // DS2 (decisions 200-207): the ONLY consumer is this module's own
+        // `ReportDetailBloc` — no other module needs it, so unlike
+        // `RatingRepository`/`PanicRepository` this stays module-scoped
+        // rather than promoted to `AppModule`. `DirectionSightingLocalStore`
+        // itself IS bound at `AppModule` level (see there) because the
+        // offline-queue task registration needs it too.
+        Bind.lazySingleton<DirectionSightingRepository>(
+          (i) => DirectionSightingRepositoryImpl(
+            i.get<ApiClient>(),
+            i.get<OfflineQueueService>(),
+            i.get<DirectionSightingLocalStore>(),
+          ),
+        ),
         Bind.factory(
           (i) => ReportFormBloc(
             SubmitReportUsecase(i.get<ReportRepository>()),
@@ -54,6 +71,8 @@ class ReportModule extends Module {
             i.get<MyReportsStore>(),
             ResolveReportUsecase(i.get<ReportRepository>()),
             RateOfferUsecase(i.get<RatingRepository>()),
+            LogSightingUsecase(i.get<DirectionSightingRepository>()),
+            i.get<DirectionSightingLocalStore>(),
           ),
         ),
       ];

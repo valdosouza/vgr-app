@@ -17,7 +17,7 @@ class MockReportRepository extends Mock implements ReportRepository {}
 
 class MockLocationGateway extends Mock implements LocationGateway {}
 
-FeedItemEntity _item(int id) => FeedItemEntity(
+FeedItemEntity _item(int id, {Direction? directionEstimate}) => FeedItemEntity(
       reportId: id,
       category: 'missing',
       subject: 'child',
@@ -25,6 +25,7 @@ FeedItemEntity _item(int id) => FeedItemEntity(
       position: const GeoPoint(lat: -23.5, lng: -46.6),
       distanceKm: 1.5,
       createdAt: '2026-08-04T18:15:00.000Z',
+      directionEstimate: directionEstimate,
     );
 
 void main() {
@@ -94,6 +95,39 @@ void main() {
     expect(find.textContaining('Missing'), findsOneWidget);
     expect(find.textContaining('~1.5 km'), findsOneWidget);
     expect(find.byKey(const Key('feed-load-more-button')), findsNothing);
+  });
+
+  group('direction sighting trailing indicator (DS2 — decisions 202-204)', () {
+    testWidgets('an item WITH a directionEstimate shows the read-only trailing label',
+        (tester) async {
+      when(() => repository.listNearby(any(), 1, FeedOrder.recency)).thenAnswer(
+          (_) async => Right(FeedPageEntity(
+                items: [_item(1, directionEstimate: Direction.n)],
+                page: 1,
+                hasMore: false,
+                order: FeedOrder.recency,
+              )));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('feed-item-1-direction')), findsOneWidget);
+      expect(find.text('North'), findsOneWidget);
+    });
+
+    testWidgets('an item with no estimate (below the floor / ineligible category) shows '
+        'no trailing indicator at all', (tester) async {
+      when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+          .thenAnswer((_) async => Right(FeedPageEntity(
+                items: [_item(1)],
+                page: 1,
+                hasMore: false,
+                order: FeedOrder.recency,
+              )));
+
+      await pumpPage(tester);
+
+      expect(find.byKey(const Key('feed-item-1-direction')), findsNothing);
+    });
   });
 
   testWidgets('empty state renders distinctly with a retry', (tester) async {

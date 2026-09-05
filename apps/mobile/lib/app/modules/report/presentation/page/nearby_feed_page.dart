@@ -167,7 +167,20 @@ class _FeedTile extends StatelessWidget {
       // as approximations on purpose.
       subtitle: 'feed.itemSubtitle'
           .tr(namedArgs: {'distance': item.distanceKm.toString(), 'when': when}),
+      trailing: _directionIndicator(item),
       onTap: () => onTap(item.reportId),
     );
   }
+
+  /// The shared, floor-gated READ facet (DS2 — decisions 202-204),
+  /// SECOND place it renders (the first is the report detail page) — a
+  /// plain read-only label, absent entirely below the floor / for an
+  /// ineligible category. No graphical compass needed here, just a
+  /// readable indicator (the picker itself lives only on the detail page).
+  Widget? _directionIndicator(FeedItemEntity item) => item.directionEstimate == null
+      ? null
+      : VgrText.caption(
+          'compass.${item.directionEstimate!.name}'.tr(),
+          key: Key('feed-item-${item.reportId}-direction'),
+        );
 }

@@ -1,5 +1,6 @@
 export 'src/error/failure.dart';
 export 'src/error/failure_i18n.dart';
+export 'src/geo/direction.dart';
 export 'src/i18n/catalog_i18n.dart';
 export 'src/identity/admin_session_guard.dart';
 export 'src/identity/domain/anonymity_mode.dart';
