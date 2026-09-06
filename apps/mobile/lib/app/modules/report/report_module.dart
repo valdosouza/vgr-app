@@ -10,7 +10,7 @@ import '../rating/domain/repository/rating_repository.dart';
 import '../rating/domain/usecase/rate_offer_usecase.dart';
 import 'data/geolocator_location_gateway.dart';
 import 'data/image_picker_photo_gateway.dart';
-import 'data/my_reports_store.dart';
+import '../../shared/data/my_reports_store.dart';
 import 'data/report_repository_impl.dart';
 import 'domain/gateway/location_gateway.dart';
 import 'domain/gateway/photo_gateway.dart';

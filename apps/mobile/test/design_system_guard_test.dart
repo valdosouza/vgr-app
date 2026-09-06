@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// rule since day one while the package sat empty and every screen used
 /// raw widgets. This test is what makes the rule real.
 ///
-/// Scope: screen/presentation code of `apps/admin` and `packages/core`.
+/// Scope: screen/presentation code of `apps/mobile` and `packages/core`.
 /// The design system itself is exempt — wrapping raw widgets is precisely
 /// its job — and so are tests, which legitimately pump raw widgets.
 void main() {

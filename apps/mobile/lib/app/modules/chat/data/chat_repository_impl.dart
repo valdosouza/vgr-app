@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../report/data/my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 import '../domain/entity/chat_entities.dart';
 import '../domain/repository/chat_repository.dart';
 import 'chat_queue_tasks.dart';

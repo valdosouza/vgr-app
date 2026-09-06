@@ -12,7 +12,7 @@ import 'package:vgr_mobile/app/modules/direction_sighting/domain/usecase/log_sig
 import 'package:vgr_mobile/app/modules/rating/domain/entity/rating_entities.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/repository/rating_repository.dart';
 import 'package:vgr_mobile/app/modules/rating/domain/usecase/rate_offer_usecase.dart';
-import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
+import 'package:vgr_mobile/app/shared/data/my_reports_store.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/report_view_entity.dart';
 import 'package:vgr_mobile/app/modules/report/domain/repository/report_repository.dart';
 import 'package:vgr_mobile/app/modules/report/domain/usecase/get_report_view_usecase.dart';

@@ -54,9 +54,10 @@ own:
 
 `RatingRepository` is bound once in `app_module.dart` (like
 `MyReportsStore`) because both the report module (rating an offer) and
-the auth module (reading "my reputation") need it — a module-folder
-convention this codebase already uses for `MyReportsStore` itself
-(imported directly by the chat and help-offer modules).
+the auth module (reading "my reputation") need it. `MyReportsStore`
+itself, once in the same situation, was promoted to
+`app/shared/data/` on 2026-09-06 when its fourth consumer arrived —
+ARCHITECTURE.md's rule that a module never imports another module.
 
 The report module's own `OfferViewEntity` (`report_view_entity.dart`)
 gained the `rating` facet (`OfferRatingEntity {score, ratable}`) parsed

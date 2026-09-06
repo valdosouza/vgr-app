@@ -258,7 +258,13 @@
       "CHAT_CLOSED": "This conversation is closed.",
       "RATE_LIMITED": "Too many messages — wait a moment and try again.",
       "RATING_NOT_ALLOWED": "This helper cannot be rated.",
-      "RATING_CLOSED": "You can only rate after the case is closed ({reason}).",
+      "RATING_CLOSED": {
+        "reason": {
+          "open": "You can only rate after the case is closed — this one is still open.",
+          "hidden": "This case has been hidden and can no longer be rated."
+        },
+        "other": "You can only rate after the case is closed."
+      },
       "ALREADY_RATED": "This offer has already been rated.",
       "PANIC_ALERT_ACTIVE": "You already have an active panic alert. Wait for it to be resolved before triggering a new one.",
       "PANIC_ALERT_ALREADY_RESOLVED": "This alert was already resolved.",

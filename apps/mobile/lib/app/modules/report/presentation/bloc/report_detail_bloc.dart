@@ -6,7 +6,7 @@ import '../../../direction_sighting/data/direction_sighting_local_store.dart';
 import '../../../direction_sighting/domain/entity/direction_sighting_entities.dart';
 import '../../../direction_sighting/domain/usecase/log_sighting_usecase.dart';
 import '../../../rating/domain/usecase/rate_offer_usecase.dart';
-import '../../data/my_reports_store.dart';
+import '../../../../shared/data/my_reports_store.dart';
 import '../../domain/entity/report_view_entity.dart';
 import '../../domain/usecase/get_report_view_usecase.dart';
 import '../../domain/usecase/resolve_report_usecase.dart';

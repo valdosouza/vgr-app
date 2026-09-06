@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../report/data/my_reports_store.dart';
+import '../../shared/data/my_reports_store.dart';
 import 'data/help_offer_repository_impl.dart';
 import 'domain/repository/help_offer_repository.dart';
 import 'domain/usecase/submit_help_offer_usecase.dart';

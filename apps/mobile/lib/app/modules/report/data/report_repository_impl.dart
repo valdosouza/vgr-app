@@ -10,7 +10,7 @@ import '../domain/entity/report_input.dart';
 import '../domain/entity/report_view_entity.dart';
 import '../domain/gateway/location_gateway.dart';
 import '../domain/repository/report_repository.dart';
-import 'my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 import 'report_queue_tasks.dart';
 
 class ReportRepositoryImpl implements ReportRepository {

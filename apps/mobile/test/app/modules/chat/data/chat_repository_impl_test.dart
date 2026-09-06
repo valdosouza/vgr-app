@@ -6,7 +6,7 @@ import 'package:vgr_mobile/app/modules/chat/data/chat_queue_tasks.dart';
 import 'package:vgr_mobile/app/modules/chat/data/chat_repository_impl.dart';
 import 'package:vgr_mobile/app/modules/chat/data/chat_send_outcomes.dart';
 import 'package:vgr_mobile/app/modules/chat/domain/entity/chat_entities.dart';
-import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
+import 'package:vgr_mobile/app/shared/data/my_reports_store.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
 

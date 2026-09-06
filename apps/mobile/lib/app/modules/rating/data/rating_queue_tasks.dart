@@ -1,6 +1,6 @@
 import 'package:core/core.dart';
 
-import '../../report/data/my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 
 /// The `rating_submit` task of the offline queue (decisions 28/181/183):
 /// a rating IS meant to survive being offline at the moment of resolving

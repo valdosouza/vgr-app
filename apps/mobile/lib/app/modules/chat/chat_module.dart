@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../report/data/my_reports_store.dart';
+import '../../shared/data/my_reports_store.dart';
 import 'data/chat_repository_impl.dart';
 import 'data/chat_send_outcomes.dart';
 import 'domain/entity/chat_entities.dart';

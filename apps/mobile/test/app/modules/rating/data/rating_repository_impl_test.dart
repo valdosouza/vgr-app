@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vgr_mobile/app/modules/rating/data/rating_queue_tasks.dart';
 import 'package:vgr_mobile/app/modules/rating/data/rating_repository_impl.dart';
-import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
+import 'package:vgr_mobile/app/shared/data/my_reports_store.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
 

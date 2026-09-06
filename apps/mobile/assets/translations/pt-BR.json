@@ -258,7 +258,13 @@
       "CHAT_CLOSED": "Esta conversa está encerrada.",
       "RATE_LIMITED": "Mensagens demais — aguarde um instante e tente de novo.",
       "RATING_NOT_ALLOWED": "Este ajudante não pode ser avaliado.",
-      "RATING_CLOSED": "Só é possível avaliar depois que o caso for encerrado ({reason}).",
+      "RATING_CLOSED": {
+        "reason": {
+          "open": "Só é possível avaliar depois que o caso for encerrado — este ainda está aberto.",
+          "hidden": "Este caso foi ocultado e não pode mais ser avaliado."
+        },
+        "other": "Só é possível avaliar depois que o caso for encerrado."
+      },
       "ALREADY_RATED": "Esta oferta já foi avaliada.",
       "PANIC_ALERT_ACTIVE": "Você já tem um alerta de pânico ativo. Aguarde ele ser resolvido antes de disparar um novo.",
       "PANIC_ALERT_ALREADY_RESOLVED": "Este alerta já foi resolvido.",

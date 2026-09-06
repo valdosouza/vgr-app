@@ -1,7 +1,7 @@
 import 'package:core/core.dart';
 
 import '../domain/entity/report_input.dart';
-import 'my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 
 /// Task kinds + handlers of the report offline chain (decisions 28/123/137).
 ///

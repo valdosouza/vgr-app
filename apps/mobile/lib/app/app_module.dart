@@ -17,7 +17,7 @@ import 'modules/rating/data/rating_queue_tasks.dart';
 import 'modules/rating/data/rating_repository_impl.dart';
 import 'modules/rating/domain/repository/rating_repository.dart';
 import 'modules/report/data/geolocator_location_gateway.dart';
-import 'modules/report/data/my_reports_store.dart';
+import 'shared/data/my_reports_store.dart';
 import 'modules/report/data/report_queue_tasks.dart';
 import 'modules/report/domain/gateway/location_gateway.dart';
 import 'modules/report/report_module.dart';

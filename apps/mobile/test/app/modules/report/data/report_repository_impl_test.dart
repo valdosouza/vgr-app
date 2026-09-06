@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vgr_mobile/app/modules/report/data/my_reports_store.dart';
+import 'package:vgr_mobile/app/shared/data/my_reports_store.dart';
 import 'package:vgr_mobile/app/modules/report/data/report_queue_tasks.dart';
 import 'package:vgr_mobile/app/modules/report/data/report_repository_impl.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/feed_item_entity.dart';

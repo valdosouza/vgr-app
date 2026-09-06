@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../report/data/my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 import '../domain/entity/rating_entities.dart';
 import '../domain/repository/rating_repository.dart';
 import 'rating_queue_tasks.dart';

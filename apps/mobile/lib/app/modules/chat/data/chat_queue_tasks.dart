@@ -1,6 +1,6 @@
 import 'package:core/core.dart';
 
-import '../../report/data/my_reports_store.dart';
+import '../../../shared/data/my_reports_store.dart';
 import '../domain/entity/chat_entities.dart';
 import 'chat_send_outcomes.dart';
 
