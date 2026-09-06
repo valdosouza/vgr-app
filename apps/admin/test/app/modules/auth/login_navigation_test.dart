@@ -86,6 +86,11 @@ void main() {
       await tester.pumpAndSettle();
 
       Modular.to.navigate('/login');
+      // flutter_modular 5.0.3 debounces navigate() by ~500 ms on the widget
+      // test's fake clock; pumpAndSettle alone is enough on Windows but not
+      // on the Linux CI runner (deterministic failure there, 2026-09-04).
+      // Same fix as the navigateTo helpers in reports_list_page_test.dart.
+      await tester.pump(const Duration(milliseconds: 600));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('login-email-field')), findsOneWidget);
@@ -93,6 +98,8 @@ void main() {
       await tester.enterText(find.byKey(const Key('login-email-field')), 'valdo@vgr.com.br');
       await tester.enterText(find.byKey(const Key('login-password-field')), 'teste');
       await tester.tap(find.byKey(const Key('login-submit-button')));
+      // The post-login navigation goes through the same debounce.
+      await tester.pump(const Duration(milliseconds: 600));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('login-email-field')), findsNothing);
