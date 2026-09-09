@@ -9,6 +9,12 @@ import '../domain/gateway/location_gateway.dart';
 class GeolocatorLocationGateway implements LocationGateway {
   const GeolocatorLocationGateway();
 
+  /// Upper bound for a fix. Without it the web target can wait forever:
+  /// Chrome never answers when the OS location service is off or the
+  /// network provider fails, and the feed would spin indefinitely instead
+  /// of surfacing the retryable `LOCATION_ERROR`.
+  static const _fixTimeout = Duration(seconds: 15);
+
   @override
   Future<Either<Failure, GeoPoint>> currentPosition() async {
     try {
@@ -25,7 +31,9 @@ class GeolocatorLocationGateway implements LocationGateway {
           Failure(message: 'Location permission denied', code: 'LOCATION_DENIED'),
         );
       }
-      final position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: _fixTimeout),
+      ).timeout(_fixTimeout);
       return Right(GeoPoint(lat: position.latitude, lng: position.longitude));
     } catch (_) {
       return const Left(Failure(message: 'Could not read location', code: 'LOCATION_ERROR'));

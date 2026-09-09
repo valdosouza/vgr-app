@@ -28,9 +28,17 @@ class AppModule extends Module {
   List<Bind> get binds => [
         Bind.singleton((i) => IdentityBloc()),
         Bind.singleton((i) => LocalPrefs()),
-        // TODO: base URL must become environment-configurable (dev/staging/
-        // prod) once that decision is made — same note as apps/admin.
-        Bind.singleton((i) => ApiClient(baseUrl: 'http://localhost:3002')),
+        // Base URL comes from `--dart-define=API_URL=...` (a physical device
+        // must reach the laptop by LAN IP, not localhost); the default keeps
+        // the web/emulator dev loop unchanged. Same note applies to apps/admin.
+        Bind.singleton(
+          (i) => ApiClient(
+            baseUrl: const String.fromEnvironment(
+              'API_URL',
+              defaultValue: 'http://localhost:3002',
+            ),
+          ),
+        ),
         Bind.singleton((i) => MyReportsStore()),
         // Settles/fails optimistic chat bubbles from the queue (172).
         Bind.singleton((i) => ChatSendOutcomes()),
