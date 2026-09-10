@@ -131,7 +131,8 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
           ),
         ]),
       ),
-      for (final item in state.items) _FeedTile(item: item, onTap: _openReport),
+      for (final item in state.items)
+        _FeedTile(item: item, mine: state.mine.contains(item.reportId), onTap: _openReport),
       if (state.hasMore)
         VgrPadding(
           child: VgrSecondaryButton(
@@ -148,9 +149,13 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
 }
 
 class _FeedTile extends StatelessWidget {
-  const _FeedTile({required this.item, required this.onTap});
+  const _FeedTile({required this.item, required this.mine, required this.onTap});
 
   final FeedItemEntity item;
+
+  /// Registered from this device — badged so the viewer tells their own
+  /// case apart from a look-alike one nearby.
+  final bool mine;
   final void Function(int reportId) onTap;
 
   @override
@@ -167,9 +172,19 @@ class _FeedTile extends StatelessWidget {
       // as approximations on purpose.
       subtitle: 'feed.itemSubtitle'
           .tr(namedArgs: {'distance': item.distanceKm.toString(), 'when': when}),
-      trailing: _directionIndicator(item),
+      trailing: _trailing(item),
       onTap: () => onTap(item.reportId),
     );
+  }
+
+  Widget? _trailing(FeedItemEntity item) {
+    final direction = _directionIndicator(item);
+    final badge = mine
+        ? VgrBadge(label: 'feed.mine'.tr(), key: Key('feed-item-${item.reportId}-mine'))
+        : null;
+    if (badge == null) return direction;
+    if (direction == null) return badge;
+    return VgrRow(shrink: true, children: [badge, const VgrGap.sm(), direction]);
   }
 
   /// The shared, floor-gated READ facet (DS2 — decisions 202-204),

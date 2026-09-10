@@ -23,6 +23,7 @@ class FeedLoaded extends NearbyFeedState {
     required this.hasMore,
     required this.order,
     this.loadingMore = false,
+    this.mine = const {},
   });
 
   final List<FeedItemEntity> items;
@@ -31,12 +32,18 @@ class FeedLoaded extends NearbyFeedState {
   final FeedOrder order;
   final bool loadingMore;
 
+  /// Report ids registered from THIS device (`MyReportsStore`), so the
+  /// list can badge the viewer's own cases — two look-alike rows
+  /// (same category/subject/distance) are otherwise indistinguishable.
+  final Set<int> mine;
+
   FeedLoaded copyWith({
     List<FeedItemEntity>? items,
     int? page,
     bool? hasMore,
     FeedOrder? order,
     bool? loadingMore,
+    Set<int>? mine,
   }) =>
       FeedLoaded(
         items: items ?? this.items,
@@ -44,10 +51,11 @@ class FeedLoaded extends NearbyFeedState {
         hasMore: hasMore ?? this.hasMore,
         order: order ?? this.order,
         loadingMore: loadingMore ?? this.loadingMore,
+        mine: mine ?? this.mine,
       );
 
   @override
-  List<Object?> get props => [items, page, hasMore, order, loadingMore];
+  List<Object?> get props => [items, page, hasMore, order, loadingMore, mine];
 }
 
 class FeedEmpty extends NearbyFeedState {

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vgr_mobile/app/shared/data/my_reports_store.dart';
 import 'package:vgr_mobile/app/modules/report/domain/entity/feed_item_entity.dart';
 import 'package:vgr_mobile/app/modules/report/domain/gateway/location_gateway.dart';
 import 'package:vgr_mobile/app/modules/report/domain/repository/report_repository.dart';
@@ -48,7 +50,8 @@ void main() {
       {void Function(int)? onOpenReport,
       VoidCallback? onNewReport,
       VoidCallback? onOpenPanic,
-      bool identified = false}) async {
+      bool identified = false,
+      MyReportsStore? myReports}) async {
     await pumpLocalized(
       tester,
       MultiBlocProvider(
@@ -67,8 +70,8 @@ void main() {
                     )),
           ),
           BlocProvider<NearbyFeedBloc>(
-            create: (_) =>
-                NearbyFeedBloc(ListNearbyReportsUsecase(repository), location),
+            create: (_) => NearbyFeedBloc(ListNearbyReportsUsecase(repository), location,
+                myReports: myReports),
           ),
         ],
         child: NearbyFeedPage(
@@ -95,6 +98,31 @@ void main() {
     expect(find.textContaining('Missing'), findsOneWidget);
     expect(find.textContaining('~1.5 km'), findsOneWidget);
     expect(find.byKey(const Key('feed-load-more-button')), findsNothing);
+  });
+
+  testWidgets('badges the reports registered from this device, and only those',
+      (tester) async {
+    // pumpLocalized resets the prefs mock, so hand the store an instance
+    // that already holds the entry (its in-memory cache survives the reset).
+    SharedPreferences.setMockInitialValues({});
+    final store = MyReportsStore(prefs: await SharedPreferences.getInstance());
+    await store.save(2, 'some-client-key');
+    when(() => repository.listNearby(any(), 1, FeedOrder.recency))
+        .thenAnswer((_) async => Right(FeedPageEntity(
+              items: [_item(1), _item(2, directionEstimate: Direction.n)],
+              page: 1,
+              hasMore: false,
+              order: FeedOrder.recency,
+            )));
+
+    await pumpPage(tester, myReports: store);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('feed-item-1-mine')), findsNothing);
+    expect(find.byKey(const Key('feed-item-2-mine')), findsOneWidget);
+    expect(find.text('Your report'), findsOneWidget);
+    // The badge shares the trailing slot with the direction indicator.
+    expect(find.byKey(const Key('feed-item-2-direction')), findsOneWidget);
   });
 
   group('direction sighting trailing indicator (DS2 — decisions 202-204)', () {

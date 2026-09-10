@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../shared/data/my_reports_store.dart';
 import '../../domain/entity/feed_item_entity.dart';
 import '../../domain/gateway/location_gateway.dart';
 import '../../domain/usecase/list_nearby_reports_usecase.dart';
@@ -10,7 +11,9 @@ import 'nearby_feed_state.dart';
 /// position is read once per (re)start and used transiently — never
 /// stored (decision 110).
 class NearbyFeedBloc extends Bloc<NearbyFeedEvent, NearbyFeedState> {
-  NearbyFeedBloc(this._listNearby, this._locationGateway) : super(const FeedLoading()) {
+  NearbyFeedBloc(this._listNearby, this._locationGateway, {MyReportsStore? myReports})
+      : _myReports = myReports,
+        super(const FeedLoading()) {
     on<FeedStarted>(_onStarted);
     on<FeedOrderChanged>(_onOrderChanged);
     on<FeedNextPageRequested>(_onNextPage);
@@ -18,6 +21,9 @@ class NearbyFeedBloc extends Bloc<NearbyFeedEvent, NearbyFeedState> {
 
   final ListNearbyReportsUsecase _listNearby;
   final LocationGateway _locationGateway;
+
+  /// Optional on purpose: the feed renders fine without it (no badges).
+  final MyReportsStore? _myReports;
 
   GeoPoint? _position;
   FeedOrder _order = FeedOrder.recency;
@@ -50,6 +56,7 @@ class NearbyFeedBloc extends Bloc<NearbyFeedEvent, NearbyFeedState> {
     }
 
     final result = await _listNearby(_position!, 1, _order);
+    final mine = await _myReports?.reportIds() ?? const <int>{};
     result.fold(
       (failure) => emit(FeedError(failure, _order)),
       (page) => emit(page.items.isEmpty
@@ -59,6 +66,7 @@ class NearbyFeedBloc extends Bloc<NearbyFeedEvent, NearbyFeedState> {
               page: page.page,
               hasMore: page.hasMore,
               order: _order,
+              mine: mine,
             )),
     );
   }

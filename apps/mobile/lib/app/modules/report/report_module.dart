@@ -63,6 +63,7 @@ class ReportModule extends Module {
           (i) => NearbyFeedBloc(
             ListNearbyReportsUsecase(i.get<ReportRepository>()),
             i.get<LocationGateway>(),
+            myReports: i.get<MyReportsStore>(),
           ),
         ),
         Bind.factory(

@@ -12,7 +12,8 @@
     },
     "loadMore": "Carregar mais",
     "loading": "Carregando…",
-    "itemSubtitle": "~{distance} km · {when}"
+    "itemSubtitle": "~{distance} km · {when}",
+    "mine": "Sua denúncia"
   },
   "detail": {
     "title": "Denúncia",

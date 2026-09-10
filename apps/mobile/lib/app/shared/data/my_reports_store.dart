@@ -29,4 +29,8 @@ class MyReportsStore {
   }
 
   Future<String?> clientKeyOf(int reportId) async => (await _load())['$reportId'] as String?;
+
+  /// Every report registered from this device — lets list screens mark
+  /// "yours" without leaking the keys themselves.
+  Future<Set<int>> reportIds() async => (await _load()).keys.map(int.parse).toSet();
 }

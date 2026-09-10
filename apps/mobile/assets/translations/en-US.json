@@ -12,7 +12,8 @@
     },
     "loadMore": "Load more",
     "loading": "Loading…",
-    "itemSubtitle": "~{distance} km · {when}"
+    "itemSubtitle": "~{distance} km · {when}",
+    "mine": "Your report"
   },
   "detail": {
     "title": "Report",
