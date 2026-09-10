@@ -318,6 +318,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           VgrCompass(
             key: const Key('detail-direction-picker'),
             value: null,
+            labelOf: (code) => 'compass.${code.toLowerCase()}'.tr(),
             onChanged: sighting
                 ? null
                 : (code) => context.read<ReportDetailBloc>().add(

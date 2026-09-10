@@ -22,7 +22,12 @@ import 'package:flutter/material.dart';
 /// compass rose: this is a utilitarian design system, not a graphics
 /// showcase.
 class VgrCompass extends StatelessWidget {
-  const VgrCompass({super.key, required this.value, required this.onChanged});
+  const VgrCompass({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.labelOf,
+  });
 
   /// The 8 compass points, in display order.
   static const points = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -34,6 +39,11 @@ class VgrCompass extends StatelessWidget {
   /// (read-only display).
   final ValueChanged<String>? onChanged;
 
+  /// Display text for a point's code. The caller owns i18n (this package
+  /// has none), so it translates here — 'N' → "Norte"/"North". Null shows
+  /// the bare code.
+  final String Function(String code)? labelOf;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -44,6 +54,7 @@ class VgrCompass extends StatelessWidget {
         for (final point in points)
           _VgrCompassChip(
             point: point,
+            label: labelOf?.call(point) ?? point,
             selected: value == point,
             color: value == point ? scheme.primary : scheme.outline,
             onTap: onChanged == null ? null : () => onChanged!(point),
@@ -59,12 +70,14 @@ class VgrCompass extends StatelessWidget {
 class _VgrCompassChip extends StatelessWidget {
   const _VgrCompassChip({
     required this.point,
+    required this.label,
     required this.selected,
     required this.color,
     required this.onTap,
   });
 
   final String point;
+  final String label;
   final bool selected;
   final Color color;
   final VoidCallback? onTap;
@@ -73,7 +86,7 @@ class _VgrCompassChip extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         button: onTap != null,
         selected: selected,
-        label: 'Direction $point',
+        label: 'Direction $label',
         child: GestureDetector(
           key: Key('direction-$point'),
           onTap: onTap,
@@ -87,7 +100,7 @@ class _VgrCompassChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              point,
+              label,
               style: TextStyle(
                 color: color,
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,

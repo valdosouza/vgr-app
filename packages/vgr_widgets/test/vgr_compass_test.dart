@@ -22,6 +22,21 @@ void main() {
       }
     });
 
+    testWidgets('labelOf renders the caller-provided name; the code stays the key '
+        'and the reported value', (tester) async {
+      String? reported;
+      await tester.pumpWidget(host(VgrCompass(
+        value: null,
+        onChanged: (v) => reported = v,
+        labelOf: (code) => 'name-$code',
+      )));
+
+      expect(find.text('name-NE'), findsOneWidget);
+      expect(find.text('NE'), findsNothing);
+      await tester.tap(find.byKey(const Key('direction-NE')));
+      expect(reported, 'NE');
+    });
+
     testWidgets('read-only (onChanged null): tapping any button never calls back',
         (tester) async {
       var calls = 0;
