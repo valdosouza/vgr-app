@@ -31,7 +31,13 @@ class VgrScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(title), actions: actions),
-        body: padded ? VgrPadding.screen(child: body) : body,
+        // Bottom safe area: on Android the gesture/3-button bar otherwise
+        // covers whatever sits at the foot of the screen (the chat
+        // composer was unreachable). The app bar already handles the top.
+        body: SafeArea(
+          top: false,
+          child: padded ? VgrPadding.screen(child: body) : body,
+        ),
         floatingActionButton: floatingAction,
       );
 }
