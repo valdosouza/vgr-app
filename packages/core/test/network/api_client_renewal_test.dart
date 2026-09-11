@@ -37,6 +37,57 @@ void main() {
     expect(api.token, renewed);
   });
 
+  test('an injected renewToken replaces the panel exchange and may call back in',
+      () async {
+    final requests = <String>[];
+    final client = MockClient((request) async {
+      requests.add(request.url.path);
+      if (request.url.path == '/app-auth/refresh') {
+        return http.Response(
+          jsonEncode({
+            'ok': true,
+            'data': {'accessToken': jwtExpiringIn(const Duration(minutes: 30))}
+          }),
+          200,
+        );
+      }
+      return http.Response(jsonEncode({'ok': true, 'data': []}), 200);
+    });
+    late ApiClient api;
+    api = ApiClient(
+      baseUrl: '',
+      httpClient: client,
+      // Re-enters the client: must not deadlock on its own pending renewal.
+      renewToken: (_) async {
+        final json = await api.post('/app-auth/refresh', {'refreshToken': 'r'});
+        return (json['data'] as Map)['accessToken'] as String;
+      },
+    )..setToken(jwtExpiringIn(const Duration(seconds: 30)));
+
+    await api.get('/app-reports/1');
+
+    expect(requests, ['/app-auth/refresh', '/app-reports/1']);
+    expect(requests, isNot(contains('/api/auth/renew')));
+    expect(shouldRenewJwt(api.token!), isFalse);
+  });
+
+  test('a renewToken answering null leaves the token untouched and the call proceeds',
+      () async {
+    final requests = <String>[];
+    final client = MockClient((request) async {
+      requests.add(request.url.path);
+      return http.Response(jsonEncode({'ok': true, 'data': []}), 200);
+    });
+    final stale = jwtExpiringIn(const Duration(seconds: 30));
+    final api = ApiClient(baseUrl: '', httpClient: client, renewToken: (_) async => null)
+      ..setToken(stale);
+
+    await api.get('/app-reports/1');
+
+    expect(requests, ['/app-reports/1']);
+    expect(api.token, stale);
+  });
+
   test('does not renew while the token is still comfortably valid', () async {
     final requests = <String>[];
     final client = MockClient((request) async {

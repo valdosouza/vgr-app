@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'modules/auth/auth_module.dart';
+import 'modules/auth/data/app_session_renewer.dart';
 import 'modules/chat/chat_module.dart';
 import 'modules/chat/data/chat_queue_tasks.dart';
 import 'modules/chat/data/chat_send_outcomes.dart';
@@ -31,14 +32,23 @@ class AppModule extends Module {
         // Base URL comes from `--dart-define=API_URL=...` (a physical device
         // must reach the laptop by LAN IP, not localhost); the default keeps
         // the web/emulator dev loop unchanged. Same note applies to apps/admin.
-        Bind.singleton(
-          (i) => ApiClient(
+        Bind.singleton((i) {
+          // Silent renewal goes through the APP plane (decision 119/122):
+          // the client's default exchange is the panel's route.
+          late final ApiClient client;
+          client = ApiClient(
             baseUrl: const String.fromEnvironment(
               'API_URL',
               defaultValue: 'http://localhost:3002',
             ),
-          ),
-        ),
+            renewToken: (jwt) => AppSessionRenewer(
+              apiClient: client,
+              localPrefs: i.get<LocalPrefs>(),
+              identityBloc: i.get<IdentityBloc>(),
+            )(jwt),
+          );
+          return client;
+        }),
         Bind.singleton((i) => MyReportsStore()),
         // Settles/fails optimistic chat bubbles from the queue (172).
         Bind.singleton((i) => ChatSendOutcomes()),

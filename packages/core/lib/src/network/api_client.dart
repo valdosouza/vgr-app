@@ -12,11 +12,17 @@ import '../identity/jwt_utils.dart';
 ///
 /// Since decision 112 the session is 15 minutes, so this client renews it
 /// silently: before any authenticated call whose token is about to expire,
-/// it exchanges the current token at `POST /api/auth/renew`. Callers see
-/// nothing; [onTokenRenewed] lets the app persist the fresh token.
+/// it exchanges the current token. The default strategy is the panel's
+/// `POST /api/auth/renew`; the app plane (decision 119 — separate
+/// audiences, refresh tokens) injects its own via [renewToken]. Callers
+/// see nothing; [onTokenRenewed] lets the app persist the fresh token.
 class ApiClient {
-  ApiClient({required this.baseUrl, http.Client? httpClient, this.onTokenRenewed})
-      : _httpClient = httpClient ?? http.Client();
+  ApiClient({
+    required this.baseUrl,
+    http.Client? httpClient,
+    this.onTokenRenewed,
+    this.renewToken,
+  }) : _httpClient = httpClient ?? http.Client();
 
   final String baseUrl;
   final http.Client _httpClient;
@@ -26,6 +32,14 @@ class ApiClient {
   /// Called with the new JWT whenever a silent renewal succeeds — the app
   /// persists it when "keep me signed in" is on (decision 73).
   final void Function(String jwt)? onTokenRenewed;
+
+  /// Plane-specific renewal: given the current (about to expire) JWT,
+  /// returns the fresh one, or null when the session cannot be renewed.
+  /// May call back into this client — renewal is not re-entered
+  /// meanwhile. Null keeps the panel's `/api/auth/renew` exchange.
+  final Future<String?> Function(String currentJwt)? renewToken;
+
+  bool _renewing = false;
 
   /// Sets the token used automatically by every subsequent call that
   /// doesn't pass an explicit `token` — set once after login so existing
@@ -41,30 +55,37 @@ class ApiClient {
   /// answers 401, which the app already handles as "session over".
   Future<void> _ensureFreshToken(String? explicitToken) async {
     final current = _token;
-    if (explicitToken != null || current == null) return;
+    if (explicitToken != null || current == null || _renewing) return;
     if (!shouldRenewJwt(current)) return;
 
     _pendingRenewal ??= () async {
+      _renewing = true;
       try {
-        final response = await _httpClient.post(
-          Uri.parse('$baseUrl/api/auth/renew'),
-          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $current'},
-        );
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          final jwt = (jsonDecode(response.body) as Map<String, dynamic>)['jwt'] as String?;
-          if (jwt != null) {
-            _token = jwt;
-            onTokenRenewed?.call(jwt);
-          }
+        final jwt = renewToken != null
+            ? await renewToken!(current)
+            : await _exchangeAtPanelRoute(current);
+        if (jwt != null) {
+          _token = jwt;
+          onTokenRenewed?.call(jwt);
         }
       } catch (_) {
         // Silent by design — see the doc comment above.
       } finally {
+        _renewing = false;
         _pendingRenewal = null;
       }
     }();
 
     await _pendingRenewal;
+  }
+
+  Future<String?> _exchangeAtPanelRoute(String current) async {
+    final response = await _httpClient.post(
+      Uri.parse('$baseUrl/api/auth/renew'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $current'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    return (jsonDecode(response.body) as Map<String, dynamic>)['jwt'] as String?;
   }
 
   Future<Map<String, dynamic>> get(String path, {String? token, Map<String, String>? headers}) async {
