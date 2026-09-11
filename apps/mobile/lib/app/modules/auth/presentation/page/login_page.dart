@@ -1,11 +1,17 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../bloc/login_bloc.dart';
+
+/// Google sign-in is wired for Android only (decision 152): the web has
+/// no OAuth client id, so the SDK call never returns and the button would
+/// spin forever; iOS has no client either. Hidden elsewhere until then.
+bool get googleSignInAvailable => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
 /// Email+password login (decisions 119/122/124).
 class LoginPage extends StatefulWidget {
@@ -98,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                 busy: submitting,
                 onPressed: () => _submit(totpCode: twoFactor != null ? _totp.text : null),
               ),
-              if (twoFactor == null) ...[
+              if (twoFactor == null && googleSignInAvailable) ...[
                 const VgrGap.md(),
                 VgrSecondaryButton(
                   key: const Key('login-google-button'),

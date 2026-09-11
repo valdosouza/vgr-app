@@ -200,7 +200,7 @@
       "reporter": "Reporter",
       "helper": "Helper"
     },
-    "empty": "No conversations yet.",
+    "empty": "No conversations yet. A conversation starts when a helper with an account sends the first message; anonymous helpers cannot chat.",
     "emptyConversation": "No messages yet. The chat is masked: nobody sees more than the offer showed.",
     "noMessages": "No messages yet",
     "closedMarker": "Closed",

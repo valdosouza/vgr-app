@@ -1,6 +1,6 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -145,5 +145,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('login-google-button')), findsNothing);
+  });
+
+  testWidgets('the Google button exists only on Android (decision 152 — no web/iOS client)',
+      (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+    await pumpPage(tester);
+
+    expect(find.byKey(const Key('login-google-button')), findsNothing);
+    expect(find.byKey(const Key('login-submit-button')), findsOneWidget);
+    // The binding asserts foundation debug vars are reset before teardown.
+    debugDefaultTargetPlatformOverride = null;
   });
 }

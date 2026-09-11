@@ -200,7 +200,7 @@
       "reporter": "Denunciante",
       "helper": "Ajudante"
     },
-    "empty": "Ainda não há conversas.",
+    "empty": "Ainda não há conversas. A conversa começa quando um helper com conta manda a primeira mensagem; helpers anônimos não conversam.",
     "emptyConversation": "Ainda não há mensagens. O chat é mascarado: ninguém vê mais do que a oferta mostrou.",
     "noMessages": "Sem mensagens ainda",
     "closedMarker": "Encerrada",

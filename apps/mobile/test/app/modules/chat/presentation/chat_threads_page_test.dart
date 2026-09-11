@@ -94,7 +94,9 @@ void main() {
     await pumpPage(tester);
 
     expect(find.byKey(const Key('chat-threads-empty')), findsOneWidget);
-    expect(find.text('No conversations yet.'), findsOneWidget);
+    expect(find.textContaining('No conversations yet.'), findsOneWidget);
+    // Owner-side rule (169/173) spelled out — the empty list is not a bug.
+    expect(find.textContaining('helper with an account sends the first message'), findsOneWidget);
   });
 
   testWidgets('error state is retryable', (tester) async {
