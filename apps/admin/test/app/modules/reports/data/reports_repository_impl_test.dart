@@ -147,7 +147,7 @@ void main() {
             'offers': [
               {
                 'helpOfferId': 1,
-                'helpType': 'share',
+                'helpTypes': ['relay_information', 'share'],
                 'anonymous': false,
                 'helper': {'accountId': 30, 'displayName': 'João'},
                 'createdAt': '2026-09-01T12:00:00.000Z',
@@ -155,7 +155,7 @@ void main() {
               },
               {
                 'helpOfferId': 2,
-                'helpType': 'remote_support',
+                'helpTypes': ['remote_support'],
                 'anonymous': true,
                 'helper': null,
                 'createdAt': '2026-09-01T13:00:00.000Z',
@@ -178,6 +178,7 @@ void main() {
       expect(detail.frozenReason, 'Writ 1/2026');
       expect(detail.expiresAt, '2026-12-01T10:00:00.000Z');
       // RT3, decision 186: bare score, null until rated.
+      expect(detail.offers.first.helpTypes, ['relay_information', 'share']); // HT3, 208/213
       expect(detail.offers.first.ratingScore, 4);
       expect(detail.offers.last.ratingScore, isNull);
     });

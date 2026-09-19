@@ -324,7 +324,7 @@ class ReportMediaEntity extends Equatable {
 class ReportOfferEntity extends Equatable {
   const ReportOfferEntity({
     required this.helpOfferId,
-    required this.helpType,
+    required this.helpTypes,
     required this.anonymous,
     required this.helper,
     required this.createdAt,
@@ -332,7 +332,11 @@ class ReportOfferEntity extends Equatable {
   });
 
   final int helpOfferId;
-  final String helpType;
+
+  /// Every front the helper offered (HT3 — decisions 208/213), wire
+  /// values as the API sends them (alphabetical); rendered through
+  /// `reports.detail.helpType.*`. Never the singular field (gone, 213).
+  final List<String> helpTypes;
   final bool anonymous;
 
   /// `null` for an anonymous offer (decision 160 applied to helpers).
@@ -347,7 +351,9 @@ class ReportOfferEntity extends Equatable {
 
   factory ReportOfferEntity.fromJson(Map<String, dynamic> json) => ReportOfferEntity(
         helpOfferId: (json['helpOfferId'] as num).toInt(),
-        helpType: json['helpType'] as String,
+        helpTypes: (json['helpTypes'] as List<dynamic>? ?? const [])
+            .map((t) => t as String)
+            .toList(),
         anonymous: json['anonymous'] as bool,
         helper: json['helper'] == null
             ? null
@@ -357,7 +363,7 @@ class ReportOfferEntity extends Equatable {
       );
 
   @override
-  List<Object?> get props => [helpOfferId, helpType, anonymous, helper, createdAt, ratingScore];
+  List<Object?> get props => [helpOfferId, helpTypes, anonymous, helper, createdAt, ratingScore];
 }
 
 /// `GET /api/reports/:id` (`ReportPanelDetail`). Opening it is AUDITED

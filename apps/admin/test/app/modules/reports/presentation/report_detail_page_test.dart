@@ -78,14 +78,14 @@ ReportPanelDetailEntity detail({
               const [
                 ReportOfferEntity(
                   helpOfferId: 1,
-                  helpType: 'share',
+                  helpTypes: ['share'],
                   anonymous: false,
                   helper: ReportActorEntity(accountId: 30, displayName: 'João'),
                   createdAt: '2026-09-01T12:00:00.000Z',
                 ),
                 ReportOfferEntity(
                   helpOfferId: 2,
-                  helpType: 'remote_support',
+                  helpTypes: ['remote_support'],
                   anonymous: true,
                   helper: null,
                   createdAt: '2026-09-01T13:00:00.000Z',
@@ -195,7 +195,7 @@ void main() {
       entity: detail(anonymous: false, offers: const [
         ReportOfferEntity(
           helpOfferId: 1,
-          helpType: 'share',
+          helpTypes: ['share'],
           anonymous: false,
           helper: ReportActorEntity(accountId: 30, displayName: 'João'),
           createdAt: '2026-09-01T12:00:00.000Z',
@@ -214,12 +214,35 @@ void main() {
     expect(rating.onChanged, isNull);
   });
 
+  testWidgets('an offer with several fronts lists them all on its line (HT3, decision 208)',
+      (tester) async {
+    stub(
+      entity: detail(anonymous: false, offers: const [
+        ReportOfferEntity(
+          helpOfferId: 1,
+          helpTypes: ['physical_presence', 'share'],
+          anonymous: false,
+          helper: ReportActorEntity(accountId: 30, displayName: 'João'),
+          createdAt: '2026-09-01T12:00:00.000Z',
+        ),
+      ]),
+    );
+    await pumpPage(tester);
+
+    final row = find.byKey(const Key('report-offer-1'));
+    await tester.ensureVisible(row);
+    expect(
+      find.descendant(of: row, matching: find.textContaining('Physical presence · Share')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('an unrated offer shows no rating control (decision 186)', (tester) async {
     stub(
       entity: detail(anonymous: false, offers: const [
         ReportOfferEntity(
           helpOfferId: 1,
-          helpType: 'share',
+          helpTypes: ['share'],
           anonymous: false,
           helper: ReportActorEntity(accountId: 30, displayName: 'João'),
           createdAt: '2026-09-01T12:00:00.000Z',

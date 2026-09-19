@@ -350,7 +350,10 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               subtitle: [
                 if (offer.helper != null)
                   'reports.detail.account'.tr(namedArgs: {'id': '${offer.helper!.accountId}'}),
-                _trOr('reports.detail.helpType.${offer.helpType}', offer.helpType),
+                // Every front of the offer (208), " · "-separated like
+                // the rest of this line.
+                for (final type in offer.helpTypes)
+                  _trOr('reports.detail.helpType.$type', type),
                 _when(offer.createdAt),
               ].join(' · '),
               trailing: _offerRating(offer),

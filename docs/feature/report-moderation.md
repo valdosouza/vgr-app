@@ -332,3 +332,15 @@ no-op before load); detail page (absent without the grant AND nothing fetched; p
 the grant, not fetched until pressed, then threads/participants/closed/messages/`[purged]`/
 hasMore and no composer; empty note; 403 rendered by code with the case kept). Guard 133 and
 `translations_catalog_test` green.
+
+## Several fronts per offer (HT3, 2026-09-19 — decisions 208/213)
+
+`ReportOfferEntity.helpType` (singular) is gone with the API's contract
+(213): the entity carries `helpTypes: List<String>` (alphabetical, as
+served) and the offer line on the detail page lists every front through
+`reports.detail.helpType.*`, joined by " · " with the account id and the
+timestamp. A missing list parses as empty rather than failing the whole
+detail. Nothing else on the panel changes (chat, rating and freeze hang
+off the offer, not the type). Tests: entity parse in
+`reports_repository_impl_test`, multi-front row in
+`report_detail_page_test` (admin 289 green).
