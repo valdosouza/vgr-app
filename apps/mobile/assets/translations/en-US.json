@@ -34,7 +34,8 @@
       "edited": "Report edited",
       "resolved": "Case resolved",
       "media_attached": "Photo attached",
-      "help_offered": "Someone offered help"
+      "help_offered": "Someone offered help",
+      "help_offer_updated": "Someone changed the help types of an offer"
     },
     "offers": "Help offers",
     "noOffers": "No help offers yet.",
@@ -57,7 +58,9 @@
     "directionEstimate": "Estimated direction: {direction}",
     "directionPrompt": "Which direction did you see them go?",
     "directionSighted": "You pointed {direction} — thanks!",
-    "directionFeedback": "Current best guess so far: {direction} ({count} sightings)."
+    "directionFeedback": "Current best guess so far: {direction} ({count} sightings).",
+    "myOffer": "Your offer",
+    "editOfferTypes": "Change help types"
   },
   "report": {
     "title": "Report",
@@ -192,7 +195,13 @@
       "rewardOnboardingLink": "Register to be able to receive a reward"
     },
     "anonymousNoChatNotice": "Without an account there is no chat: the reporter cannot reach you after your offer. Create an account to talk — you can stay anonymous.",
-    "anonymousNoRatingNotice": "Without an account you cannot be rated either: there is no identity to build a reputation on. Create an account to be eligible — you can stay anonymous."
+    "anonymousNoRatingNotice": "Without an account you cannot be rated either: there is no identity to build a reputation on. Create an account to be eligible — you can stay anonymous.",
+    "editTitle": "Change help types",
+    "save": "Save",
+    "updated": {
+      "title": "Help types updated",
+      "message": "The reporter will see the new help types on your offer."
+    }
   },
   "chat": {
     "threadsTitle": "Conversations",

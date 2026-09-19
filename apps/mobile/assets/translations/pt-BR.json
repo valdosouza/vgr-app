@@ -34,7 +34,8 @@
       "edited": "Denúncia editada",
       "resolved": "Caso resolvido",
       "media_attached": "Foto anexada",
-      "help_offered": "Alguém ofereceu ajuda"
+      "help_offered": "Alguém ofereceu ajuda",
+      "help_offer_updated": "Alguém alterou os tipos de ajuda da oferta"
     },
     "offers": "Ofertas de ajuda",
     "noOffers": "Ainda não há ofertas de ajuda.",
@@ -57,7 +58,9 @@
     "directionEstimate": "Direção estimada: {direction}",
     "directionPrompt": "Em que direção você viu a pessoa ir?",
     "directionSighted": "Você apontou {direction} — obrigado!",
-    "directionFeedback": "Melhor estimativa até agora: {direction} ({count} avistamentos)."
+    "directionFeedback": "Melhor estimativa até agora: {direction} ({count} avistamentos).",
+    "myOffer": "Sua oferta",
+    "editOfferTypes": "Alterar tipos de ajuda"
   },
   "report": {
     "title": "Denunciar",
@@ -192,7 +195,13 @@
       "rewardOnboardingLink": "Cadastrar para poder receber recompensa"
     },
     "anonymousNoChatNotice": "Sem conta não há chat: quem denunciou não consegue falar com você depois da oferta. Crie uma conta para conversar — você pode continuar anônimo.",
-    "anonymousNoRatingNotice": "Sem conta você também não pode ser avaliado: não há identidade para acumular reputação. Crie uma conta para ficar elegível — você pode continuar anônimo."
+    "anonymousNoRatingNotice": "Sem conta você também não pode ser avaliado: não há identidade para acumular reputação. Crie uma conta para ficar elegível — você pode continuar anônimo.",
+    "editTitle": "Alterar tipos de ajuda",
+    "save": "Salvar",
+    "updated": {
+      "title": "Tipos atualizados",
+      "message": "Quem denunciou verá os novos tipos de ajuda na sua oferta."
+    }
   },
   "chat": {
     "threadsTitle": "Conversas",

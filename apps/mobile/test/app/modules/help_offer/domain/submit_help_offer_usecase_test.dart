@@ -10,7 +10,7 @@ class MockHelpOfferRepository extends Mock implements HelpOfferRepository {}
 
 const _offer = HelpOfferEntity(
   reportId: 5,
-  helpType: HelpType.physicalPresence,
+  helpTypes: {HelpType.physicalPresence},
   anonymous: true,
 );
 

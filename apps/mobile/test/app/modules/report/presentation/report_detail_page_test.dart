@@ -55,6 +55,7 @@ void main() {
     int reportId = 5,
     void Function(int reportId)? onOfferHelp,
     void Function(String route)? onOpenChat,
+    void Function(MyOfferEntity myOffer)? onEditOfferTypes,
   }) async {
     await pumpLocalized(
       tester,
@@ -72,6 +73,7 @@ void main() {
           mediaBaseUrl: 'http://api.test',
           onOfferHelp: onOfferHelp,
           onOpenChat: onOpenChat,
+          onEditOfferTypes: onEditOfferTypes,
         ),
       ),
     );
@@ -146,7 +148,7 @@ void main() {
             ],
             offers: [
               // High tier: no identity, no timestamp (decisions 40/41/60).
-              OfferViewEntity(helpOfferId: 1, helpType: 'physical_presence'),
+              OfferViewEntity(helpOfferId: 1, helpTypes: ['physical_presence']),
             ],
           ),
         ));
@@ -158,6 +160,91 @@ void main() {
     expect(find.text('Someone offered help'), findsOneWidget);
     expect(find.text('Anonymous helper'), findsOneWidget);
     expect(find.text('Physical presence'), findsOneWidget);
+  });
+
+  testWidgets('an offer with several fronts lists them all, " · "-separated (208)',
+      (tester) async {
+    await myReports.save(5, 'key-5');
+    when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+          ReportViewEntity(
+            access: ReportAccess.owner,
+            reportId: 5,
+            category: 'assault',
+            subject: 'adult',
+            tier: 'high',
+            status: 'open',
+            offers: [
+              OfferViewEntity(helpOfferId: 1, helpTypes: ['physical_presence', 'share']),
+            ],
+          ),
+        ));
+
+    await pumpPage(tester);
+
+    expect(find.text('Physical presence · Share'), findsOneWidget);
+  });
+
+  group('the participant own offer (decision 211)', () {
+    const myOffer = MyOfferEntity(helpOfferId: 31, helpTypes: ['relay_information', 'share']);
+
+    ReportViewEntity participant({String status = 'open'}) => ReportViewEntity(
+          access: ReportAccess.participant,
+          reportId: 5,
+          category: 'robbery',
+          subject: 'property',
+          tier: 'medium',
+          status: status,
+          myOffer: myOffer,
+        );
+
+    testWidgets('an open case shows the chosen fronts and the change button, which '
+        'hands over the offer to edit', (tester) async {
+      when(() => repository.getReport(5)).thenAnswer((_) async => Right(participant()));
+
+      MyOfferEntity? editing;
+      await pumpPage(tester, onEditOfferTypes: (o) => editing = o);
+
+      expect(find.text('Your offer'), findsOneWidget);
+      expect(find.byKey(const Key('detail-my-offer-types')), findsOneWidget);
+      expect(find.text('Relay information · Share'), findsOneWidget);
+      final button = find.byKey(const Key('detail-edit-offer-types-button'));
+      expect(button, findsOneWidget);
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      expect(editing, myOffer);
+      // A participant already offered — never the "offer help" button (20).
+      expect(find.byKey(const Key('detail-offer-help-button')), findsNothing);
+    });
+
+    testWidgets('a resolved case keeps the fronts read-only — no change button (211)',
+        (tester) async {
+      when(() => repository.getReport(5))
+          .thenAnswer((_) async => Right(participant(status: 'resolved')));
+
+      await pumpPage(tester);
+
+      expect(find.text('Relay information · Share'), findsOneWidget);
+      expect(find.byKey(const Key('detail-edit-offer-types-button')), findsNothing);
+    });
+
+    testWidgets('no myOffer facet (owner view) → no section at all', (tester) async {
+      await myReports.save(5, 'key-5');
+      when(() => repository.getReport(5)).thenAnswer((_) async => const Right(
+            ReportViewEntity(
+              access: ReportAccess.owner,
+              reportId: 5,
+              category: 'robbery',
+              subject: 'property',
+              tier: 'medium',
+              status: 'open',
+            ),
+          ));
+
+      await pumpPage(tester);
+
+      expect(find.text('Your offer'), findsNothing);
+      expect(find.byKey(const Key('detail-edit-offer-types-button')), findsNothing);
+    });
   });
 
   testWidgets('a third party on an open case can offer help (A3, decision 10)',
@@ -479,7 +566,7 @@ void main() {
               offers: [
                 OfferViewEntity(
                   helpOfferId: 1,
-                  helpType: 'physical_presence',
+                  helpTypes: ['physical_presence'],
                   rating: OfferRatingEntity(score: null, ratable: true),
                 ),
               ],
@@ -517,7 +604,7 @@ void main() {
               offers: [
                 OfferViewEntity(
                   helpOfferId: 1,
-                  helpType: 'physical_presence',
+                  helpTypes: ['physical_presence'],
                   rating: OfferRatingEntity(score: 4, ratable: false),
                 ),
               ],
@@ -553,7 +640,7 @@ void main() {
               offers: [
                 OfferViewEntity(
                   helpOfferId: 1,
-                  helpType: 'physical_presence',
+                  helpTypes: ['physical_presence'],
                   rating: OfferRatingEntity(score: null, ratable: false),
                 ),
               ],
@@ -579,7 +666,7 @@ void main() {
               offers: [
                 OfferViewEntity(
                   helpOfferId: 1,
-                  helpType: 'physical_presence',
+                  helpTypes: ['physical_presence'],
                   rating: OfferRatingEntity(score: null, ratable: true),
                 ),
               ],

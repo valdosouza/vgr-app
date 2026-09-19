@@ -8,4 +8,9 @@ import '../entity/help_offer_entity.dart';
 abstract class HelpOfferRepository {
   /// Posts the offer; Right carries the created helpOfferId.
   Future<Either<Failure, int>> submit(HelpOfferEntity offer);
+
+  /// Replaces the set of fronts of the caller's OWN offer while the
+  /// report is open (decision 211); Right carries the set the server
+  /// stored.
+  Future<Either<Failure, Set<HelpType>>> updateTypes(int helpOfferId, Set<HelpType> helpTypes);
 }

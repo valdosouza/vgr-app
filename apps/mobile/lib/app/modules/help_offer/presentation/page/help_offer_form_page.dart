@@ -8,13 +8,33 @@ import 'package:vgr_widgets/vgr_widgets.dart';
 import '../../domain/entity/help_offer_entity.dart';
 import '../bloc/help_offer_bloc.dart';
 
-/// Offer-help form (spec task 10 as amended, decisions 6/10/20/34/35).
-/// Reached from the detail of an OPEN report this device does not own;
-/// the bloc still blocks self-dealing for crafted deep links.
+/// What the "change my fronts" route carries (decision 211): the offer
+/// being edited and the fronts checked today (from the participant view's
+/// `myOffer` facet).
+class HelpOfferEdit {
+  const HelpOfferEdit({required this.helpOfferId, required this.current});
+
+  final int helpOfferId;
+  final Set<HelpType> current;
+}
+
+/// Offer-help form (spec task 10 as amended, decisions 6/10/20/34/35;
+/// 208 — several fronts per offer). Reached from the detail of an OPEN
+/// report this device does not own; the bloc still blocks self-dealing
+/// for crafted deep links. With [editing] set, the same form edits the
+/// fronts of the helper's own existing offer (211).
 class HelpOfferFormPage extends StatefulWidget {
-  const HelpOfferFormPage({super.key, required this.reportId, this.onDone});
+  const HelpOfferFormPage({
+    super.key,
+    required this.reportId,
+    this.editing,
+    this.onDone,
+  });
 
   final int reportId;
+
+  /// Non-null → editing an existing offer's fronts instead of creating one.
+  final HelpOfferEdit? editing;
 
   /// Test seam — default navigation goes through Modular.
   final VoidCallback? onDone;
@@ -24,10 +44,15 @@ class HelpOfferFormPage extends StatefulWidget {
 }
 
 class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
+  bool get _editing => widget.editing != null;
+
   @override
   void initState() {
     super.initState();
-    context.read<HelpOfferBloc>().add(HelpOfferStarted(widget.reportId));
+    final editing = widget.editing;
+    context.read<HelpOfferBloc>().add(editing == null
+        ? HelpOfferStarted(widget.reportId)
+        : HelpOfferEditStarted(helpOfferId: editing.helpOfferId, current: editing.current));
   }
 
   void _done() => widget.onDone != null ? widget.onDone!() : Modular.to.pop(true);
@@ -36,14 +61,17 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
   Widget build(BuildContext context) {
     // No session = anonymous offer (decisions 32/35); with round-6 auth
     // in place a logged-in helper will get the identification choice (6).
-    final anonymous = context.watch<IdentityBloc>().state.token == null;
+    // An edit is always identified: the server only serves `myOffer` to
+    // an account-holding participant.
+    final anonymous = !_editing && context.watch<IdentityBloc>().state.token == null;
 
     return VgrScaffold(
-      title: 'offer.title'.tr(),
+      title: (_editing ? 'offer.editTitle' : 'offer.title').tr(),
       body: BlocBuilder<HelpOfferBloc, HelpOfferState>(
         builder: (context, state) => switch (state) {
           HelpOfferBlockedSelfDealing() => _blocked(),
           HelpOfferSuccess() => _success(anonymous: anonymous),
+          HelpOfferTypesUpdated() => _updated(),
           HelpOfferReady() || HelpOfferSubmitting() =>
             _form(state, anonymous: anonymous),
         },
@@ -99,11 +127,34 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
     );
   }
 
+  /// The fronts were replaced (211) — the detail reloads on return and
+  /// shows the new set.
+  Widget _updated() {
+    return VgrCenter(
+      child: VgrColumn(
+        key: const Key('offer-updated-view'),
+        children: [
+          const VgrIcon(VgrIconName.check, size: 48),
+          const VgrGap.md(),
+          VgrText.headline('offer.updated.title'.tr()),
+          const VgrGap.sm(),
+          VgrText('offer.updated.message'.tr()),
+          const VgrGap.lg(),
+          VgrSecondaryButton(
+            key: const Key('offer-done-button'),
+            label: 'offer.success.back'.tr(),
+            onPressed: _done,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _form(HelpOfferState state, {required bool anonymous}) {
     final selected = switch (state) {
       HelpOfferReady(selected: final s) => s,
       HelpOfferSubmitting(selected: final s) => s,
-      _ => null,
+      _ => const <HelpType>{},
     };
     final submitting = state is HelpOfferSubmitting;
     final failure = state is HelpOfferReady ? state.failure : null;
@@ -114,16 +165,18 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
         children: [
           VgrText.title('offer.typeLabel'.tr()),
           const VgrGap.sm(),
+          // Real multi-select (decision 208): each box toggles its own
+          // front; submit stays disabled until at least one is checked.
           for (final type in HelpType.values)
             VgrCheckboxTile(
               key: Key('offer-type-${type.wire}'),
               label: 'detail.helpType.${type.wire}'.tr(),
-              value: selected == type,
+              value: selected.contains(type),
               onChanged: submitting
                   ? null
                   : (_) => context
                       .read<HelpOfferBloc>()
-                      .add(HelpOfferTypeSelected(type)),
+                      .add(HelpOfferTypeToggled(type)),
             ),
           if (anonymous) ...[
             const VgrGap.md(),
@@ -168,9 +221,9 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
           const VgrGap.lg(),
           VgrPrimaryButton(
             key: const Key('offer-submit-button'),
-            label: 'offer.submit'.tr(),
+            label: (_editing ? 'offer.save' : 'offer.submit').tr(),
             busy: submitting,
-            onPressed: selected == null || submitting
+            onPressed: selected.isEmpty || submitting
                 ? null
                 : () => context
                     .read<HelpOfferBloc>()

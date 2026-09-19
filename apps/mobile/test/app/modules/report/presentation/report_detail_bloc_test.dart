@@ -44,7 +44,7 @@ const _resolvedOwnerView = ReportViewEntity(
   offers: [
     OfferViewEntity(
       helpOfferId: 1,
-      helpType: 'physical_presence',
+      helpTypes: ['physical_presence'],
       rating: OfferRatingEntity(score: null, ratable: true),
     ),
   ],
@@ -313,7 +313,7 @@ void main() {
         offers: [
           OfferViewEntity(
             helpOfferId: 1,
-            helpType: 'physical_presence',
+            helpTypes: ['physical_presence'],
             rating: OfferRatingEntity(score: 4, ratable: false),
           ),
         ],

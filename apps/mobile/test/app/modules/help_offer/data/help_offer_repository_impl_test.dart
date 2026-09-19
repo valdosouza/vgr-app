@@ -8,7 +8,7 @@ class MockApiClient extends Mock implements ApiClient {}
 
 const _offer = HelpOfferEntity(
   reportId: 5,
-  helpType: HelpType.relayInformation,
+  helpTypes: {HelpType.share, HelpType.relayInformation},
   anonymous: true,
 );
 
@@ -33,7 +33,9 @@ void main() {
         .single as Map<String, dynamic>;
     expect(body, {
       'reportId': 5,
-      'helpType': 'relay_information', // the wire enum, never free text
+      // Decision 213: the list only, wire enum values in decision 10's
+      // order — never free text, never a singular field.
+      'helpTypes': ['relay_information', 'share'],
       'anonymous': true,
     });
   });
@@ -56,5 +58,48 @@ void main() {
     final result = await repository.submit(_offer);
 
     expect(result.fold((f) => f.code, (_) => null), 'OFFLINE');
+  });
+
+  group('updateTypes — PUT /app-help-offers/:id/types (decision 211)', () {
+    test('sends the new set and answers the set the server stored', () async {
+      when(() => apiClient.put('/app-help-offers/31/types', any())).thenAnswer(
+          (_) async => {'helpOfferId': 31, 'helpTypes': ['physical_presence', 'share']});
+
+      final result = await repository.updateTypes(31, {HelpType.share, HelpType.physicalPresence});
+
+      expect(result.getOrElse(() => {}), {HelpType.physicalPresence, HelpType.share});
+      final body = verify(() => apiClient.put('/app-help-offers/31/types', captureAny()))
+          .captured
+          .single as Map<String, dynamic>;
+      expect(body, {'helpTypes': ['physical_presence', 'share']});
+    });
+
+    test('an unknown front in the answer is ignored, never a crash', () async {
+      when(() => apiClient.put('/app-help-offers/31/types', any())).thenAnswer(
+          (_) async => {'helpOfferId': 31, 'helpTypes': ['share', 'teleport']});
+
+      final result = await repository.updateTypes(31, {HelpType.share});
+
+      expect(result.getOrElse(() => {}), {HelpType.share});
+    });
+
+    test("someone else's offer is the API's 404 — surfaced by code", () async {
+      when(() => apiClient.put('/app-help-offers/31/types', any())).thenThrow(
+        const Failure(message: 'nf', statusCode: 404, code: 'NOT_FOUND'),
+      );
+
+      final result = await repository.updateTypes(31, {HelpType.share});
+
+      expect(result.fold((f) => f.code, (_) => null), 'NOT_FOUND');
+    });
+
+    test('transport failure becomes OFFLINE — never queued', () async {
+      when(() => apiClient.put('/app-help-offers/31/types', any()))
+          .thenThrow(Exception('socket'));
+
+      final result = await repository.updateTypes(31, {HelpType.share});
+
+      expect(result.fold((f) => f.code, (_) => null), 'OFFLINE');
+    });
   });
 }

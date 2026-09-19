@@ -17,10 +17,34 @@ class HelpOfferRepositoryImpl implements HelpOfferRepository {
       // owns, and a stale queued offer helps nobody — the user retries.
       final response = await _apiClient.post('/app-help-offers', {
         'reportId': offer.reportId,
-        'helpType': offer.helpType.wire,
+        // Decision 213: only the list — the singular field no longer exists.
+        'helpTypes': helpTypesToWire(offer.helpTypes),
         'anonymous': offer.anonymous,
       });
       return Right(response['helpOfferId'] as int);
+    } on Failure catch (failure) {
+      return Left(failure);
+    } catch (_) {
+      return const Left(Failure(message: 'No connection', code: 'OFFLINE'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Set<HelpType>>> updateTypes(
+    int helpOfferId,
+    Set<HelpType> helpTypes,
+  ) async {
+    try {
+      // Same posture as submit: a live edit on someone else's open case,
+      // never queued — the session token rides on the client (app auth).
+      final response = await _apiClient.put('/app-help-offers/$helpOfferId/types', {
+        'helpTypes': helpTypesToWire(helpTypes),
+      });
+      final stored = (response['helpTypes'] as List<dynamic>? ?? const [])
+          .map((w) => HelpType.fromWire(w as String))
+          .whereType<HelpType>()
+          .toSet();
+      return Right(stored);
     } on Failure catch (failure) {
       return Left(failure);
     } catch (_) {

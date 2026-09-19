@@ -27,6 +27,7 @@ class ReportDetailPage extends StatefulWidget {
     required this.mediaBaseUrl,
     this.onOfferHelp,
     this.onOpenChat,
+    this.onEditOfferTypes,
   });
 
   final int reportId;
@@ -39,6 +40,10 @@ class ReportDetailPage extends StatefulWidget {
 
   /// Test seam for the chat entry — receives the route it would push.
   final void Function(String route)? onOpenChat;
+
+  /// Test seam for "change my fronts" (decision 211) — receives the
+  /// participant's own offer it would edit.
+  final void Function(MyOfferEntity myOffer)? onEditOfferTypes;
 
   @override
   State<ReportDetailPage> createState() => _ReportDetailPageState();
@@ -205,12 +210,31 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                   // Identity only when the helper chose it AND the tier
                   // allows (6/40/60) — otherwise the anonymous label.
                   title: offer.helperDisplayName ?? 'detail.anonymousHelper'.tr(),
+                  // Every front of the offer (208), " · "-separated.
                   subtitle: offer.createdAt == null
-                      ? 'detail.helpType.${offer.helpType}'.tr()
-                      : '${'detail.helpType.${offer.helpType}'.tr()} · '
-                          '${_when(offer.createdAt!)}',
+                      ? _helpTypesLabel(offer.helpTypes)
+                      : '${_helpTypesLabel(offer.helpTypes)} · ${_when(offer.createdAt!)}',
                   trailing: _ratingControl(view, offer, ratingOfferId),
                 ),
+          ],
+          // The participant's OWN offer (211): the fronts they chose and,
+          // while the case is open, the way to change them. The server
+          // only sends `myOffer` to an identified participant.
+          if (view.myOffer != null) ...[
+            const VgrGap.md(),
+            VgrText.title('detail.myOffer'.tr()),
+            VgrText(
+              _helpTypesLabel(view.myOffer!.helpTypes),
+              key: const Key('detail-my-offer-types'),
+            ),
+            if (view.status == 'open') ...[
+              const VgrGap.sm(),
+              VgrSecondaryButton(
+                key: const Key('detail-edit-offer-types-button'),
+                label: 'detail.editOfferTypes'.tr(),
+                onPressed: () => _editOfferTypes(view),
+              ),
+            ],
           ],
           // Owner-only close (RT2, decisions 18/131/179): no "outcome"
           // field, just this confirmation before the resolve call.
@@ -384,6 +408,24 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     // A successful offer changed the case (timeline event) — reload so
     // the view reflects it.
     if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(reportId));
+  }
+
+  /// Wire values → translated names, " · "-separated (decision 208).
+  String _helpTypesLabel(List<String> helpTypes) =>
+      helpTypes.map((t) => 'detail.helpType.$t'.tr()).join(' · ');
+
+  Future<void> _editOfferTypes(ReportViewEntity view) async {
+    final myOffer = view.myOffer!;
+    if (widget.onEditOfferTypes != null) {
+      widget.onEditOfferTypes!(myOffer);
+      return;
+    }
+    await Modular.to.pushNamed(
+      '/offer/${view.reportId}/types/${myOffer.helpOfferId}',
+      arguments: myOffer.helpTypes,
+    );
+    // The set may have changed (timeline event too) — reload the view.
+    if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(view.reportId));
   }
 
   Future<void> _openChat(ReportViewEntity view) async {

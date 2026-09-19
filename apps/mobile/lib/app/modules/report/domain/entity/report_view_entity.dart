@@ -81,14 +81,17 @@ class OfferRatingEntity extends Equatable {
 class OfferViewEntity extends Equatable {
   const OfferViewEntity({
     required this.helpOfferId,
-    required this.helpType,
+    required this.helpTypes,
     this.helperDisplayName,
     this.createdAt,
     this.rating,
   });
 
   final int helpOfferId;
-  final String helpType;
+
+  /// Every front the helper offered (decision 208), wire values as the
+  /// API sent them (alphabetical) — rendered through `detail.helpType.*`.
+  final List<String> helpTypes;
   final String? helperDisplayName;
   final String? createdAt;
 
@@ -98,7 +101,7 @@ class OfferViewEntity extends Equatable {
 
   factory OfferViewEntity.fromJson(Map<String, dynamic> json) => OfferViewEntity(
         helpOfferId: json['helpOfferId'] as int,
-        helpType: json['helpType'] as String,
+        helpTypes: helpTypesFromJson(json['helpTypes']),
         helperDisplayName: json['helperDisplayName'] as String?,
         createdAt: json['createdAt'] as String?,
         rating: json['rating'] == null
@@ -106,8 +109,39 @@ class OfferViewEntity extends Equatable {
             : OfferRatingEntity.fromJson((json['rating'] as Map).cast<String, dynamic>()),
       );
 
+  /// Same row with a settled rating (RT2) — every other field kept.
+  OfferViewEntity withRating(OfferRatingEntity rating) => OfferViewEntity(
+        helpOfferId: helpOfferId,
+        helpTypes: helpTypes,
+        helperDisplayName: helperDisplayName,
+        createdAt: createdAt,
+        rating: rating,
+      );
+
   @override
-  List<Object?> get props => [helpOfferId, helpType, helperDisplayName, createdAt, rating];
+  List<Object?> get props => [helpOfferId, helpTypes, helperDisplayName, createdAt, rating];
+}
+
+/// Parses `helpTypes: []` (decision 213 — the only shape the API speaks).
+List<String> helpTypesFromJson(dynamic json) =>
+    (json as List<dynamic>? ?? const []).map((t) => t as String).toList();
+
+/// The participant's OWN offer (decision 211): the id "change my fronts"
+/// edits and the fronts checked today. Served only on the `participant`
+/// view — null everywhere else.
+class MyOfferEntity extends Equatable {
+  const MyOfferEntity({required this.helpOfferId, required this.helpTypes});
+
+  final int helpOfferId;
+  final List<String> helpTypes;
+
+  factory MyOfferEntity.fromJson(Map<String, dynamic> json) => MyOfferEntity(
+        helpOfferId: json['helpOfferId'] as int,
+        helpTypes: helpTypesFromJson(json['helpTypes']),
+      );
+
+  @override
+  List<Object?> get props => [helpOfferId, helpTypes];
 }
 
 /// The `chat` facet of an owner/participant view (C2, decision 169): the
@@ -159,6 +193,7 @@ class ReportViewEntity extends Equatable {
     this.hidden = false,
     this.chat,
     this.directionEstimate,
+    this.myOffer,
   });
 
   final ReportAccess access;
@@ -193,6 +228,11 @@ class ReportViewEntity extends Equatable {
   /// the key appears, exactly like [chat].
   final Direction? directionEstimate;
 
+  /// Participant only (decision 211): this viewer's own offer, so the page
+  /// can offer "change my fronts" while the case is open. Null on every
+  /// other view.
+  final MyOfferEntity? myOffer;
+
   factory ReportViewEntity.fromJson(Map<String, dynamic> json) {
     final position = json['position'] as Map?;
     return ReportViewEntity(
@@ -226,6 +266,9 @@ class ReportViewEntity extends Equatable {
           ? null
           : ReportChatFacetEntity.fromJson((json['chat'] as Map).cast<String, dynamic>()),
       directionEstimate: directionEstimateFromJson(json['directionEstimate']),
+      myOffer: json['myOffer'] == null
+          ? null
+          : MyOfferEntity.fromJson((json['myOffer'] as Map).cast<String, dynamic>()),
     );
   }
 
@@ -250,6 +293,7 @@ class ReportViewEntity extends Equatable {
         hidden: hidden,
         chat: chat,
         directionEstimate: directionEstimate,
+        myOffer: myOffer,
       );
 
   /// The one derivative this viewer may fetch for feed/detail thumbnails:
@@ -263,6 +307,6 @@ class ReportViewEntity extends Equatable {
   List<Object?> get props => [
         access, reportId, category, freeTag, subject, tier, status, position,
         detailFields, createdAt, resolvedAt, timeline, media, offers, hidden, chat,
-        directionEstimate,
+        directionEstimate, myOffer,
       ];
 }

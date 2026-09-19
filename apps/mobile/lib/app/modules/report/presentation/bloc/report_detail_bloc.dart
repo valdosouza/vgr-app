@@ -271,13 +271,7 @@ class ReportDetailBloc extends Bloc<ReportDetailEvent, ReportDetailState> {
         final score = outcome.rating?.score ?? event.score;
         final offers = (latest.view.offers ?? const [])
             .map((o) => o.helpOfferId == event.offerId
-                ? OfferViewEntity(
-                    helpOfferId: o.helpOfferId,
-                    helpType: o.helpType,
-                    helperDisplayName: o.helperDisplayName,
-                    createdAt: o.createdAt,
-                    rating: OfferRatingEntity(score: score, ratable: false),
-                  )
+                ? o.withRating(OfferRatingEntity(score: score, ratable: false))
                 : o)
             .toList();
         emit(latest.copyWith(

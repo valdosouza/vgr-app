@@ -25,6 +25,38 @@ void main() {
     });
   });
 
+  group('OfferViewEntity.helpTypes — several fronts per offer (HT2, decisions 208/213)', () {
+    test('reads the list as the API sends it (alphabetical) and takes part in equality', () {
+      final offer = OfferViewEntity.fromJson({
+        'helpOfferId': 1,
+        'helpTypes': ['physical_presence', 'share'],
+      });
+      expect(offer.helpTypes, ['physical_presence', 'share']);
+      expect(offer, isNot(OfferViewEntity.fromJson({'helpOfferId': 1, 'helpTypes': ['share']})));
+    });
+
+    test('a missing list parses as empty rather than crashing the whole view', () {
+      expect(OfferViewEntity.fromJson({'helpOfferId': 1}).helpTypes, isEmpty);
+    });
+  });
+
+  group('ReportViewEntity.myOffer — the participant own offer (decision 211)', () {
+    test('absent → null (owner, public, summary views)', () {
+      expect(ReportViewEntity.fromJson(_owner()).myOffer, isNull);
+    });
+
+    test('participant: {helpOfferId, helpTypes}, carried through copyWithOffers', () {
+      final view = ReportViewEntity.fromJson({
+        ..._owner(),
+        'access': 'participant',
+        'myOffer': {'helpOfferId': 31, 'helpTypes': ['relay_information', 'share']},
+      });
+      expect(view.myOffer,
+          const MyOfferEntity(helpOfferId: 31, helpTypes: ['relay_information', 'share']));
+      expect(view.copyWithOffers(const []).myOffer, view.myOffer);
+    });
+  });
+
   group('ReportViewEntity.chat — the served chat facet (C2, decision 169)', () {
     test('absent → null (public and summary views, anonymous helper)', () {
       expect(ReportViewEntity.fromJson(_owner()).chat, isNull);
@@ -51,14 +83,14 @@ void main() {
 
   group('OfferViewEntity.rating — the owner-view rating facet (RT2, decisions 180/183/184)', () {
     test('absent → null, handled defensively even though the owner view always sends it', () {
-      final offer = OfferViewEntity.fromJson({'helpOfferId': 1, 'helpType': 'physical_presence'});
+      final offer = OfferViewEntity.fromJson({'helpOfferId': 1, 'helpTypes': ['physical_presence']});
       expect(offer.rating, isNull);
     });
 
     test('ratable, not yet rated: {score: null, ratable: true}', () {
       final offer = OfferViewEntity.fromJson({
         'helpOfferId': 1,
-        'helpType': 'physical_presence',
+        'helpTypes': ['physical_presence'],
         'rating': {'score': null, 'ratable': true},
       });
       expect(offer.rating, const OfferRatingEntity(score: null, ratable: true));
@@ -67,7 +99,7 @@ void main() {
     test('already rated: {score, ratable: false} — immutable (183)', () {
       final offer = OfferViewEntity.fromJson({
         'helpOfferId': 1,
-        'helpType': 'physical_presence',
+        'helpTypes': ['physical_presence'],
         'rating': {'score': 4, 'ratable': false},
       });
       expect(offer.rating, const OfferRatingEntity(score: 4, ratable: false));
@@ -76,7 +108,7 @@ void main() {
     test('helper has no account: {score: null, ratable: false} — never ratable (180)', () {
       final offer = OfferViewEntity.fromJson({
         'helpOfferId': 1,
-        'helpType': 'physical_presence',
+        'helpTypes': ['physical_presence'],
         'rating': {'score': null, 'ratable': false},
       });
       expect(offer.rating!.score, isNull);
@@ -133,14 +165,14 @@ void main() {
       final view = ReportViewEntity.fromJson({
         ..._owner(hidden: true),
         'offers': [
-          {'helpOfferId': 1, 'helpType': 'physical_presence'},
+          {'helpOfferId': 1, 'helpTypes': ['physical_presence']},
         ],
       });
 
       final patched = view.copyWithOffers(const [
         OfferViewEntity(
           helpOfferId: 1,
-          helpType: 'physical_presence',
+          helpTypes: ['physical_presence'],
           rating: OfferRatingEntity(score: 5, ratable: false),
         ),
       ]);

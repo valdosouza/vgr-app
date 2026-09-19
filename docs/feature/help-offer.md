@@ -11,8 +11,11 @@ MA8-MA10 (`docs/specs/vgr/003-mobile-tactical-design.md`). API contract:
 
 Own Clean module mounted at `/offer/:id`, reached from the detail of an
 OPEN report the viewer does not own. `HelpType` is the closed 5-value
-enum of decision 10 (never free text); the entity carries
-reportId + helpType + anonymous.
+enum of decision 10 (never free text); since HT2 (decision 208) the
+entity carries reportId + `helpTypes: Set<HelpType>` (one to five) +
+anonymous. A second route, `/offer/:id/types/:offerId`, reuses the same
+form to edit the fronts of the helper's own existing offer (211 — see
+"Several fronts per offer" below).
 
 ## Self-dealing guard (decision 20, amendment MA8)
 
@@ -44,10 +47,41 @@ carries `anonymous` per submission.
 
 Since C2 (decision 169) the same card also warns the anonymous helper that without an account there is NO chat with the reporter (`offer-anonymous-no-chat-notice`, `offer.anonymousNoChatNotice`) — before submitting, never blocking; see `chat.md`.
 
+## Several fronts per offer (HT2, 2026-09-19 — decisions 208-214)
+
+Rodada 16 (`AI/docs/plans/plano-oferta-multitipo.md`) fixed what the
+first two-actor test exposed: the form drew checkboxes but behaved like
+radio buttons. Now:
+
+- **Bloc**: `HelpOfferReady.selected` is a `Set<HelpType>`;
+  `HelpOfferTypeToggled` adds or removes ONE front, never replacing the
+  others; submit is a no-op (and the button disabled) with an empty set
+  (208: minimum one). The wire body is `helpTypes: []` only (213).
+- **Detail page**: every offer row lists all its fronts " · "-separated
+  (`_helpTypesLabel`, `detail.helpType.*`), for the owner's `offers[]`.
+- **"Change help types" (211)**: the `participant` view carries
+  `myOffer { helpOfferId, helpTypes }` (API HT1 addendum of the same
+  date) — the page renders a "Your offer" section
+  (`detail-my-offer-types`) and, while the case is open, the
+  `detail-edit-offer-types-button`, which pushes
+  `/offer/:reportId/types/:offerId` with the current wire values as
+  `arguments`. The form opens in edit mode (`HelpOfferEdit`): current
+  fronts checked, "Save" instead of "Send offer", no anonymous notices
+  (an edit is always identified — the server only serves `myOffer` to an
+  account-holding participant), no self-dealing check. Save goes through
+  `UpdateHelpOfferTypesUsecase` → `PUT /app-help-offers/:id/types`;
+  success is `HelpOfferTypesUpdated` (`offer-updated-view`), and the
+  detail reloads on return so the new set and the `help_offer_updated`
+  timeline item show. A resolved case answers 422 (shown inline, form
+  kept); someone else's offer 404. A resolved case shows the fronts
+  read-only, no button.
+- Unknown wire values from a newer API are ignored by `HelpType.fromWire`,
+  never a crash.
+
 ## Data layer
 
 `POST /app-help-offers` on the app plane (MA10) with
-`{reportId, helpType, anonymous}`; 201 answers `helpOfferId`. Offers do
+`{reportId, helpTypes, anonymous}`; 201 answers `helpOfferId`. Offers do
 NOT ride the offline queue — they respond to a live case someone else
 owns, so a transport failure surfaces as `OFFLINE` and the user retries.
 A second offer on the same report is the API's 409 `DUPLICATE`,
@@ -60,7 +94,20 @@ show up.
 
 ## Tests
 
-+19 (mobile 79 total): usecase (self-dealing Left without repository
+HT2 (2026-09-19): mobile 428 total, all green — bloc (set accumulates,
+toggle removes one, submit posts the whole set, empty set no-op, edit
+mode opens with current set and PUTs to the same offer, empty edit
+no-op, 422 keeps selection), usecase (`UpdateHelpOfferTypesUsecase`
+refuses an empty set locally), repository (list body in decision 10's
+order, PUT body/answer, unknown front ignored, 404, OFFLINE), form page
+(two boxes stay checked and both go on the wire, unchecking the last
+disables submit, edit mode title/checked/Save/no notices, save → updated
+view → done seam, 422 inline), entity (`helpTypes` list, `myOffer`
+facet through `copyWithOffers`), detail page (" · " join, participant
+section + button hands over the offer, resolved read-only, owner has no
+section).
+
+Original A3 count: +19 (mobile 79 total): usecase (self-dealing Left without repository
 call, pass-through, failure surface), repository (wire body, 409, OFFLINE
 never-queued), bloc (blocked without usecase, blocked ignores submit,
 select→submit, no-selection no-op, failure keeps selection), form page
