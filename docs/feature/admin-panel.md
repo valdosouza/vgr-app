@@ -3,6 +3,19 @@
 ## OVERVIEW
 `apps/admin` — Flutter web app for platform administrators (decision 56). Same Clean Architecture as `apps/mobile`, reusing `packages/core`/`vgr_widgets`/`vgr_validators`. Every route requires `Role.admin` via the shared `IdentityBloc`.
 
+**Since PS1 (2026-09-21, decisions 215–218 — `AI/docs/plans/plano-painel-modelo-setes.md`) the panel has a persistent SHELL, the setes-app `apps/web` layout.** See "Shell" below; the STRUCTURE block that follows is the pre-shell one and is kept for history.
+
+## SHELL (decisions 215–218)
+
+- `HomeModule` (`modules/home/home_module.dart`) is mounted at `/` and draws the shell: `VgrScaffold` with app bar (`home.title`, `LanguageSelector(persist: true)`, `UserBadge` with **Sign out**) and a `VgrSidebarLayout` of two `VgrNavColumn`s — modules (200 px), screens of the selected module (240 px) — beside a `RouterOutlet`. Below 850 px (`VgrResponsive`) the columns become a `VgrDrawer`. Selection by click, never hover.
+- **Every panel screen is a child `ModuleRoute` of the shell route** (`children:` of `ChildRoute('/')`), rendered in the outlet. URLs stay at the root (`/reports/`, `/users/`… — decision 216), so `interface_routes.dart` and bookmarks did not change. Module roots end with `/`; plain child routes (`/welcome`, `/pending`, `/legal/rules`) do not — flutter_modular 5.0.3 only forgives a MISSING slash.
+- `/welcome` is the outlet content right after login (the shell navigates there when the path is `/`); `/pending` stays the placeholder. On a refresh at `/users/` the shell keeps the screen and `interfaceKeyForPath` highlights it in the columns (`MenuInterfaceSelected`).
+- `MenuBloc` (core) is a singleton of the shell and now carries the selection (`MenuModuleSelected`, `MenuInterfaceSelected`, `MenuLoaded.selectedModuleIndex/selectedInterfaceKey`). A menu load failure shows the error + retry in the first column; the outlet keeps working.
+- **Sign out** (`core/session/logout.dart`, `UserBadge`): clears the persisted token and "keep me signed in", the in-memory token, `SessionAccess` and the identity (`SessionCleared`), then navigates to `/login`. The badge shows the user from `GET /api/core/me` (`CurrentUser`, name or e-mail), and offers the exit even while that call is pending or failed.
+- **Pages inside the shell use `VgrPage`, never `VgrScaffold`** (an app bar inside the outlet would be a second one). Same parameters, so the 21 existing pages were a rename. `VgrScaffold` remains for login/2FA.
+- Registering a new screen = one entry in `interface_routes.dart` + one `ModuleRoute` in `home_module.dart` (+ the `tb_interface` row). `admin_module_wiring_test` then covers it automatically (see `docs/adr/TESTS.md`).
+- Next phases (PS2 factory, PS3 migration, PS4 docs) are in the plan; PS0 (API pagination, decision 220) runs alongside.
+
 ## STRUCTURE
 ```
 apps/admin/lib/

@@ -37,6 +37,9 @@ enum VgrIconName {
   starFilled,
   starOutline,
 
+  /// Ends the session (decision 215 — the shell's user badge).
+  logout,
+
   /// The panic-button trigger (decisions 62/65, PP2) — reachable from a
   /// menu at any time, deliberately distinct from `alert` (report feed
   /// items) so it reads as a different, more urgent action.
@@ -66,6 +69,7 @@ class VgrIcon extends StatelessWidget {
         VgrIconName.legal => Icons.gavel,
         VgrIconName.security => Icons.shield_outlined,
         VgrIconName.person => Icons.person_outline,
+        VgrIconName.logout => Icons.logout,
         VgrIconName.group => Icons.group_outlined,
         VgrIconName.settings => Icons.settings_outlined,
         VgrIconName.menu => Icons.menu,

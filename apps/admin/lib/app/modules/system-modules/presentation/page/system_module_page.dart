@@ -119,7 +119,7 @@ class SystemModulePage extends StatelessWidget {
         showVgrMessage(context, failureText((state as SystemModuleLoaded).actionError!));
       },
       builder: (context, state) {
-        return VgrScaffold(
+        return VgrPage(
           title: 'systemModules.title'.tr(),
           padded: false,
           floatingAction: !canInsert || state is! SystemModuleLoaded

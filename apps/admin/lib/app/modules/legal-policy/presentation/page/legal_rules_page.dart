@@ -76,7 +76,7 @@ class _LegalRulesPageState extends State<LegalRulesPage> {
     final canApprove = canDecide &&
         SessionAccess.instance.can('dual_control_approval', Privileges.update);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'legal.rules.title'.tr(),
       body: BlocBuilder<RulesBloc, RulesState>(
         builder: (context, state) => switch (state) {

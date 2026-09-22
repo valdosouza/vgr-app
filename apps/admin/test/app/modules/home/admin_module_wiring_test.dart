@@ -1,20 +1,11 @@
 import 'package:core/core.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vgr_admin/app/app_widget.dart';
-import 'package:vgr_admin/app/modules/category-forms/category_forms_module.dart';
-import 'package:vgr_admin/app/modules/category-forms/presentation/bloc/category_form_bloc.dart';
-import 'package:vgr_admin/app/modules/dual-control-access/dual_control_access_module.dart';
-import 'package:vgr_admin/app/modules/dual-control-access/presentation/bloc/dual_control_access_bloc.dart';
-import 'package:vgr_admin/app/modules/monetization-config/monetization_config_module.dart';
-import 'package:vgr_admin/app/modules/monetization-config/presentation/bloc/monetization_config_bloc.dart';
-import 'package:vgr_admin/app/modules/panic-responders/panic_responders_module.dart';
-import 'package:vgr_admin/app/modules/panic-responders/presentation/bloc/responder_approval_bloc.dart';
-import 'package:vgr_admin/app/modules/risk-config/presentation/bloc/risk_config_bloc.dart';
-import 'package:vgr_admin/app/modules/risk-config/risk_config_module.dart';
+import 'package:vgr_admin/app/modules/home/home_module.dart';
+import 'package:vgr_admin/app/modules/home/interface_routes.dart';
 
 import '../../../helpers/pump_localized.dart';
 import '../../../helpers/session_access.dart';
@@ -23,9 +14,10 @@ class MockApiClient extends Mock implements ApiClient {}
 
 class MockLocalPrefs extends Mock implements LocalPrefs {}
 
-/// Mounts the REAL admin modules under an already-admin session, with the
-/// API client stubbed to fail — the pages then render their error state,
-/// which is enough to prove the route wired a provider above the page.
+/// Mounts the REAL shell (`HomeModule`, decision 215) under an already-admin
+/// session, with the API client stubbed to fail — every screen then renders
+/// its error state, which is enough to prove the route mounts a page inside
+/// the outlet without throwing.
 class _TestModule extends Module {
   _TestModule(this.apiClient, this.localPrefs);
 
@@ -45,14 +37,7 @@ class _TestModule extends Module {
       ];
 
   @override
-  List<ModularRoute> get routes => [
-        ChildRoute('/', child: (_, __) => const SizedBox.shrink()),
-        ModuleRoute('/risk-config', module: RiskConfigModule()),
-        ModuleRoute('/category-forms', module: CategoryFormsModule()),
-        ModuleRoute('/panic-responders', module: PanicRespondersModule()),
-        ModuleRoute('/dual-control-access', module: DualControlAccessModule()),
-        ModuleRoute('/monetization-config', module: MonetizationConfigModule()),
-      ];
+  List<ModularRoute> get routes => [ModuleRoute('/', module: HomeModule())];
 }
 
 void main() {
@@ -72,50 +57,53 @@ void main() {
     Modular.destroy();
   });
 
-  /// Regression for the live finding of 2026-09-21: every phase-1 admin
-  /// screen threw "Could not find the correct Provider<XBloc>" on open,
-  /// because the route mounted the page bare while the page reads its bloc
-  /// from the tree. The page tests never caught it — they wrap a provider
-  /// themselves — so this one goes through the REAL module routes.
+  /// Regression class first found live on 2026-09-21: a screen reached
+  /// through real navigation threw "Could not find the correct
+  /// Provider<XBloc>" because its route mounted the page bare — page tests
+  /// wrap a provider themselves and never catch that. Since the shell
+  /// (decision 215) every screen is a child route of `/`, so this walks
+  /// EVERY entry of `interfaceRoutes` through the real `HomeModule`.
   Future<void> open(WidgetTester tester, String route) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await pumpLocalizedApp(
       tester,
       ModularApp(module: _TestModule(apiClient, localPrefs), child: const AppWidget()),
     );
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
     Modular.to.navigate(route);
-    // flutter_modular 5.0.3 debounces navigate() by ~500 ms on the widget
-    // test's fake clock (same as login_navigation_test).
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'route $route threw while building');
   }
 
-  testWidgets('/risk-config/ mounts its page under BlocProvider<RiskConfigBloc>', (tester) async {
-    await open(tester, '/risk-config/');
-    expect(find.byType(BlocProvider<RiskConfigBloc>), findsOneWidget);
+  for (final entry in interfaceRoutes.entries) {
+    testWidgets('${entry.value} (${entry.key}) mounts a page inside the shell outlet',
+        (tester) async {
+      await open(tester, entry.value);
+      expect(Modular.to.path, entry.value);
+      // Still inside the shell (the menu column is there) and the page
+      // renders its content header, never its own app bar.
+      expect(find.byKey(const Key('shell-modules-column')), findsOneWidget);
+      expect(find.byKey(const Key('vgr-page-title')), findsOneWidget);
+    });
+  }
+
+  testWidgets('$pendingRoute renders the placeholder inside the shell', (tester) async {
+    await open(tester, pendingRoute);
+    expect(find.byKey(const Key('vgr-page-title')), findsOneWidget);
   });
 
-  testWidgets('/category-forms/ mounts its page under BlocProvider<CategoryFormBloc>',
-      (tester) async {
-    await open(tester, '/category-forms/');
-    expect(find.byType(BlocProvider<CategoryFormBloc>), findsOneWidget);
-  });
-
-  testWidgets('/panic-responders/ mounts its page under BlocProvider<ResponderApprovalBloc>',
-      (tester) async {
-    await open(tester, '/panic-responders/');
-    expect(find.byType(BlocProvider<ResponderApprovalBloc>), findsOneWidget);
-  });
-
-  testWidgets('/dual-control-access/ mounts its page under BlocProvider<DualControlAccessBloc>',
-      (tester) async {
-    await open(tester, '/dual-control-access/');
-    expect(find.byType(BlocProvider<DualControlAccessBloc>), findsOneWidget);
-  });
-
-  testWidgets('/monetization-config/ mounts its page under BlocProvider<MonetizationConfigBloc>',
-      (tester) async {
-    await open(tester, '/monetization-config/');
-    expect(find.byType(BlocProvider<MonetizationConfigBloc>), findsOneWidget);
+  test('interfaceKeyForPath maps a screen URL back to its menu key, longest match first', () {
+    expect(interfaceKeyForPath('/users/'), 'users');
+    expect(interfaceKeyForPath('/users'), 'users');
+    expect(interfaceKeyForPath('/reports/7'), 'reports');
+    expect(interfaceKeyForPath('/legal/rules/'), 'legal_rules');
+    expect(interfaceKeyForPath('/'), isNull);
+    expect(interfaceKeyForPath('/welcome'), isNull);
+    expect(interfaceKeyForPath('/nowhere/'), isNull);
   });
 }

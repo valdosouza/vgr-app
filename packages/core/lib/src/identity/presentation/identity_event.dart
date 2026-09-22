@@ -21,3 +21,9 @@ class ProviderLoginCompleted extends IdentityEvent {
   @override
   List<Object?> get props => [role, anonymityMode, token];
 }
+
+/// Fired by logout (decision 215): back to the anonymous default, so every
+/// guard that reads the role sees "no session" immediately.
+class SessionCleared extends IdentityEvent {
+  const SessionCleared();
+}

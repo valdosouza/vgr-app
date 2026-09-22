@@ -21,7 +21,7 @@ class UserPrivilegesPage extends StatelessWidget {
     // checkboxes only respond with UPDATE (the API enforces both anyway).
     final canGrant = SessionAccess.instance.can('user_privileges', Privileges.update);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'users.privilegesOf'.tr(args: [user.name.isEmpty ? user.email : user.name]),
       padded: false,
       body: BlocConsumer<UserPrivilegesBloc, UserPrivilegesState>(

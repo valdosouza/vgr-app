@@ -90,7 +90,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'reports.list.title'.tr(),
       actions: [
         // The proactive queue (B3, 161) is a sibling route: literal

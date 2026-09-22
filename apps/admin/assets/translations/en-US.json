@@ -47,7 +47,11 @@
     "emptyMenu": "No screens available for your user — ask an Admin for access.",
     "pendingTitle": "Under construction",
     "pendingMessage": "This screen is cataloged but not built yet.",
-    "backToMenu": "Back to menu"
+    "backToMenu": "Back to menu",
+    "welcomeTitle": "Welcome",
+    "welcomeMessage": "Pick a module on the left, then a screen.",
+    "logout": "Sign out",
+    "account": "Account"
   },
   "menu": {
     "groups": {

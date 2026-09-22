@@ -113,7 +113,7 @@ class InterfacePage extends StatelessWidget {
         showVgrMessage(context, failureText((state as InterfaceLoaded).actionError!));
       },
       builder: (context, state) {
-        return VgrScaffold(
+        return VgrPage(
           title: 'interfacesScreen.title'.tr(),
           padded: false,
           floatingAction: !canInsert || state is! InterfaceLoaded

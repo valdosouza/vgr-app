@@ -16,7 +16,7 @@ class CategoryFormListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final canEdit = SessionAccess.instance.can('category_forms', Privileges.update);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'categoryForms.title'.tr(),
       padded: false,
       body: BlocBuilder<CategoryFormBloc, CategoryFormState>(

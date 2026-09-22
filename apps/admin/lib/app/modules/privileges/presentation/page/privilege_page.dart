@@ -48,7 +48,7 @@ class PrivilegePage extends StatelessWidget {
     final canUpdate = SessionAccess.instance.can('privileges', Privileges.update);
     final canDelete = SessionAccess.instance.can('privileges', Privileges.delete);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'privileges.title'.tr(),
       padded: false,
       floatingAction: !canInsert

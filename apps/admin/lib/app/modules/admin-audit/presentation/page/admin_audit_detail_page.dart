@@ -58,7 +58,7 @@ class _AdminAuditDetailPageState extends State<AdminAuditDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'adminAudit.detail.title'.tr(namedArgs: {'id': '${widget.entryId}'}),
       actions: [
         VgrTextButton(

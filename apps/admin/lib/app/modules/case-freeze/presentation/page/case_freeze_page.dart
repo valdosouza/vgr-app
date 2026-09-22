@@ -55,7 +55,7 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'caseFreeze.title'.tr(),
       body: BlocBuilder<CaseFreezeBloc, CaseFreezeState>(
         builder: (context, state) {

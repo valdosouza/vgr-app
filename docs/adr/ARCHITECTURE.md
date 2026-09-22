@@ -62,6 +62,7 @@ D:\ProjetoVGR\app/
 | vgr_widgets | Design system (`VgrButton`, `VgrCard`, `VgrFormShell`, ...) | `packages/vgr_widgets/` |
 | vgr_validators | Shared validators/masks (mirrors the API) | `packages/vgr_validators/` |
 | home | Navigation shell (menu + RouterOutlet) | `apps/mobile/lib/app/modules/home/` |
+| admin/home | The admin SHELL (decision 215): app bar + two menu columns + `RouterOutlet`; every panel screen is a child `ModuleRoute` of `/` (decision 216 — URLs stay at the root). Registering a screen = 1 entry in `interface_routes.dart` + 1 `ModuleRoute` in `home_module.dart` | `apps/admin/lib/app/modules/home/` |
 | features/* | One business domain per module (denúncia, ajuda, recompensa — to be defined by `scope-refinement`) | `apps/mobile/lib/app/modules/<feature>/` |
 | admin/* | Administrative modules (risk config, category forms, panic responder approval, dual-control decryption access, monetization config — decisions 45, 46, 47, 51-52, 39) | `apps/admin/lib/app/modules/<module>/` |
 

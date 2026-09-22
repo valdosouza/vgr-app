@@ -31,7 +31,7 @@ class _DualControlRequestPageState extends State<DualControlRequestPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'dualControl.title'.tr(),
       body: BlocBuilder<DualControlAccessBloc, DualControlAccessState>(
         builder: (context, state) {

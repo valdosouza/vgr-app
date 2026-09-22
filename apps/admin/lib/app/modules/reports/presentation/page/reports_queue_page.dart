@@ -44,7 +44,7 @@ class _ReportsQueuePageState extends State<ReportsQueuePage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'reports.queue.title'.tr(),
       body: BlocBuilder<ReportsQueueBloc, ReportsQueueState>(
         builder: (context, state) => switch (state) {

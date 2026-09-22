@@ -33,7 +33,7 @@ class _LegalJurisdictionsPageState extends State<LegalJurisdictionsPage> {
     final canConfirm = canUpdate &&
         SessionAccess.instance.can('dual_control_approval', Privileges.update);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'legal.jurisdictions.title'.tr(),
       body: BlocBuilder<JurisdictionsBloc, JurisdictionsState>(
         builder: (context, state) => switch (state) {

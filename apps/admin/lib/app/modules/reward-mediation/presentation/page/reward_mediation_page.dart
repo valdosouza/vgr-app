@@ -55,7 +55,7 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'rewardMediation.title'.tr(),
       body: BlocBuilder<RewardMediationBloc, RewardMediationState>(
         builder: (context, state) {

@@ -14,7 +14,7 @@ class MonetizationConfigListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'monetization.title'.tr(),
       padded: false,
       body: BlocBuilder<MonetizationConfigBloc, MonetizationConfigState>(

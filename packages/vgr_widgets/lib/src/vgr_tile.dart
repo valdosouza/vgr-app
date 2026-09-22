@@ -13,10 +13,14 @@ class VgrListTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.dense = false,
+    this.selected = false,
   });
 
   final String title;
   final String? subtitle;
+
+  /// Highlights the current item of a navigation column (decision 215).
+  final bool selected;
 
   /// For rows whose secondary line holds controls rather than text — the
   /// fee-rule row is the case that forced it. Takes precedence over
@@ -35,6 +39,7 @@ class VgrListTile extends StatelessWidget {
         trailing: trailing,
         onTap: onTap,
         dense: dense,
+        selected: selected,
       );
 }
 

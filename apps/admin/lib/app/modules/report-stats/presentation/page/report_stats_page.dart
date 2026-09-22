@@ -84,7 +84,7 @@ class _ReportStatsPageState extends State<ReportStatsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'reportStats.title'.tr(),
       body: BlocBuilder<ReportStatsBloc, ReportStatsState>(
         builder: (context, state) {

@@ -15,7 +15,7 @@ class ResponderApprovalQueuePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final canResolve = SessionAccess.instance.can('panic_responders', Privileges.update);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'panicResponders.title'.tr(),
       padded: false,
       body: BlocBuilder<ResponderApprovalBloc, ResponderApprovalState>(

@@ -13,7 +13,7 @@ class RiskConfigListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'riskConfig.title'.tr(),
       padded: false,
       body: BlocBuilder<RiskConfigBloc, RiskConfigState>(

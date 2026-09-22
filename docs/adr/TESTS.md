@@ -49,3 +49,16 @@ FORBIDDEN: Real network calls in unit/widget tests — real calls only in a cont
 ## TROUBLESHOOTING
 - **Flaky tests:** identify by running `flutter test --reporter expanded` multiple times; report here with the test name.
 - **Debug mode:** `flutter test --start-paused` (unit/widget) or `flutter test integration_test --verbose` (E2E).
+
+## Admin: every screen is reached through the real shell (2026-09-21)
+
+Page tests wrap their own `BlocProvider`, so they cannot catch a route
+that mounts a page without one (found live on 2026-09-21 on five screens).
+`apps/admin/test/app/modules/home/admin_module_wiring_test.dart` therefore
+mounts the REAL `HomeModule` (decision 215) and walks every entry of
+`interface_routes.dart`, asserting the page renders inside the outlet
+(`vgr-page-title` present, `shell-modules-column` still there, no
+exception). A new panel screen is covered automatically once it is in
+`interfaceRoutes`; a new screen that is NOT there is the bug this test is
+for. `home_page_test.dart` covers the shell itself (welcome, columns,
+selection, drawer below 850 px, sign out).

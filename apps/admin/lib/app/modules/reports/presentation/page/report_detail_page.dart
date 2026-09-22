@@ -88,7 +88,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'reports.detail.title'.tr(namedArgs: {'id': '${widget.reportId}'}),
       body: BlocBuilder<ReportDetailBloc, ReportDetailState>(
         builder: (context, state) => switch (state) {

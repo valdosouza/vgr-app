@@ -52,7 +52,21 @@ The catalog is where cross-cutting behavior stops being copy-pasted:
 
 Structural pieces that are not visual widgets are out of scope:
 `MaterialApp`, `Navigator`, `Theme`, `MediaQuery`, `LayoutBuilder`,
-`BlocBuilder`, `Key`, `TextEditingController`.
+`BlocBuilder`, `Key`, `TextEditingController`, and — since the admin
+shell (decision 218, 2026-09-21) — flutter_modular's `RouterOutlet` and
+the breakpoint helper `VgrResponsive` (which lives in `vgr_widgets` but
+draws nothing: it only picks one of the widgets it is handed).
+
+## Shell widgets (decision 215, 2026-09-21)
+
+The admin panel renders every screen inside a persistent shell, so the
+catalog gained the pieces the shell is made of: `VgrPage` (a screen
+INSIDE the shell — same parameters as `VgrScaffold`, but a content header
+instead of an `AppBar`; moving a screen into the shell is a rename),
+`VgrNavColumn` / `VgrSidebarLayout` (the two navigation columns beside
+the outlet), `VgrDrawer` (the mobile form), `VgrScaffold.drawer` /
+`.leading`, `VgrListTile.selected`, `VgrIconName.logout`. `VgrScaffold`
+stays for the screens OUTSIDE the shell (login, 2FA).
 
 ## Enforcement
 

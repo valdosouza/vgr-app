@@ -91,7 +91,7 @@ class UserPage extends StatelessWidget {
     // from editing user data.
     final canSeeGrants = SessionAccess.instance.can('user_privileges', Privileges.view);
 
-    return VgrScaffold(
+    return VgrPage(
       title: 'users.title'.tr(),
       padded: false,
       floatingAction: !canInsert

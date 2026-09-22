@@ -11,5 +11,6 @@ class IdentityBloc extends Bloc<IdentityEvent, IdentityState> {
     on<ProviderLoginCompleted>((event, emit) {
       emit(IdentityState(role: event.role, anonymityMode: event.anonymityMode, token: event.token));
     });
+    on<SessionCleared>((event, emit) => emit(const IdentityState()));
   }
 }

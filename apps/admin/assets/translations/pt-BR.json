@@ -47,7 +47,11 @@
     "emptyMenu": "Nenhuma tela disponível para o seu usuário — peça acesso a um Admin.",
     "pendingTitle": "Em construção",
     "pendingMessage": "Esta tela está catalogada, mas ainda não foi construída.",
-    "backToMenu": "Voltar ao menu"
+    "backToMenu": "Voltar ao menu",
+    "welcomeTitle": "Bem-vindo",
+    "welcomeMessage": "Escolha um módulo à esquerda e depois uma tela.",
+    "logout": "Sair",
+    "account": "Conta"
   },
   "menu": {
     "groups": {

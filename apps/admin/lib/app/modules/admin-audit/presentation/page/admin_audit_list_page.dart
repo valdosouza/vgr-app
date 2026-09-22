@@ -89,7 +89,7 @@ class _AdminAuditListPageState extends State<AdminAuditListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'adminAudit.title'.tr(),
       body: BlocBuilder<AdminAuditListBloc, AdminAuditListState>(
         builder: (context, state) {

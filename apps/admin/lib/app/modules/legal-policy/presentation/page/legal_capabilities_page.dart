@@ -33,7 +33,7 @@ class _LegalCapabilitiesPageState extends State<LegalCapabilitiesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return VgrScaffold(
+    return VgrPage(
       title: 'legal.capabilities.title'.tr(),
       body: VgrColumn(
         crossAxisAlignment: CrossAxisAlignment.start,

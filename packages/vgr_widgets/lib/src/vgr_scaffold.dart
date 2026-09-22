@@ -15,10 +15,19 @@ class VgrScaffold extends StatelessWidget {
     this.actions = const [],
     this.padded = true,
     this.floatingAction,
+    this.drawer,
+    this.leading,
   });
 
   final String title;
   final Widget body;
+
+  /// Side navigation for the shell's mobile form (decision 215) — a
+  /// [VgrDrawer]; the app bar gets the hamburger automatically.
+  final Widget? drawer;
+
+  /// Replaces the automatic leading widget (back arrow / hamburger).
+  final Widget? leading;
 
   /// App-bar actions — already-built Vgr widgets, never raw ones.
   final List<Widget> actions;
@@ -30,7 +39,8 @@ class VgrScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(title), actions: actions),
+        appBar: AppBar(title: Text(title), actions: actions, leading: leading),
+        drawer: drawer,
         // Bottom safe area: on Android the gesture/3-button bar otherwise
         // covers whatever sits at the foot of the screen (the chat
         // composer was unreachable). The app bar already handles the top.

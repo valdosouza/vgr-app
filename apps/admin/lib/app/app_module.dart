@@ -2,7 +2,6 @@ import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'modules/admin-audit/admin_audit_module.dart';
 import 'modules/auth/data/auth_repository_impl.dart';
 import 'modules/auth/presentation/bloc/login_bloc.dart';
 import 'modules/auth/presentation/bloc/login_event.dart';
@@ -13,21 +12,7 @@ import 'modules/auth/presentation/page/login_page.dart';
 import 'modules/auth/presentation/page/recovery_password_page.dart';
 import 'modules/auth/presentation/page/two_factor_recover_page.dart';
 import 'modules/auth/presentation/page/two_factor_setup_page.dart';
-import 'modules/case-freeze/case_freeze_module.dart';
-import 'modules/category-forms/category_forms_module.dart';
-import 'modules/dual-control-access/dual_control_access_module.dart';
 import 'modules/home/home_module.dart';
-import 'modules/interfaces/interfaces_module.dart';
-import 'modules/legal-policy/legal_policy_module.dart';
-import 'modules/monetization-config/monetization_config_module.dart';
-import 'modules/panic-responders/panic_responders_module.dart';
-import 'modules/privileges/privileges_module.dart';
-import 'modules/report-stats/report_stats_module.dart';
-import 'modules/reports/reports_module.dart';
-import 'modules/reward-mediation/reward_mediation_module.dart';
-import 'modules/risk-config/risk_config_module.dart';
-import 'modules/system-modules/system_modules_module.dart';
-import 'modules/users/users_module.dart';
 
 class AppModule extends Module {
   @override
@@ -115,27 +100,9 @@ class AppModule extends Module {
             },
           ),
         ),
+        // The shell (decision 215): every panel screen is a child route of
+        // `/`, rendered in its RouterOutlet — see HomeModule. URLs stay at
+        // the root (`/reports`, `/users`…, decision 216).
         ModuleRoute('/', module: HomeModule()),
-        // The report front's ONE panel screen (decisions 141/142).
-        ModuleRoute('/case-freeze', module: CaseFreezeModule()),
-        // Report search + case detail on the panel plane (B1, decisions 158-167).
-        ModuleRoute('/reports', module: ReportsModule()),
-        // Aggregated statistics, k = 5 floor (B4, decisions 164/165).
-        ModuleRoute('/report-stats', module: ReportStatsModule()),
-        // Admin audit trail, read only (B5, decisions 116/165/166).
-        ModuleRoute('/admin-audit', module: AdminAuditModule()),
-        ModuleRoute('/reward-mediation', module: RewardMediationModule()),
-        // Legal Gate admin screens (L3, decisions 103-109).
-        ModuleRoute('/legal', module: LegalPolicyModule()),
-        ModuleRoute('/risk-config', module: RiskConfigModule()),
-        ModuleRoute('/category-forms', module: CategoryFormsModule()),
-        ModuleRoute('/panic-responders', module: PanicRespondersModule()),
-        ModuleRoute('/dual-control-access', module: DualControlAccessModule()),
-        ModuleRoute('/monetization-config', module: MonetizationConfigModule()),
-        // Access-control screens (phase 4 — decisions 70-75).
-        ModuleRoute('/privileges', module: PrivilegesModule()),
-        ModuleRoute('/interfaces', module: InterfacesModule()),
-        ModuleRoute('/system-modules', module: SystemModulesModule()),
-        ModuleRoute('/users', module: UsersModule()),
       ];
 }
