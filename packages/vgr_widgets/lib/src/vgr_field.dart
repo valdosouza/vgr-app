@@ -21,6 +21,8 @@ class VgrTextField extends StatelessWidget {
     this.mask,
     this.maxLength,
     this.onSubmitted,
+    this.focusNode,
+    this.readOnly = false,
   });
 
   final TextEditingController controller;
@@ -42,9 +44,20 @@ class VgrTextField extends StatelessWidget {
   final int? maxLength;
   final ValueChanged<String>? onSubmitted;
 
+  /// Lets a form move the cursor: Enter jumps to the next field, and a
+  /// validation pendency lands on the field it is about (register forms).
+  final FocusNode? focusNode;
+
+  /// Shown and selectable but not editable — a record opened by someone
+  /// without the privilege to change it. Unlike [enabled] = false, the
+  /// value keeps its normal contrast.
+  final bool readOnly;
+
   @override
   Widget build(BuildContext context) => TextField(
         controller: controller,
+        focusNode: focusNode,
+        readOnly: readOnly,
         obscureText: obscure,
         enabled: enabled,
         autofocus: autofocus,

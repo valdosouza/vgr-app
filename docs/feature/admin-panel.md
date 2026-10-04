@@ -14,7 +14,14 @@
 - **Sign out** (`core/session/logout.dart`, `UserBadge`): clears the persisted token and "keep me signed in", the in-memory token, `SessionAccess` and the identity (`SessionCleared`), then navigates to `/login`. The badge shows the user from `GET /api/core/me` (`CurrentUser`, name or e-mail), and offers the exit even while that call is pending or failed.
 - **Pages inside the shell use `VgrPage`, never `VgrScaffold`** (an app bar inside the outlet would be a second one). Same parameters, so the 21 existing pages were a rename. `VgrScaffold` remains for login/2FA.
 - Registering a new screen = one entry in `interface_routes.dart` + one `ModuleRoute` in `home_module.dart` (+ the `tb_interface` row). `admin_module_wiring_test` then covers it automatically (see `docs/adr/TESTS.md`).
-- Next phases (PS2 factory, PS3 migration, PS4 docs) are in the plan; PS0 (API pagination, decision 220) runs alongside.
+- Next phases (PS3 migration, PS4 docs) are in the plan. PS0 (API pagination, decision 220) is done in the API.
+
+## REGISTER FACTORY (PS2, 2026-10-04 — decisions 217/220/221)
+
+- `app/shared/register/`: `RegisterScreen<T, D>` wires a whole CRUD screen — `RegisterSearchPage` (filter, rows, empty state, `VgrPagingBar`, "new" by INSERT) and `RegisterFormPage` (`VgrFormShell`; one pendency at a time; server `fields[]` anchored; delete by DELETE after `askDecision`; read-only without UPDATE), alternating by the state of a `RegisterBloc<T, D>` on ONE route. Architecture: `docs/adr/ARCHITECTURE.md` § ADMIN REGISTER FACTORY.
+- `app/shared/feedback/`: the bridge — `showSuccessFeedback`, `showFailureFeedback` (no status / 5xx → dialog; 4xx → transient message, translated by code), `showValidationFeedback`, `askDecision` (yes/no[/cancel]). Guarded by `feedback_bridge_guard_test.dart` (decision 221); `interfaces` and `system-modules` are the two screens still pending (PS3).
+- `app/shared/session/current_interface.dart`: the privileges of the screen being drawn, by `tb_interface.i18n_key`.
+- **Pilots**: `privileges` (paged list filtered by identifier; form validated as `privilegeSaveDto` — 2..60 chars, UPPER_SNAKE_CASE) and `users` (form out of the dialog; `userCreateDto`/`userUpdateDto` mirrors — initial password 12..72 required on create, empty keeps it on edit; `SELF_LOCKOUT` through the bridge; the privilege-matrix button per row by the `user_privileges` grant). The user update now echoes the saved `locale`: the API writes `locale` on every update and nulls an absent one, so editing a user's name used to wipe their language.
 
 ## STRUCTURE
 ```

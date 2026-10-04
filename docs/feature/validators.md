@@ -39,6 +39,9 @@ found by the TDD audit of 2026-08-22.
 | `VgrValidators.minLength(n)` | `z.string().min(n)` — `freezeReasonDto` (case-freeze, decision 141) | returns a validator; blank → `REQUIRED`, shorter → `TOO_SHORT {min}` |
 | `VgrValidators.isoDate` | `from`/`to` of `reports-admin.dto.ts` (B1) | `YYYY-MM-DD` shape AND calendar validity → `INVALID_FORMAT` |
 | `VgrValidators.noDirectContact` | `findContact` in `api/src/shared/chat/contact-filter.ts` (masked chat, decision 171) | `CONTACT_NOT_ALLOWED {kind, match}`; `findContact`/`ContactHit`/`ContactKind` exported; `test/contact_filter_test.dart` carries the API spec fixtures one by one; accents stripped by a Latin table (no NFD in Dart) |
+| `VgrValidators.upperSnakeCase` | `privilegeSaveDto.description` regex `^[A-Z][A-Z0-9_]*$` (PS2) | blank → `REQUIRED`, miss → `INVALID_FORMAT` (Zod's `invalid_string`) |
+| `VgrValidators.newPassword` | LENGTH rules of `newPasswordSchema` (`password-policy.ts`, decision 114) — PS2 | raw value, never trimmed: empty → `REQUIRED`, `< 12` → `TOO_SHORT {min}`, `> 72` → `TOO_LONG {max}`; the "too common" refine stays server-only (422 `INVALID_VALUE` on `password`, anchored by the form) |
+| `VgrValidators.optional(rule)` | Zod `.optional()` — e.g. `userUpdateDto.password` (PS2) | empty passes (absent field), anything typed answers to `rule` |
 | `VgrValidators.validate({field: (value, [rules])})` | — | first error per field, straight into a screen's `errorText` map |
 | `isValidCpf` / `isValidCnpj` / `isValidBrTaxId` | same functions in `br-tax-id.ts` | digits only |
 | `unmask(text)` | — | digits only — what goes on the wire (155) |

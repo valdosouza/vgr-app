@@ -574,9 +574,37 @@
     "confirmDeleteTitle": "Confirm deletion",
     "confirmDeleteMessage": "This action cannot be undone. Delete?"
   },
+  "register": {
+    "search": "Search",
+    "new": "New",
+    "empty": "No records yet.",
+    "emptyFiltered": "No records match the search.",
+    "retry": "Try again",
+    "back": "Back to the list",
+    "save": "Save",
+    "delete": "Delete",
+    "saved": "Record saved.",
+    "deleted": "Record deleted.",
+    "confirmDeleteTitle": "Confirm deletion",
+    "confirmDeleteMessage": "This action cannot be undone. Delete this record?",
+    "pageSummary": "Page {page} of {pages} · {total} records",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageSize": "Per page"
+  },
+  "feedback": {
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "technicalTitle": "Something went wrong",
+    "validationTitle": "Check this field"
+  },
   "privileges": {
     "title": "Privileges",
-    "description": "Identifier (UPPER_SNAKE_CASE)"
+    "description": "Identifier (UPPER_SNAKE_CASE)",
+    "newTitle": "New privilege",
+    "editTitle": "Privilege {}"
   },
   "interfacesScreen": {
     "title": "Interfaces",
@@ -602,7 +630,10 @@
     "passwordKeepHint": "Leave empty to keep the current password",
     "active": "Active",
     "privilegesOf": "Access privileges — {}",
-    "grantsSaved": "Privileges updated"
+    "grantsSaved": "Privileges updated",
+    "newTitle": "New user",
+    "editTitle": "User — {}",
+    "passwordPolicyHint": "12 to 72 characters"
   },
   "monetization": {
     "title": "Monetization Config",

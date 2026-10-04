@@ -63,10 +63,35 @@ D:\ProjetoVGR\app/
 | vgr_validators | Shared validators/masks (mirrors the API) | `packages/vgr_validators/` |
 | home | Navigation shell (menu + RouterOutlet) | `apps/mobile/lib/app/modules/home/` |
 | admin/home | The admin SHELL (decision 215): app bar + two menu columns + `RouterOutlet`; every panel screen is a child `ModuleRoute` of `/` (decision 216 — URLs stay at the root). Registering a screen = 1 entry in `interface_routes.dart` + 1 `ModuleRoute` in `home_module.dart` | `apps/admin/lib/app/modules/home/` |
+| admin/shared | Admin business code used by 2+ modules (PS2, decisions 217/220/221): `register/` — the CRUD factory (`RegisterBloc<T, D>`, `RegisterScreen`, `RegisterSearchPage`, `RegisterFormPage`, `RegisterField`, `RegisterRepository`); `feedback/` — the one feedback bridge; `session/` — `CurrentInterface` (privileges of the screen being drawn) | `apps/admin/lib/app/shared/` |
 | features/* | One business domain per module (denúncia, ajuda, recompensa — to be defined by `scope-refinement`) | `apps/mobile/lib/app/modules/<feature>/` |
 | admin/* | Administrative modules (risk config, category forms, panic responder approval, dual-control decryption access, monetization config — decisions 45, 46, 47, 51-52, 39) | `apps/admin/lib/app/modules/<module>/` |
 
 REQUIRED: **A module never imports another module.** Code used by 2+ modules is promoted to `app/shared/` (app-level business code) or to a `package` (infra/design system).
+
+## ADMIN REGISTER FACTORY (PS2 — decisions 217/220/221)
+A simple CRUD screen of the panel is `RegisterScreen<T, D>` plus its configuration
+(title, `CurrentInterface`, row builder, form fields, draft builder). The module keeps
+its entity, a draft class, a repository implementing `RegisterRepository<T, D>` (paged
+`list(PagedQuery)` + create/update/delete) and declares its bloc as an ALIAS —
+`typedef PrivilegeBloc = RegisterBloc<PrivilegeEntity, PrivilegeDraft>` — so the route's
+`BlocProvider` and the screen's lookup are the same type.
+
+- List ↔ form by STATE on one `ChildRoute('/')` (217): buildable `RegisterView`s
+  (`RegisterListLoading/Loaded/Error`, `RegisterFormState`) and one-shot
+  `RegisterSignal`s (`RegisterActionSuccess/Failure`), the bloc always re-emitting a view
+  after a signal. Exceptions keep their own routes: `reports` (`/:id`, `/queue`) and
+  `admin-audit` (`/:id`).
+- Paginated by default (220): `PagedResult<T>` / `PagedQuery` in `core`, the filter sent
+  only on Enter, a new filter or page size back to page 1.
+- Form: Tab order = declaration order, Enter advances / submits, ONE validation pendency
+  at a time (dialog + focus), server `fields[]` anchored on the field of the same name.
+- Privileges: "new" by INSERT, save by INSERT/UPDATE, delete by DELETE; without UPDATE a
+  row opens read-only. Delete always after `askDecision`.
+- Adapted from setes on purpose: `CurrentInterface` is passed by key, not a global written
+  by navigation (the shell's `MenuBloc` already owns the selection and a global goes stale
+  on refresh/deep link), and page titles stay their own translation keys instead of
+  travelling as route `arguments`.
 
 ## PATTERNS
 <code_patterns>

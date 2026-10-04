@@ -574,9 +574,37 @@
     "confirmDeleteTitle": "Confirmar exclusão",
     "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir?"
   },
+  "register": {
+    "search": "Pesquisar",
+    "new": "Novo",
+    "empty": "Nenhum registro ainda.",
+    "emptyFiltered": "Nenhum registro corresponde à pesquisa.",
+    "retry": "Tentar novamente",
+    "back": "Voltar à lista",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "saved": "Registro salvo.",
+    "deleted": "Registro excluído.",
+    "confirmDeleteTitle": "Confirmar exclusão",
+    "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir este registro?",
+    "pageSummary": "Página {page} de {pages} · {total} registros",
+    "previousPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "pageSize": "Por página"
+  },
+  "feedback": {
+    "ok": "OK",
+    "yes": "Sim",
+    "no": "Não",
+    "cancel": "Cancelar",
+    "technicalTitle": "Algo deu errado",
+    "validationTitle": "Verifique este campo"
+  },
   "privileges": {
     "title": "Privilégios",
-    "description": "Identificador (MAIUSCULA_COM_UNDERSCORE)"
+    "description": "Identificador (MAIUSCULA_COM_UNDERSCORE)",
+    "newTitle": "Novo privilégio",
+    "editTitle": "Privilégio {}"
   },
   "interfacesScreen": {
     "title": "Interfaces",
@@ -602,7 +630,10 @@
     "passwordKeepHint": "Deixe vazio para manter a senha atual",
     "active": "Ativo",
     "privilegesOf": "Privilégios de acesso — {}",
-    "grantsSaved": "Privilégios atualizados"
+    "grantsSaved": "Privilégios atualizados",
+    "newTitle": "Novo usuário",
+    "editTitle": "Usuário — {}",
+    "passwordPolicyHint": "De 12 a 72 caracteres"
   },
   "monetization": {
     "title": "Configuração de Monetização",

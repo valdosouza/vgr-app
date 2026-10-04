@@ -15,3 +15,15 @@ class PrivilegeEntity extends Equatable {
   @override
   List<Object?> get props => [id, description];
 }
+
+/// What the privilege form saves (`privilegeSaveDto`).
+class PrivilegeDraft extends Equatable {
+  const PrivilegeDraft(this.description);
+
+  final String description;
+
+  Map<String, dynamic> toJson() => {'description': description};
+
+  @override
+  List<Object?> get props => [description];
+}

@@ -154,4 +154,48 @@ void main() {
       expect(VgrValidators.isoDate(''), const VgrFieldError(VgrFieldCode.required));
     });
   });
+
+  group('VgrValidators.upperSnakeCase — mirrors privilegeSaveDto.description regex', () {
+    test('an UPPER_SNAKE_CASE identifier passes', () {
+      for (final value in ['VIEW', 'PRINT', 'EXPORT_CSV', 'A1_B2']) {
+        expect(VgrValidators.upperSnakeCase(value), isNull, reason: value);
+      }
+    });
+
+    test('anything else → INVALID_FORMAT, the way Zod reports a regex miss', () {
+      for (final value in ['view', 'View', '1VIEW', '_VIEW', 'VIEW-ALL', 'VIEW ALL', ' VIEW']) {
+        expect(VgrValidators.upperSnakeCase(value), const VgrFieldError(VgrFieldCode.invalidFormat),
+            reason: value);
+      }
+    });
+
+    test('blank is REQUIRED', () {
+      expect(VgrValidators.upperSnakeCase(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.newPassword — mirrors newPasswordSchema min(12).max(72) (decision 114)', () {
+    test('12 to 72 characters pass, counted untrimmed', () {
+      expect(VgrValidators.newPassword('a' * 11 + ' '), isNull);
+      expect(VgrValidators.newPassword('x' * 72), isNull);
+    });
+
+    test('short → TOO_SHORT {min: 12}, long → TOO_LONG {max: 72}', () {
+      expect(VgrValidators.newPassword('short'), const VgrFieldError(VgrFieldCode.tooShort, {'min': '12'}));
+      expect(VgrValidators.newPassword('x' * 73), const VgrFieldError(VgrFieldCode.tooLong, {'max': '72'}));
+    });
+
+    test('empty is REQUIRED', () {
+      expect(VgrValidators.newPassword(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.optional — mirrors .optional() (an empty value is an absent field)', () {
+    test('empty passes; anything typed answers to the wrapped rule', () {
+      final rule = VgrValidators.optional(VgrValidators.newPassword);
+      expect(rule(''), isNull);
+      expect(rule('short'), const VgrFieldError(VgrFieldCode.tooShort, {'min': '12'}));
+      expect(rule('long enough password'), isNull);
+    });
+  });
 }

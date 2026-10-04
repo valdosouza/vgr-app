@@ -62,3 +62,16 @@ exception). A new panel screen is covered automatically once it is in
 `interfaceRoutes`; a new screen that is NOT there is the bug this test is
 for. `home_page_test.dart` covers the shell itself (welcome, columns,
 selection, drawer below 850 px, sign out).
+
+## Admin: feedback only through the bridge (decision 221, 2026-10-04)
+
+`apps/admin/test/feedback_bridge_guard_test.dart` scans `apps/admin/lib`
+for `showVgr*`, `showDialog` and `ScaffoldMessenger` outside
+`lib/app/shared/feedback/` — the same mechanics as the design-system
+guard. Screens call `showSuccessFeedback` / `showFailureFeedback` /
+`showValidationFeedback` / `askDecision`; the bridge picks the severity
+from the `Failure` (no status or 5xx → dialog; 4xx → transient message).
+Screens not migrated yet sit in the guard's `pendingMigration` set, which
+only shrinks: a second test fails when a listed file no longer offends.
+PS3 empties it.
+

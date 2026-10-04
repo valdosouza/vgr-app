@@ -1,99 +1,51 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/register/register_field.dart';
+import '../../../../shared/register/register_screen.dart';
+import '../../../../shared/register/register_search_page.dart';
+import '../../../../shared/session/current_interface.dart';
 import '../../domain/entity/privilege_entity.dart';
-import '../bloc/privilege_bloc.dart';
 
+/// Privilege catalog on the register factory (PS2 pilot — decisions
+/// 217/220/221): paged list filtered by identifier, form with the
+/// identifier field validated as the API validates it.
 class PrivilegePage extends StatelessWidget {
   const PrivilegePage({super.key});
 
-  Future<void> _openForm(BuildContext context, {PrivilegeEntity? current}) async {
-    final bloc = context.read<PrivilegeBloc>();
-    final description = await showVgrTextPrompt(
-      context,
-      title: 'privileges.title'.tr(),
-      label: 'privileges.description'.tr(),
-      confirmLabel: 'crud.save'.tr(),
-      cancelLabel: 'crud.cancel'.tr(),
-      initialValue: current?.description ?? '',
-      fieldKey: const Key('privilege-description-field'),
-      confirmKey: const Key('privilege-save-button'),
-    );
-
-    if (description != null) {
-      bloc.add(PrivilegeSaved(id: current?.id, description: description));
-    }
-  }
-
-  Future<void> _confirmDelete(BuildContext context, PrivilegeEntity item) async {
-    final bloc = context.read<PrivilegeBloc>();
-    final confirmed = await showVgrConfirm(
-      context,
-      title: 'crud.confirmDeleteTitle'.tr(),
-      message: 'crud.confirmDeleteMessage'.tr(),
-      confirmLabel: 'crud.delete'.tr(),
-      cancelLabel: 'crud.cancel'.tr(),
-      destructive: true,
-      confirmKey: const Key('privilege-confirm-delete-button'),
-    );
-    if (confirmed) bloc.add(PrivilegeDeleted(item.id));
-  }
+  static const screen = CurrentInterface('privileges');
 
   @override
   Widget build(BuildContext context) {
-    final canInsert = SessionAccess.instance.can('privileges', Privileges.insert);
-    final canUpdate = SessionAccess.instance.can('privileges', Privileges.update);
-    final canDelete = SessionAccess.instance.can('privileges', Privileges.delete);
-
-    return VgrPage(
+    return RegisterScreen<PrivilegeEntity, PrivilegeDraft>(
       title: 'privileges.title'.tr(),
-      padded: false,
-      floatingAction: !canInsert
-          ? null
-          : VgrFloatingAddButton(
-              key: const Key('privilege-new-button'),
-              onPressed: () => _openForm(context),
-              tooltip: 'crud.new'.tr(),
-            ),
-      body: BlocConsumer<PrivilegeBloc, PrivilegeState>(
-        listenWhen: (_, next) => next is PrivilegeLoaded && next.actionError != null,
-        listener: (context, state) {
-          // Translated by catalog code (decisions 80/83).
-          showVgrMessage(context, failureText((state as PrivilegeLoaded).actionError!));
-        },
-        builder: (context, state) {
-          return switch (state) {
-            PrivilegeLoading() => const VgrLoading(),
-            PrivilegeError(:final message) => VgrCenter(child: VgrText.error(message)),
-            PrivilegeLoaded(:final items) => VgrListView(
-                children: [
-                  for (final item in items)
-                    VgrListTile(
-                      key: Key('privilege-${item.id}'),
-                      title: trCatalog(
-                        prefix: 'menu.privileges',
-                        key: item.description,
-                        fallback: item.description,
-                      ),
-                      subtitle: item.description,
-                      onTap: !canUpdate ? null : () => _openForm(context, current: item),
-                      trailing: !canDelete
-                          ? null
-                          : VgrIconButton(
-                              key: Key('privilege-delete-${item.id}'),
-                              icon: VgrIconName.delete,
-                              tooltip: 'crud.delete'.tr(),
-                              onPressed: () => _confirmDelete(context, item),
-                            ),
-                    ),
-                ],
-              ),
-          };
-        },
+      screen: screen,
+      rowId: (item) => item.id,
+      rowBuilder: (context, item) => RegisterRow(
+        title: trCatalog(prefix: 'menu.privileges', key: item.description, fallback: item.description),
+        subtitle: item.description,
+        leadingIcon: VgrIconName.security,
       ),
+      formTitle: (current) => current == null
+          ? 'privileges.newTitle'.tr()
+          : 'privileges.editTitle'.tr(args: [current.description]),
+      fields: (current) => [
+        RegisterTextField(
+          name: 'description',
+          label: 'privileges.description'.tr(),
+          initialValue: current?.description ?? '',
+          // privilegeSaveDto.description: min(2).max(60) + UPPER_SNAKE_CASE.
+          validators: [
+            VgrValidators.minLength(2),
+            VgrValidators.maxLength(60),
+            VgrValidators.upperSnakeCase,
+          ],
+        ),
+      ],
+      draftOf: (_, values) => PrivilegeDraft(values.text('description').trim()),
     );
   }
 }

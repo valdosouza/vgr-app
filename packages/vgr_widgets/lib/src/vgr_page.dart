@@ -18,10 +18,14 @@ class VgrPage extends StatelessWidget {
     this.actions = const [],
     this.padded = true,
     this.floatingAction,
+    this.leading,
   });
 
   final String title;
   final Widget body;
+
+  /// Before the title — the back button of a form (`VgrFormShell`).
+  final Widget? leading;
 
   /// Header actions — already-built Vgr widgets, never raw ones.
   final List<Widget> actions;
@@ -39,6 +43,7 @@ class VgrPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
               child: Row(
                 children: [
+                  if (leading != null) leading!,
                   Expanded(child: VgrText.headline(title, key: const Key('vgr-page-title'))),
                   ...actions,
                 ],
