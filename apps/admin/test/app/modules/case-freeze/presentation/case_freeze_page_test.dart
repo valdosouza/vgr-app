@@ -126,7 +126,9 @@ void main() {
     await tester.tap(find.byKey(const Key('approve-unfreeze-button')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('case-action-error')), findsOneWidget);
+    // Through the feedback bridge (221), translated by code; the case stays.
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('The request violates a business rule.'), findsOneWidget);
     expect(find.byKey(const Key('approve-unfreeze-button')), findsOneWidget);
   });
 

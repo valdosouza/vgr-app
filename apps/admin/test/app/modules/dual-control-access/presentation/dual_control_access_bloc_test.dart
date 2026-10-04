@@ -95,9 +95,16 @@ void main() {
     bloc.add(const RequestSubmitted(accountabilityLogEntryId: 99, legalBasis: 'Court order #123'));
     await bloc.stream.firstWhere((s) => s is DualControlProgress);
 
+    // Signalled for the feedback bridge, then BACK to the progress the
+    // request was in — a refused approval no longer drops it (221).
     expectLater(
       bloc.stream,
-      emits(const DualControlError('This approver has already approved this request')),
+      emitsInOrder([
+        const DualControlActionFailed(
+          Failure(message: 'This approver has already approved this request', statusCode: 409),
+        ),
+        isA<DualControlProgress>(),
+      ]),
     );
 
     bloc.add(const ApprovalSubmitted(approverId: 'admin-a'));

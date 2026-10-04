@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entity/dual_control_access_request_entity.dart';
@@ -33,11 +34,14 @@ class DualControlActionSuccess extends DualControlAccessState {
   List<Object?> get props => [entity];
 }
 
-class DualControlError extends DualControlAccessState {
-  const DualControlError(this.message);
+/// One-shot (decision 221): the request or the approval was refused — the
+/// page hands it to the feedback bridge, and the bloc returns to the state
+/// it was in (a refused approval no longer drops the request in progress).
+class DualControlActionFailed extends DualControlAccessState {
+  const DualControlActionFailed(this.failure);
 
-  final String message;
+  final Failure failure;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [failure];
 }

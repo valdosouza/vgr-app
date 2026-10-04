@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/case_freeze_state_entity.dart';
 import '../bloc/case_freeze_bloc.dart';
 import '../bloc/case_freeze_event.dart';
@@ -57,7 +58,11 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
   Widget build(BuildContext context) {
     return VgrPage(
       title: 'caseFreeze.title'.tr(),
-      body: BlocBuilder<CaseFreezeBloc, CaseFreezeState>(
+      body: BlocConsumer<CaseFreezeBloc, CaseFreezeState>(
+        // A refused action reaches the user through the feedback bridge
+        // (decision 221); the case stays on screen as the bloc keeps it.
+        listenWhen: (_, state) => state is CaseFreezeLoaded && state.failure != null,
+        listener: (context, state) => showFailureFeedback(context, (state as CaseFreezeLoaded).failure!),
         builder: (context, state) {
           return VgrScrollView(
             child: VgrColumn(
@@ -138,11 +143,6 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
         ),
       ),
       const VgrGap.md(),
-      if (state.failure != null) ...[
-        VgrText.error(failureText(state.failure!),
-            key: const Key('case-action-error')),
-        const VgrGap.md(),
-      ],
       if (!entity.frozen)
         ..._freezeAction(state, canUpdate: canUpdate)
       else if (entity.pendingUnfreeze == null)

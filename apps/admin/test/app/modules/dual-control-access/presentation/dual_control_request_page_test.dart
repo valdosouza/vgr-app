@@ -93,4 +93,37 @@ void main() {
       expect(find.text('This approver has already approved this request'), findsOneWidget);
     },
   );
+
+  testWidgets('a refused approval goes through the bridge and keeps the request in progress (221)',
+      (tester) async {
+    when(() => repository.create(99, 'Court order #123')).thenAnswer((_) async => const Right('1'));
+    when(() => repository.addApproval('1', 'admin-a')).thenAnswer(
+      (_) async => const Left(Failure(message: 'Already approved', statusCode: 409, code: 'DUPLICATE')),
+    );
+    await pumpPage(tester);
+
+    await tester.enterText(find.byKey(const Key('accountability-log-entry-id-field')), '99');
+    await tester.enterText(find.byKey(const Key('legal-basis-field')), 'Court order #123');
+    await tester.tap(find.byKey(const Key('start-request-button')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('approver-id-field')), 'admin-a');
+    await tester.tap(find.byKey(const Key('add-approval-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This value already exists.'), findsOneWidget);
+    // Still the approval step — it used to fall back to the request form.
+    expect(find.byKey(const Key('add-approval-button')), findsOneWidget);
+    expect(find.byKey(const Key('start-request-button')), findsNothing);
+  });
+
+  testWidgets('starting without a legal basis is a pendency, never a silent no-op', (tester) async {
+    await pumpPage(tester);
+
+    await tester.enterText(find.byKey(const Key('accountability-log-entry-id-field')), '99');
+    await tester.tap(find.byKey(const Key('start-request-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    verifyNever(() => repository.create(any(), any()));
+  });
 }

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/dual_control_access_request_entity.dart';
 import '../bloc/dual_control_access_bloc.dart';
 import '../bloc/dual_control_access_event.dart';
@@ -33,24 +34,20 @@ class _DualControlRequestPageState extends State<DualControlRequestPage> {
   Widget build(BuildContext context) {
     return VgrPage(
       title: 'dualControl.title'.tr(),
-      body: BlocBuilder<DualControlAccessBloc, DualControlAccessState>(
+      body: BlocConsumer<DualControlAccessBloc, DualControlAccessState>(
+        // Refusals go through the feedback bridge (decision 221); the screen
+        // stays on the step it was on.
+        listenWhen: (_, state) => state is DualControlActionFailed,
+        listener: (context, state) => showFailureFeedback(context, (state as DualControlActionFailed).failure),
+        buildWhen: (_, state) => state is! DualControlActionFailed,
         builder: (context, state) {
           return switch (state) {
             DualControlInitial() => _RequestForm(
                 accountabilityLogEntryIdController: _accountabilityLogEntryIdController,
                 legalBasisController: _legalBasisController,
               ),
-            DualControlError(:final message) => VgrColumn(
-                children: [
-                  VgrText.error(message),
-                  _RequestForm(
-                    accountabilityLogEntryIdController: _accountabilityLogEntryIdController,
-                    legalBasisController: _legalBasisController,
-                    approverIdController: _approverIdController,
-                    showApprovalSection: true,
-                  ),
-                ],
-              ),
+            // One-shot — never reaches the builder (buildWhen).
+            DualControlActionFailed() => const VgrLoading(),
             DualControlProgress(:final entity) => _ApprovalProgress(
                 entity: entity,
                 approverIdController: _approverIdController,
@@ -73,14 +70,10 @@ class _RequestForm extends StatelessWidget {
   const _RequestForm({
     required this.accountabilityLogEntryIdController,
     required this.legalBasisController,
-    this.approverIdController,
-    this.showApprovalSection = false,
   });
 
   final TextEditingController accountabilityLogEntryIdController;
   final TextEditingController legalBasisController;
-  final TextEditingController? approverIdController;
-  final bool showApprovalSection;
 
   @override
   Widget build(BuildContext context) {
@@ -104,12 +97,22 @@ class _RequestForm extends StatelessWidget {
           onPressed: !SessionAccess.instance.can('dual_control_access', Privileges.insert)
               ? null
               : () {
-                  final id = int.tryParse(accountabilityLogEntryIdController.text);
-                  if (id == null || legalBasisController.text.isEmpty) return;
+                  // Both are mandatory; a missing one used to be dropped in
+                  // silence — now it is the form's one pendency.
+                  final id = int.tryParse(accountabilityLogEntryIdController.text.trim());
+                  final missing = id == null
+                      ? 'dualControl.logEntryId'.tr()
+                      : legalBasisController.text.trim().isEmpty
+                          ? 'dualControl.legalBasisField'.tr()
+                          : null;
+                  if (missing != null) {
+                    showValidationFeedback(context, '$missing: ${'core.fieldErrors.REQUIRED'.tr()}');
+                    return;
+                  }
                   context.read<DualControlAccessBloc>().add(
                         RequestSubmitted(
-                          accountabilityLogEntryId: id,
-                          legalBasis: legalBasisController.text,
+                          accountabilityLogEntryId: id!,
+                          legalBasis: legalBasisController.text.trim(),
                         ),
                       );
                 },
@@ -147,10 +150,16 @@ class _ApprovalProgress extends StatelessWidget {
           onPressed: !canApprove
               ? null
               : () {
-                  if (approverIdController.text.isEmpty) return;
+                  if (approverIdController.text.trim().isEmpty) {
+                    showValidationFeedback(
+                      context,
+                      '${'dualControl.approverId'.tr()}: ${'core.fieldErrors.REQUIRED'.tr()}',
+                    );
+                    return;
+                  }
                   context
                       .read<DualControlAccessBloc>()
-                      .add(ApprovalSubmitted(approverId: approverIdController.text));
+                      .add(ApprovalSubmitted(approverId: approverIdController.text.trim()));
                 },
         ),
       ],

@@ -18,9 +18,13 @@ class DualControlAccessBloc extends Bloc<DualControlAccessEvent, DualControlAcce
     RequestSubmitted event,
     Emitter<DualControlAccessState> emit,
   ) async {
+    final before = state;
     final result = await _repository.create(event.accountabilityLogEntryId, event.legalBasis);
     result.fold(
-      (failure) => emit(DualControlError(failure.message)),
+      (failure) {
+        emit(DualControlActionFailed(failure));
+        emit(before);
+      },
       (id) {
         _requestId = id;
         emit(DualControlProgress(
@@ -39,9 +43,13 @@ class DualControlAccessBloc extends Bloc<DualControlAccessEvent, DualControlAcce
     final requestId = _requestId;
     if (requestId == null) return;
 
+    final before = state;
     final result = await _repository.addApproval(requestId, event.approverId);
     result.fold(
-      (failure) => emit(DualControlError(failure.message)),
+      (failure) {
+        emit(DualControlActionFailed(failure));
+        emit(before);
+      },
       (entity) => emit(entity.isGrantable ? DualControlActionSuccess(entity) : DualControlProgress(entity)),
     );
   }

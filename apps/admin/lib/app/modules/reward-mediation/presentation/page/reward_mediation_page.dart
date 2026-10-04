@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/reward_mediation_state_entity.dart';
 import '../bloc/reward_mediation_bloc.dart';
 import '../bloc/reward_mediation_event.dart';
@@ -57,7 +58,28 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
   Widget build(BuildContext context) {
     return VgrPage(
       title: 'rewardMediation.title'.tr(),
-      body: BlocBuilder<RewardMediationBloc, RewardMediationState>(
+      body: BlocConsumer<RewardMediationBloc, RewardMediationState>(
+        // Outcomes reach the user through the feedback bridge (decision
+        // 221): a refused action keeps the case on screen, a published
+        // criteria version is confirmed once.
+        listenWhen: (previous, state) => switch (state) {
+          MediationLoaded(:final failure) => failure != null,
+          MediationInitial(:final criteriaFailure, :final criteriaPublished) => criteriaFailure != null ||
+              (criteriaPublished && !(previous is MediationInitial && previous.criteriaPublished)),
+          _ => false,
+        },
+        listener: (context, state) {
+          switch (state) {
+            case MediationLoaded(:final failure?):
+              showFailureFeedback(context, failure);
+            case MediationInitial(:final criteriaFailure?):
+              showFailureFeedback(context, criteriaFailure);
+            case MediationInitial(criteriaPublished: true):
+              showSuccessFeedback(context, 'rewardMediation.criteriaPublished'.tr());
+            default:
+              break;
+          }
+        },
         builder: (context, state) {
           return VgrScrollView(
             child: VgrColumn(
@@ -127,12 +149,6 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
         label: 'rewardMediation.criteriaBody'.tr(),
       ),
       const VgrGap.sm(),
-      if (state.criteriaFailure != null)
-        VgrText.error(failureText(state.criteriaFailure!),
-            key: const Key('criteria-error')),
-      if (state.criteriaPublished)
-        VgrText('rewardMediation.criteriaPublished'.tr(),
-            key: const Key('criteria-published')),
       VgrPrimaryButton(
         key: const Key('criteria-publish-button'),
         label: 'rewardMediation.publish'.tr(),
@@ -142,7 +158,17 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
             : () {
                 final version = _criteriaVersionController.text.trim();
                 final body = _criteriaBodyController.text.trim();
-                if (version.isEmpty || body.isEmpty) return;
+                // Both are mandatory; a missing one used to be dropped in
+                // silence — now it is the form's one pendency.
+                final missing = version.isEmpty
+                    ? 'rewardMediation.criteriaVersionLabel'.tr()
+                    : body.isEmpty
+                        ? 'rewardMediation.criteriaBody'.tr()
+                        : null;
+                if (missing != null) {
+                  showValidationFeedback(context, '$missing: ${'core.fieldErrors.REQUIRED'.tr()}');
+                  return;
+                }
                 context
                     .read<RewardMediationBloc>()
                     .add(CriteriaPublishSubmitted(version, body));
@@ -176,11 +202,6 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
         ),
       ),
       const VgrGap.md(),
-      if (state.failure != null) ...[
-        VgrText.error(failureText(state.failure!),
-            key: const Key('mediation-action-error')),
-        const VgrGap.md(),
-      ],
       if (entity.offerStatus != 'reserved')
         VgrText('rewardMediation.notReserved'.tr(),
             key: const Key('mediation-not-reserved'))
