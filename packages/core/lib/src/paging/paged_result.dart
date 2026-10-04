@@ -37,7 +37,7 @@ class PagedResult<T> extends Equatable {
   ) =>
       PagedResult(
         items: (json['items'] as List<dynamic>? ?? const [])
-            .map((item) => itemFromJson(item as Map<String, dynamic>))
+            .map((item) => itemFromJson((item as Map).cast<String, dynamic>()))
             .toList(),
         page: (json['page'] as num).toInt(),
         pageSize: (json['pageSize'] as num).toInt(),

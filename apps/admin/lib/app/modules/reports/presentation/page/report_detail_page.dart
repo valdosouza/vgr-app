@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/chat_evidence_entities.dart';
 import '../../domain/entity/report_entities.dart';
 import '../bloc/report_detail_bloc.dart';
@@ -90,7 +91,12 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
   Widget build(BuildContext context) {
     return VgrPage(
       title: 'reports.detail.title'.tr(namedArgs: {'id': '${widget.reportId}'}),
-      body: BlocBuilder<ReportDetailBloc, ReportDetailState>(
+      body: BlocConsumer<ReportDetailBloc, ReportDetailState>(
+        // A refused action (freeze, moderation) reaches the user through
+        // the feedback bridge (decision 221); the case stays on screen.
+        // The chat section's own load error stays in the section.
+        listenWhen: (_, state) => state is ReportDetailLoaded && state.failure != null,
+        listener: (context, state) => showFailureFeedback(context, (state as ReportDetailLoaded).failure!),
         builder: (context, state) => switch (state) {
           ReportDetailInitial() || ReportDetailLoading() => const VgrLoading(),
           ReportDetailError(:final failure) => VgrText.error(failureText(failure),
@@ -123,7 +129,6 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                     ..._chatSection(state),
                   ],
                   const VgrGap.lg(),
-                  ..._actionError(state),
                   ..._moderationSection(state),
                   const VgrGap.lg(),
                   ..._freezeSection(state),
@@ -457,15 +462,6 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         .tr(namedArgs: {'role': _chatRole(p.role), 'name': '$name$account'});
     return '$line$marker';
   }
-
-  /// The last action's refusal (freeze or moderation), rendered ONCE by
-  /// catalog code (80/83); the case itself stays on screen.
-  List<Widget> _actionError(ReportDetailLoaded state) => [
-        if (state.failure != null) ...[
-          VgrText.error(failureText(state.failure!), key: const Key('report-action-error')),
-          const VgrGap.sm(),
-        ],
-      ];
 
   /// Moderation (B2, decisions 162/163/167): the case is either visible
   /// (→ Hide) or hidden with its reason, note, date and author (→ Unhide).

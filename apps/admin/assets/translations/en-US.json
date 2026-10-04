@@ -167,10 +167,6 @@
       "status": "Status",
       "reason": "Reason",
       "legalBasis": "Legal basis",
-      "propose": "Propose",
-      "historyTitle": "Version history",
-      "filter": "Filter",
-      "empty": "No rules under the current filter.",
       "window": "Effective: {from} until {until}",
       "approve": "Approve (activates)",
       "reject": "Reject"
@@ -291,10 +287,7 @@
       "reviewed": "Reviewed",
       "reviewedMark": "REVIEWED",
       "queueLink": "Moderation queue",
-      "anonymousMark": "Anonymous",
-      "pageOf": "Page {page} of {pages}",
-      "prev": "Previous",
-      "next": "Next"
+      "anonymousMark": "Anonymous"
     },
     "queue": {
       "title": "Moderation queue",
@@ -493,9 +486,6 @@
     "unknownActor": "Unknown user",
     "noSummary": "No summary recorded.",
     "empty": "No audit entries match the filters.",
-    "prev": "Previous",
-    "next": "Next",
-    "pageOf": "Page {page} of {pages}",
     "detail": {
       "title": "Audit entry #{id}",
       "back": "Back",
@@ -569,14 +559,6 @@
       "INVALID_OPTION": "Invalid option.",
       "INVALID_VALUE": "Invalid value."
     }
-  },
-  "crud": {
-    "new": "New",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "confirmDeleteTitle": "Confirm deletion",
-    "confirmDeleteMessage": "This action cannot be undone. Delete?"
   },
   "register": {
     "search": "Search",

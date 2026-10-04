@@ -167,10 +167,6 @@
       "status": "Status",
       "reason": "Motivo",
       "legalBasis": "Base legal",
-      "propose": "Propor",
-      "historyTitle": "Histórico de versões",
-      "filter": "Filtrar",
-      "empty": "Nenhuma regra no filtro atual.",
       "window": "Vigência: {from} até {until}",
       "approve": "Aprovar (ativa)",
       "reject": "Rejeitar"
@@ -291,10 +287,7 @@
       "reviewed": "Revisada",
       "reviewedMark": "REVISADA",
       "queueLink": "Fila de moderação",
-      "anonymousMark": "Anônimo",
-      "pageOf": "Página {page} de {pages}",
-      "prev": "Anterior",
-      "next": "Próxima"
+      "anonymousMark": "Anônimo"
     },
     "queue": {
       "title": "Fila de moderação",
@@ -493,9 +486,6 @@
     "unknownActor": "Usuário desconhecido",
     "noSummary": "Nenhum resumo registrado.",
     "empty": "Nenhum registro de auditoria corresponde aos filtros.",
-    "prev": "Anterior",
-    "next": "Próxima",
-    "pageOf": "Página {page} de {pages}",
     "detail": {
       "title": "Registro de auditoria #{id}",
       "back": "Voltar",
@@ -569,14 +559,6 @@
       "INVALID_OPTION": "Opção inválida.",
       "INVALID_VALUE": "Valor inválido."
     }
-  },
-  "crud": {
-    "new": "Novo",
-    "save": "Salvar",
-    "cancel": "Cancelar",
-    "delete": "Excluir",
-    "confirmDeleteTitle": "Confirmar exclusão",
-    "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir?"
   },
   "register": {
     "search": "Pesquisar",

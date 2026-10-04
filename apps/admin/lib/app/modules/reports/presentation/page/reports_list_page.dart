@@ -319,29 +319,24 @@ class _ReportsListPageState extends State<ReportsListPage> {
     );
   }
 
+  /// The panel's one pager (decision 220 — it replaced the prev/next pair
+  /// this screen used to hand-roll). The page size stays the screen's.
   Widget _pagination(ReportPageEntity page) {
     final bloc = context.read<ReportsListBloc>();
-    return VgrRow(
-      children: [
-        VgrSecondaryButton(
-          key: const Key('reports-prev'),
-          label: 'reports.list.prev'.tr(),
-          onPressed: page.page <= 1 ? null : () => bloc.add(ReportsPageRequested(page.page - 1)),
-        ),
-        const VgrGap.hMd(),
-        VgrText('reports.list.pageOf'
-            .tr(namedArgs: {'page': '${page.page}', 'pages': '${page.pageCount}'})),
-        const VgrGap.hMd(),
-        VgrSecondaryButton(
-          key: const Key('reports-next'),
-          label: 'reports.list.next'.tr(),
-          onPressed: page.page >= page.pageCount
-              ? null
-              : () => bloc.add(ReportsPageRequested(page.page + 1)),
-        ),
-      ],
+    return VgrPagingBar(
+      page: page.page,
+      pageCount: page.pageCount,
+      summary: 'register.pageSummary'.tr(namedArgs: {
+        'page': '${page.page}',
+        'pages': '${page.pageCount}',
+        'total': '${page.total}',
+      }),
+      previousTooltip: 'register.previousPage'.tr(),
+      nextTooltip: 'register.nextPage'.tr(),
+      onPageChanged: (number) => bloc.add(ReportsPageRequested(number)),
     );
   }
+
 
   String _when(String iso) =>
       iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;

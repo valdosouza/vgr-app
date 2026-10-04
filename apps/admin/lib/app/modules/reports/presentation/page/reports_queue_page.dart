@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/report_entities.dart';
 import '../bloc/reports_queue_bloc.dart';
 import '../bloc/reports_queue_event.dart';
@@ -46,7 +47,10 @@ class _ReportsQueuePageState extends State<ReportsQueuePage> {
   Widget build(BuildContext context) {
     return VgrPage(
       title: 'reports.queue.title'.tr(),
-      body: BlocBuilder<ReportsQueueBloc, ReportsQueueState>(
+      body: BlocConsumer<ReportsQueueBloc, ReportsQueueState>(
+        // A refused "mark reviewed" goes through the feedback bridge (221).
+        listenWhen: (_, state) => state is ReportsQueueLoaded && state.failure != null,
+        listener: (context, state) => showFailureFeedback(context, (state as ReportsQueueLoaded).failure!),
         builder: (context, state) => switch (state) {
           ReportsQueueInitial() || ReportsQueueLoading() => const VgrLoading(),
           ReportsQueueError(:final failure) =>
@@ -58,11 +62,6 @@ class _ReportsQueuePageState extends State<ReportsQueuePage> {
                   VgrText.title('reports.queue.header'.plural(state.page.total)),
                   VgrText.caption('reports.queue.hint'.tr()),
                   const VgrGap.md(),
-                  if (state.failure != null) ...[
-                    VgrText.error(failureText(state.failure!),
-                        key: const Key('queue-action-error')),
-                    const VgrGap.sm(),
-                  ],
                   ..._results(state),
                 ],
               ),
@@ -131,28 +130,22 @@ class _ReportsQueuePageState extends State<ReportsQueuePage> {
       ? 'reports.queue.hours'.tr(namedArgs: {'n': '$hours'})
       : 'reports.queue.days'.tr(namedArgs: {'n': '${hours ~/ 24}'});
 
+  /// The panel's one pager (decision 220 — it replaced the prev/next pair
+  /// this screen used to hand-roll). The page size stays the screen's.
   Widget _pagination(QueuePageEntity page) {
     final bloc = context.read<ReportsQueueBloc>();
-    return VgrRow(
-      children: [
-        VgrSecondaryButton(
-          key: const Key('queue-prev'),
-          label: 'reports.list.prev'.tr(),
-          onPressed:
-              page.page <= 1 ? null : () => bloc.add(ReportsQueuePageRequested(page.page - 1)),
-        ),
-        const VgrGap.hMd(),
-        VgrText('reports.list.pageOf'
-            .tr(namedArgs: {'page': '${page.page}', 'pages': '${page.pageCount}'})),
-        const VgrGap.hMd(),
-        VgrSecondaryButton(
-          key: const Key('queue-next'),
-          label: 'reports.list.next'.tr(),
-          onPressed: page.page >= page.pageCount
-              ? null
-              : () => bloc.add(ReportsQueuePageRequested(page.page + 1)),
-        ),
-      ],
+    return VgrPagingBar(
+      page: page.page,
+      pageCount: page.pageCount,
+      summary: 'register.pageSummary'.tr(namedArgs: {
+        'page': '${page.page}',
+        'pages': '${page.pageCount}',
+        'total': '${page.total}',
+      }),
+      previousTooltip: 'register.previousPage'.tr(),
+      nextTooltip: 'register.nextPage'.tr(),
+      onPageChanged: (number) => bloc.add(ReportsQueuePageRequested(number)),
     );
   }
+
 }

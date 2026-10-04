@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
@@ -137,34 +138,9 @@ class AuditEntryEntity extends AuditListItemEntity {
   List<Object?> get props => [...super.props, ip];
 }
 
-/// `{ items, page, pageSize, total }`.
-class AuditPageEntity extends Equatable {
-  const AuditPageEntity({
-    required this.items,
-    required this.page,
-    required this.pageSize,
-    required this.total,
-  });
-
-  final List<AuditListItemEntity> items;
-  final int page;
-  final int pageSize;
-  final int total;
-
-  int get pageCount => total == 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
-
-  factory AuditPageEntity.fromJson(Map<String, dynamic> json) => AuditPageEntity(
-        items: (json['items'] as List)
-            .map((e) => AuditListItemEntity.fromJson((e as Map).cast<String, dynamic>()))
-            .toList(),
-        page: (json['page'] as num).toInt(),
-        pageSize: (json['pageSize'] as num).toInt(),
-        total: (json['total'] as num).toInt(),
-      );
-
-  @override
-  List<Object?> get props => [items, page, pageSize, total];
-}
+/// One page of the audit trail — the shared `PagedResult` (PS3,
+/// decision 220: one paging type for every panel list).
+typedef AuditPageEntity = PagedResult<AuditListItemEntity>;
 
 /// `GET /api/admin-audit/facets` — the DISTINCT actions and entities
 /// present in the table, for the screen's dropdowns.

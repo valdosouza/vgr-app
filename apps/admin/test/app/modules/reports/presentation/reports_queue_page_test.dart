@@ -147,7 +147,7 @@ void main() {
     await tester.tap(find.byKey(const Key('queue-review-7')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('queue-action-error')), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget); // through the feedback bridge (221)
     expect(find.text('This value already exists.'), findsOneWidget);
     expect(find.byKey(const Key('queue-row-7')), findsOneWidget);
   });
@@ -160,14 +160,14 @@ void main() {
         Right(QueuePageEntity(items: [item(8)], page: 2, pageSize: 20, total: 45)));
     await pumpPage(tester);
 
-    expect(find.text('Page 1 of 3'), findsOneWidget);
-    expect(tester.widget<VgrSecondaryButton>(find.byKey(const Key('queue-prev'))).onPressed,
+    expect(find.textContaining('Page 1 of 3 ·'), findsOneWidget);
+    expect(tester.widget<VgrIconButton>(find.byKey(VgrPagingBar.previousKey)).onPressed,
         isNull);
 
-    await tester.tap(find.byKey(const Key('queue-next')));
+    await tester.tap(find.byKey(VgrPagingBar.nextKey));
     await tester.pumpAndSettle();
 
-    expect(find.text('Page 2 of 3'), findsOneWidget);
+    expect(find.textContaining('Page 2 of 3 ·'), findsOneWidget);
     expect(find.byKey(const Key('queue-row-8')), findsOneWidget);
     verify(() => repository.queue(2, 20)).called(1);
   });
