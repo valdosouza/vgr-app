@@ -66,7 +66,7 @@ void main() {
 
     expectLater(
       bloc.stream,
-      emits(isA<MonetizationConfigLoaded>().having(
+      emitsThrough(isA<MonetizationConfigLoaded>().having(
         (s) => s.rules,
         'rules',
         contains(const FeeRuleEntity(
@@ -94,7 +94,12 @@ void main() {
     bloc.add(const FetchRequested());
     await bloc.stream.firstWhere((s) => s is MonetizationConfigLoaded);
 
-    expectLater(bloc.stream, emits(isA<MonetizationConfigError>()));
+    // The API's own refusal shape (422 BUSINESS_RULE) for the bridge;
+    // the rules stay on screen.
+    expectLater(
+      bloc.stream,
+      emitsInOrder([isA<MonetizationConfigActionFailed>(), isA<MonetizationConfigLoaded>()]),
+    );
 
     bloc.add(const RuleEdited(
       category: 'trafficking',

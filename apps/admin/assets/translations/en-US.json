@@ -99,7 +99,11 @@
   "panicResponders": {
     "title": "Panic Responders",
     "noPending": "No pending requests",
-    "user": "User #{}"
+    "user": "User #{}",
+    "approve": "Approve",
+    "deny": "Deny",
+    "approved": "Request approved.",
+    "denied": "Request denied."
   },
   "legal": {
     "blockedTitle": "Unavailable in this jurisdiction",
@@ -163,10 +167,6 @@
       "status": "Status",
       "reason": "Reason",
       "legalBasis": "Legal basis",
-      "propose": "Propose",
-      "historyTitle": "Version history",
-      "filter": "Filter",
-      "empty": "No rules under the current filter.",
       "window": "Effective: {from} until {until}",
       "approve": "Approve (activates)",
       "reject": "Reject"
@@ -250,15 +250,21 @@
   },
   "dualControl": {
     "title": "Dual Control Access",
-    "granted": "Granted",
-    "legalBasis": "Legal basis: {}",
-    "approvers": "Approvers: {}",
-    "logEntryId": "AccountabilityLogEntry id",
-    "legalBasisField": "Legal basis",
-    "startRequest": "Start Request",
-    "approverId": "Approver id",
+    "rowTitle": "Request #{id} · log entry #{entry}",
+    "status": {
+      "pending": "Awaiting approval",
+      "granted": "Granted",
+      "void": "Voided — approved before the fix (never valid)"
+    },
+    "requestedBy": "Requested by {name} on {when}",
+    "approvedBy": "Approved by {name} on {when}",
     "approve": "Approve",
-    "approvals": "{} of 2 approvals"
+    "ownRequest": "You opened this request — another person must approve it.",
+    "requestTitle": "New request",
+    "logEntryId": "Accountability log entry id",
+    "legalBasis": "Legal basis",
+    "legalBasisHint": "Court order, official letter or the documented emergency",
+    "approvedFeedback": "Request approved — access granted."
   },
   "reports": {
     "list": {
@@ -287,10 +293,7 @@
       "reviewed": "Reviewed",
       "reviewedMark": "REVIEWED",
       "queueLink": "Moderation queue",
-      "anonymousMark": "Anonymous",
-      "pageOf": "Page {page} of {pages}",
-      "prev": "Previous",
-      "next": "Next"
+      "anonymousMark": "Anonymous"
     },
     "queue": {
       "title": "Moderation queue",
@@ -489,9 +492,6 @@
     "unknownActor": "Unknown user",
     "noSummary": "No summary recorded.",
     "empty": "No audit entries match the filters.",
-    "prev": "Previous",
-    "next": "Next",
-    "pageOf": "Page {page} of {pages}",
     "detail": {
       "title": "Audit entry #{id}",
       "back": "Back",
@@ -566,17 +566,37 @@
       "INVALID_VALUE": "Invalid value."
     }
   },
-  "crud": {
+  "register": {
+    "search": "Search",
     "new": "New",
+    "empty": "No records yet.",
+    "emptyFiltered": "No records match the search.",
+    "retry": "Try again",
+    "back": "Back to the list",
     "save": "Save",
-    "cancel": "Cancel",
     "delete": "Delete",
+    "saved": "Record saved.",
+    "deleted": "Record deleted.",
     "confirmDeleteTitle": "Confirm deletion",
-    "confirmDeleteMessage": "This action cannot be undone. Delete?"
+    "confirmDeleteMessage": "This action cannot be undone. Delete this record?",
+    "pageSummary": "Page {page} of {pages} · {total} records",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageSize": "Per page"
+  },
+  "feedback": {
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "technicalTitle": "Something went wrong",
+    "validationTitle": "Check this field"
   },
   "privileges": {
     "title": "Privileges",
-    "description": "Identifier (UPPER_SNAKE_CASE)"
+    "description": "Identifier (UPPER_SNAKE_CASE)",
+    "newTitle": "New privilege",
+    "editTitle": "Privilege {}"
   },
   "interfacesScreen": {
     "title": "Interfaces",
@@ -584,7 +604,9 @@
     "i18nKey": "Stable key (lower_snake_case)",
     "groupDefault": "Default group",
     "position": "Position",
-    "privileges": "Screen privileges"
+    "privileges": "Screen privileges",
+    "newTitle": "New screen",
+    "editTitle": "Screen {}"
   },
   "systemModules": {
     "title": "System Modules",
@@ -592,7 +614,10 @@
     "i18nKey": "Translation key (optional)",
     "imageIcon": "Icon (optional)",
     "position": "Position",
-    "interfaces": "Screens in this module (menu order)"
+    "interfaces": "Screens in this module (menu order)",
+    "newTitle": "New module",
+    "editTitle": "Module {}",
+    "screenCount": "{} screens"
   },
   "users": {
     "title": "Users",
@@ -602,13 +627,17 @@
     "passwordKeepHint": "Leave empty to keep the current password",
     "active": "Active",
     "privilegesOf": "Access privileges — {}",
-    "grantsSaved": "Privileges updated"
+    "grantsSaved": "Privileges updated",
+    "newTitle": "New user",
+    "editTitle": "User — {}",
+    "passwordPolicyHint": "12 to 72 characters"
   },
   "monetization": {
     "title": "Monetization Config",
     "globalDefault": "Global default",
     "feePercent": "Fee %",
     "allowPeerToPeer": "Allow peer-to-peer",
-    "save": "Save"
+    "save": "Save",
+    "feePercentRange": "Between 0 and 100."
   }
 }

@@ -67,4 +67,23 @@ void main() {
     verify(() => repository.list()).called(1); // only the initial fetch — no reload
     expect(find.text('trafficking'), findsOneWidget);
   });
+
+  testWidgets('a refused tier change goes through the feedback bridge and the rows stay (221)',
+      (tester) async {
+    when(() => repository.list()).thenAnswer((_) async => const Right([
+          RiskTierConfigEntity(category: 'trafficking', tier: RiskTier.high),
+        ]));
+    when(() => repository.upsert('trafficking', RiskTier.low)).thenAnswer(
+      (_) async => const Left(Failure(message: 'Forbidden', statusCode: 403, code: 'FORBIDDEN')),
+    );
+
+    await pumpPage(tester);
+    await tester.tap(find.byKey(const Key('risk-tier-dropdown-trafficking')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('low').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('trafficking'), findsOneWidget);
+  });
 }

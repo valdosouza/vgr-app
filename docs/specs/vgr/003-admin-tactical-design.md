@@ -56,6 +56,19 @@ class DualControlAccessRequestEntity extends Equatable {
   const DualControlAccessRequestEntity({required this.legalBasis, required this.approverIds});
 }
 ```
+> **Amended 2026-10-04 (round 18 — DC2, decisions 223–227)**: the typed
+> `approverIds` let one admin grant alone. Replaced by
+> `DualControlRequestEntity` (status pending | granted | void, requester and
+> approver ids + NAMES, both from the session) and the draft
+> `DualControlRequestDraft { accountabilityLogEntryId, legalBasis }`; the
+> client no longer computes grantability — ONE approval by a user other
+> than the requester grants, and the server says so (224). The page is
+> `DualControlAccessPage` on the register factory (list + request form +
+> approve on the row, disabled on your own request); no usecase layer
+> (panel rule, ARCHITECTURE.md); repository `list(PagedQuery)`,
+> `request(draft)`, `approve(id)`; the events above are factory states
+> (`RegisterActionSuccess` / `RegisterActionFailure` + reload). See
+> `docs/feature/dual-control-access.md`.
 ```dart
 class FeeRuleEntity extends Equatable {
   final String? category; final double feePercent; final Set<PaymentMode> paymentModeAllowed;
@@ -105,7 +118,7 @@ class ConfigureRiskTierUsecase {
 | RiskConfigRepository | list, upsert | `Either<Failure,List<RiskTierConfigEntity>>`, `Either<Failure,void>` |
 | CategoryFormRepository | list, upsert | `Either<Failure,List<CategoryFormSchemaEntity>>`, `Either<Failure,void>` |
 | ResponderApprovalRepository | listPending, resolve | `Either<Failure,List<ResponderApprovalEntity>>`, `Either<Failure,void>` |
-| DualControlAccessRepository | create, addApproval, findPending | `Either<Failure,String>`, `Either<Failure,DualControlAccessRequestEntity>`, `Either<Failure,List<DualControlAccessRequestEntity>>` |
+| DualControlAccessRepository | create, addApproval, findPending — **amended 2026-10-04 (223–227)**: `list(PagedQuery)`, `request(draft)`, `approve(id)` | `Either<Failure,String>`, `Either<Failure,DualControlAccessRequestEntity>`, `Either<Failure,List<DualControlAccessRequestEntity>>` — amended: `PagedResult<DualControlRequestEntity>`, `DualControlRequestEntity` |
 | FeeRuleRepository | list, upsert | `Either<Failure,List<FeeRuleEntity>>`, `Either<Failure,void>` |
 
 ```dart

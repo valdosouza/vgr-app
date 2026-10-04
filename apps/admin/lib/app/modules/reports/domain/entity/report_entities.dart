@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:equatable/equatable.dart';
 
 /// Search filters of `GET /api/reports` (B1 contract). Every field is
@@ -178,63 +179,13 @@ class QueueItemEntity extends Equatable {
   List<Object?> get props => [item, priority, hasMedia, ageHours];
 }
 
-/// `GET /api/reports/queue` → `{ items, page, pageSize, total }`.
-class QueuePageEntity extends Equatable {
-  const QueuePageEntity({
-    required this.items,
-    required this.page,
-    required this.pageSize,
-    required this.total,
-  });
+/// One page of the proactive queue — the shared `PagedResult` (PS3,
+/// decision 220: one paging type for every panel list).
+typedef QueuePageEntity = PagedResult<QueueItemEntity>;
 
-  final List<QueueItemEntity> items;
-  final int page;
-  final int pageSize;
-  final int total;
-
-  int get pageCount => total == 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
-
-  factory QueuePageEntity.fromJson(Map<String, dynamic> json) => QueuePageEntity(
-        items: (json['items'] as List)
-            .map((e) => QueueItemEntity.fromJson((e as Map).cast<String, dynamic>()))
-            .toList(),
-        page: (json['page'] as num).toInt(),
-        pageSize: (json['pageSize'] as num).toInt(),
-        total: (json['total'] as num).toInt(),
-      );
-
-  @override
-  List<Object?> get props => [items, page, pageSize, total];
-}
-
-/// `{ items, page, pageSize, total }`.
-class ReportPageEntity extends Equatable {
-  const ReportPageEntity({
-    required this.items,
-    required this.page,
-    required this.pageSize,
-    required this.total,
-  });
-
-  final List<ReportListItemEntity> items;
-  final int page;
-  final int pageSize;
-  final int total;
-
-  int get pageCount => total == 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
-
-  factory ReportPageEntity.fromJson(Map<String, dynamic> json) => ReportPageEntity(
-        items: (json['items'] as List)
-            .map((e) => ReportListItemEntity.fromJson((e as Map).cast<String, dynamic>()))
-            .toList(),
-        page: (json['page'] as num).toInt(),
-        pageSize: (json['pageSize'] as num).toInt(),
-        total: (json['total'] as num).toInt(),
-      );
-
-  @override
-  List<Object?> get props => [items, page, pageSize, total];
-}
+/// One page of the report search — the shared `PagedResult` (PS3,
+/// decision 220: one paging type for every panel list).
+typedef ReportPageEntity = PagedResult<ReportListItemEntity>;
 
 /// An IDENTIFIED actor as the panel may see it (decision 160): opaque
 /// account id + display name, never e-mail. Anonymous actors are `null`

@@ -9,11 +9,12 @@ import 'presentation/page/privilege_page.dart';
 class PrivilegesModule extends Module {
   @override
   List<ModularRoute> get routes => [
+        // ONE route: list and form alternate by the bloc's state (217).
         ChildRoute(
           '/',
-          child: (_, __) => BlocProvider(
+          child: (_, __) => BlocProvider<PrivilegeBloc>(
             create: (_) => PrivilegeBloc(PrivilegeRepositoryImpl(Modular.get<ApiClient>()))
-              ..add(const PrivilegeFetchRequested()),
+              ..add(const RegisterListRequested()),
             child: const PrivilegePage(),
           ),
           guards: [AdminSessionGuard(Modular.get<IdentityBloc>())],

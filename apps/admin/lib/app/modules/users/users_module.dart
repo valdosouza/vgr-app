@@ -12,11 +12,12 @@ import 'presentation/page/user_privileges_page.dart';
 class UsersModule extends Module {
   @override
   List<ModularRoute> get routes => [
+        // ONE route for list and form — they alternate by state (217).
         ChildRoute(
           '/',
-          child: (_, __) => BlocProvider(
+          child: (_, __) => BlocProvider<UserBloc>(
             create: (_) => UserBloc(UserRepositoryImpl(Modular.get<ApiClient>()))
-              ..add(const UserFetchRequested()),
+              ..add(const RegisterListRequested()),
             child: const UserPage(),
           ),
           guards: [AdminSessionGuard(Modular.get<IdentityBloc>())],

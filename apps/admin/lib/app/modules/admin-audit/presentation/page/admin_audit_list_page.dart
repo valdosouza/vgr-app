@@ -245,30 +245,24 @@ class _AdminAuditListPageState extends State<AdminAuditListPage> {
     );
   }
 
+  /// The panel's one pager (decision 220 — it replaced the prev/next pair
+  /// this screen used to hand-roll). The page size stays the screen's.
   Widget _pagination(AuditPageEntity page) {
     final bloc = context.read<AdminAuditListBloc>();
-    return VgrRow(
-      children: [
-        VgrSecondaryButton(
-          key: const Key('audit-prev'),
-          label: 'adminAudit.prev'.tr(),
-          onPressed:
-              page.page <= 1 ? null : () => bloc.add(AdminAuditPageRequested(page.page - 1)),
-        ),
-        const VgrGap.hMd(),
-        VgrText('adminAudit.pageOf'
-            .tr(namedArgs: {'page': '${page.page}', 'pages': '${page.pageCount}'})),
-        const VgrGap.hMd(),
-        VgrSecondaryButton(
-          key: const Key('audit-next'),
-          label: 'adminAudit.next'.tr(),
-          onPressed: page.page >= page.pageCount
-              ? null
-              : () => bloc.add(AdminAuditPageRequested(page.page + 1)),
-        ),
-      ],
+    return VgrPagingBar(
+      page: page.page,
+      pageCount: page.pageCount,
+      summary: 'register.pageSummary'.tr(namedArgs: {
+        'page': '${page.page}',
+        'pages': '${page.pageCount}',
+        'total': '${page.total}',
+      }),
+      previousTooltip: 'register.previousPage'.tr(),
+      nextTooltip: 'register.nextPage'.tr(),
+      onPageChanged: (number) => bloc.add(AdminAuditPageRequested(number)),
     );
   }
+
 
   String _actor(AuditListItemEntity item) => 'adminAudit.actor'.tr(namedArgs: {
         'name': item.actorName ?? 'adminAudit.unknownActor'.tr(),

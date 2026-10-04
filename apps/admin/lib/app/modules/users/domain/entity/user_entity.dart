@@ -32,6 +32,28 @@ class UserEntity extends Equatable {
   List<Object?> get props => [id, name, email, active, locale, lastLoginAt];
 }
 
+/// What the user form saves (`userCreateDto` / `userUpdateDto`). A null
+/// [password] on update keeps the current one (decision 75 flow); on
+/// create the form never lets it be null.
+class UserDraft extends Equatable {
+  const UserDraft({
+    required this.name,
+    required this.email,
+    required this.active,
+    this.password,
+  });
+
+  final String name;
+  final String email;
+
+  /// 'S' / 'N' — the column's own values.
+  final String active;
+  final String? password;
+
+  @override
+  List<Object?> get props => [name, email, active, password];
+}
+
 /// One privilege cell of the user's matrix.
 class UserPrivilegeCell extends Equatable {
   const UserPrivilegeCell({

@@ -1,27 +1,13 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 
+import '../../../../shared/register/register_repository.dart';
 import '../entity/user_entity.dart';
 
-abstract class UserRepository {
-  Future<Either<Failure, List<UserEntity>>> list();
-  Future<Either<Failure, UserEntity>> create({
-    required String name,
-    required String email,
-    required String active,
-    required String password,
-  });
-
-  /// Null/absent password keeps the current one (decision 75 flow).
-  Future<Either<Failure, UserEntity>> update({
-    required int id,
-    required String name,
-    required String email,
-    required String active,
-    String? password,
-  });
-  Future<Either<Failure, Unit>> delete(int id);
-
+/// Team users as the register factory consumes them (PS2): paged list
+/// filtered on name / email (PS0, decision 220) + writes, plus the
+/// privilege matrix of the kind-'R' `user_privileges` resource (93).
+abstract interface class UserRepository implements RegisterRepository<UserEntity, UserDraft> {
   Future<Either<Failure, List<UserInterfaceGrants>>> privilegeMatrix(int userId);
 
   /// Grants the listed privileges on one screen and revokes the rest

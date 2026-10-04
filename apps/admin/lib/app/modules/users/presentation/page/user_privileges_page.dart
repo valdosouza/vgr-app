@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../../domain/entity/user_entity.dart';
 import '../bloc/user_privileges_bloc.dart';
 
@@ -29,12 +30,12 @@ class UserPrivilegesPage extends StatelessWidget {
             next is UserPrivilegesLoaded && (next.actionError != null || next.saved),
         listener: (context, state) {
           final loaded = state as UserPrivilegesLoaded;
-          showVgrMessage(
-            context,
-            loaded.actionError != null
-                ? failureText(loaded.actionError!)
-                : 'users.grantsSaved'.tr(),
-          );
+          final failure = loaded.actionError;
+          // Through the bridge (decision 221): a SELF_LOCKOUT 409 is a
+          // message, a 5xx a dialog — decided there, not here.
+          failure != null
+              ? showFailureFeedback(context, failure)
+              : showSuccessFeedback(context, 'users.grantsSaved'.tr());
         },
         builder: (context, state) {
           return switch (state) {

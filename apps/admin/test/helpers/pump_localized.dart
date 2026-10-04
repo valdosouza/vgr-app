@@ -23,7 +23,10 @@ class _FileAssetLoader extends AssetLoader {
 /// Wraps [home] with EasyLocalization + MaterialApp loading the real en-US
 /// catalog, so widget tests assert the same English strings users see
 /// (instead of raw i18n keys).
-Future<void> pumpLocalized(WidgetTester tester, Widget home) async {
+///
+/// [settle] false stops after the catalog is in, for a screen that never
+/// settles (a spinner animates forever).
+Future<void> pumpLocalized(WidgetTester tester, Widget home, {bool settle = true}) async {
   SharedPreferences.setMockInitialValues({});
   await EasyLocalization.ensureInitialized();
   await tester.pumpWidget(
@@ -43,7 +46,12 @@ Future<void> pumpLocalized(WidgetTester tester, Widget home) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
 
 /// Same, for ModularApp-based tests where the widget builds its own

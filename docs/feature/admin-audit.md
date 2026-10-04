@@ -52,8 +52,9 @@ modules/admin-audit/
 - Rows (`VgrListTile`, `audit-row-{id}`): `when · actorName (#actorId) · action label`;
   subtitle `entity#entityId · summary preview`. Eye icon on `read` rows, pencil otherwise.
   Tap → `Modular.to.pushNamed('/admin-audit/$id')`.
-- Prev/next with "Page X of Y" (`pageCount`, page size 50 = the API default); empty state
-  `audit-empty`; refusal `audit-list-error` via `failureText`.
+- The shared `VgrPagingBar` (since PS3 — page X of Y · N records; page size 50 = the API
+  default; the page type is core's `PagedResult<AuditListItemEntity>`); empty state
+  `audit-empty`; load refusal `audit-list-error` via `failureText` (screen state).
 
 ## DETAIL (`AdminAuditDetailPage`)
 - "Back" `VgrTextButton` in the `VgrScaffold` actions (`audit-back`): pops when pushed from

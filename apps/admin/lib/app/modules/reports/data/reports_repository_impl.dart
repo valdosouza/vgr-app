@@ -34,7 +34,7 @@ class ReportsRepositoryImpl implements ReportsRepository {
             ...filters.toQueryParameters(),
           },
         );
-        return ReportPageEntity.fromJson(await _apiClient.get(uri.toString()));
+        return PagedResult.fromJson(await _apiClient.get(uri.toString()), ReportListItemEntity.fromJson);
       });
 
   @override
@@ -99,7 +99,7 @@ class ReportsRepositoryImpl implements ReportsRepository {
           path: '/api/reports/queue',
           queryParameters: {'page': '$page', 'pageSize': '$pageSize'},
         );
-        return QueuePageEntity.fromJson(await _apiClient.get(uri.toString()));
+        return PagedResult.fromJson(await _apiClient.get(uri.toString()), QueueItemEntity.fromJson);
       });
 
   /// No body: reviewing carries no reason (161). The detail the API answers

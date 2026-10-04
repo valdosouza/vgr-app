@@ -141,14 +141,14 @@ void main() {
         .thenAnswer((_) async => Right(pageOf([item(51)], page: 2, total: 120)));
     await pumpPage(tester);
 
-    expect(find.text('Page 1 of 3'), findsOneWidget);
-    expect(tester.widget<VgrSecondaryButton>(find.byKey(const Key('audit-prev'))).onPressed,
+    expect(find.textContaining('Page 1 of 3 ·'), findsOneWidget);
+    expect(tester.widget<VgrIconButton>(find.byKey(VgrPagingBar.previousKey)).onPressed,
         isNull);
 
-    await tester.tap(find.byKey(const Key('audit-next')));
+    await tester.tap(find.byKey(VgrPagingBar.nextKey));
     await tester.pumpAndSettle();
 
-    expect(find.text('Page 2 of 3'), findsOneWidget);
+    expect(find.textContaining('Page 2 of 3 ·'), findsOneWidget);
     expect(find.byKey(const Key('audit-row-51')), findsOneWidget);
   });
 

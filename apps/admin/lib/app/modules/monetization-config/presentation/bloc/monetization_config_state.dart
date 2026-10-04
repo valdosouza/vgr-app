@@ -31,11 +31,29 @@ class MonetizationConfigLoaded extends MonetizationConfigState {
   List<Object?> get props => [rules, riskTiers];
 }
 
+/// The catalog could not be LOADED — translated by code (80/83), with a
+/// retry. An action failure never lands here: it is [MonetizationConfigActionFailed].
 class MonetizationConfigError extends MonetizationConfigState {
-  const MonetizationConfigError(this.message);
+  const MonetizationConfigError(this.failure);
 
-  final String message;
+  final Failure failure;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [failure];
+}
+
+/// One-shot (decision 221): an edit was refused — the page hands it to the
+/// feedback bridge and keeps showing the rules it had.
+class MonetizationConfigActionFailed extends MonetizationConfigState {
+  const MonetizationConfigActionFailed(this.failure);
+
+  final Failure failure;
+
+  @override
+  List<Object?> get props => [failure];
+}
+
+/// One-shot: an edit was saved.
+class MonetizationConfigActionSucceeded extends MonetizationConfigState {
+  const MonetizationConfigActionSucceeded();
 }

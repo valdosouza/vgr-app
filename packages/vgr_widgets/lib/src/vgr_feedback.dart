@@ -115,3 +115,86 @@ Future<bool?> showVgrDialog<T>(
 void showVgrMessage(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
+
+/// Single-button dialog: a message the user must acknowledge before going
+/// on — a technical failure, or the one validation pendency of a form.
+Future<void> showVgrAlert(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String closeLabel,
+  Key? closeKey,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        ElevatedButton(
+          key: closeKey,
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(closeLabel),
+        ),
+      ],
+    ),
+  );
+}
+
+/// One button of a [showVgrChoice] dialog.
+class VgrChoice<T> {
+  const VgrChoice({
+    required this.value,
+    required this.label,
+    this.primary = false,
+    this.destructive = false,
+    this.key,
+  });
+
+  final T value;
+  final String label;
+
+  /// Drawn as the filled button — the answer the dialog leads to.
+  final bool primary;
+
+  /// Error color on the primary button (a deletion).
+  final bool destructive;
+  final Key? key;
+}
+
+/// Dialog with N typed answers, in the given order. Returns the picked
+/// value, or null when dismissed by tapping outside — the caller decides
+/// what "no answer" means.
+Future<T?> showVgrChoice<T>(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required List<VgrChoice<T>> choices,
+}) {
+  return showDialog<T>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        for (final choice in choices)
+          choice.primary
+              ? ElevatedButton(
+                  key: choice.key,
+                  onPressed: () => Navigator.of(dialogContext).pop(choice.value),
+                  style: choice.destructive
+                      ? ElevatedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        )
+                      : null,
+                  child: Text(choice.label),
+                )
+              : TextButton(
+                  key: choice.key,
+                  onPressed: () => Navigator.of(dialogContext).pop(choice.value),
+                  child: Text(choice.label),
+                ),
+      ],
+    ),
+  );
+}

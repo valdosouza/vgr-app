@@ -99,7 +99,11 @@
   "panicResponders": {
     "title": "Respondedores de Pânico",
     "noPending": "Nenhuma solicitação pendente",
-    "user": "Usuário nº {}"
+    "user": "Usuário nº {}",
+    "approve": "Aprovar",
+    "deny": "Negar",
+    "approved": "Pedido aprovado.",
+    "denied": "Pedido negado."
   },
   "legal": {
     "blockedTitle": "Indisponível nesta jurisdição",
@@ -163,10 +167,6 @@
       "status": "Status",
       "reason": "Motivo",
       "legalBasis": "Base legal",
-      "propose": "Propor",
-      "historyTitle": "Histórico de versões",
-      "filter": "Filtrar",
-      "empty": "Nenhuma regra no filtro atual.",
       "window": "Vigência: {from} até {until}",
       "approve": "Aprovar (ativa)",
       "reject": "Rejeitar"
@@ -250,15 +250,21 @@
   },
   "dualControl": {
     "title": "Acesso por Duplo Controle",
-    "granted": "Concedido",
-    "legalBasis": "Base legal: {}",
-    "approvers": "Aprovadores: {}",
-    "logEntryId": "Id do AccountabilityLogEntry",
-    "legalBasisField": "Base legal",
-    "startRequest": "Iniciar Solicitação",
-    "approverId": "Id do aprovador",
+    "rowTitle": "Solicitação #{id} · entrada do log #{entry}",
+    "status": {
+      "pending": "Aguardando aprovação",
+      "granted": "Liberada",
+      "void": "Anulada — aprovada antes da correção (nunca vale)"
+    },
+    "requestedBy": "Pedida por {name} em {when}",
+    "approvedBy": "Aprovada por {name} em {when}",
     "approve": "Aprovar",
-    "approvals": "{} de 2 aprovações"
+    "ownRequest": "Você abriu esta solicitação — outra pessoa precisa aprová-la.",
+    "requestTitle": "Nova solicitação",
+    "logEntryId": "Id da entrada do log de responsabilização",
+    "legalBasis": "Base legal",
+    "legalBasisHint": "Ordem judicial, ofício ou a emergência documentada",
+    "approvedFeedback": "Solicitação aprovada — acesso liberado."
   },
   "reports": {
     "list": {
@@ -287,10 +293,7 @@
       "reviewed": "Revisada",
       "reviewedMark": "REVISADA",
       "queueLink": "Fila de moderação",
-      "anonymousMark": "Anônimo",
-      "pageOf": "Página {page} de {pages}",
-      "prev": "Anterior",
-      "next": "Próxima"
+      "anonymousMark": "Anônimo"
     },
     "queue": {
       "title": "Fila de moderação",
@@ -489,9 +492,6 @@
     "unknownActor": "Usuário desconhecido",
     "noSummary": "Nenhum resumo registrado.",
     "empty": "Nenhum registro de auditoria corresponde aos filtros.",
-    "prev": "Anterior",
-    "next": "Próxima",
-    "pageOf": "Página {page} de {pages}",
     "detail": {
       "title": "Registro de auditoria #{id}",
       "back": "Voltar",
@@ -566,17 +566,37 @@
       "INVALID_VALUE": "Valor inválido."
     }
   },
-  "crud": {
+  "register": {
+    "search": "Pesquisar",
     "new": "Novo",
+    "empty": "Nenhum registro ainda.",
+    "emptyFiltered": "Nenhum registro corresponde à pesquisa.",
+    "retry": "Tentar novamente",
+    "back": "Voltar à lista",
     "save": "Salvar",
-    "cancel": "Cancelar",
     "delete": "Excluir",
+    "saved": "Registro salvo.",
+    "deleted": "Registro excluído.",
     "confirmDeleteTitle": "Confirmar exclusão",
-    "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir?"
+    "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir este registro?",
+    "pageSummary": "Página {page} de {pages} · {total} registros",
+    "previousPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "pageSize": "Por página"
+  },
+  "feedback": {
+    "ok": "OK",
+    "yes": "Sim",
+    "no": "Não",
+    "cancel": "Cancelar",
+    "technicalTitle": "Algo deu errado",
+    "validationTitle": "Verifique este campo"
   },
   "privileges": {
     "title": "Privilégios",
-    "description": "Identificador (MAIUSCULA_COM_UNDERSCORE)"
+    "description": "Identificador (MAIUSCULA_COM_UNDERSCORE)",
+    "newTitle": "Novo privilégio",
+    "editTitle": "Privilégio {}"
   },
   "interfacesScreen": {
     "title": "Interfaces",
@@ -584,7 +604,9 @@
     "i18nKey": "Chave estável (minuscula_com_underscore)",
     "groupDefault": "Grupo padrão",
     "position": "Posição",
-    "privileges": "Privilégios da tela"
+    "privileges": "Privilégios da tela",
+    "newTitle": "Nova tela",
+    "editTitle": "Tela {}"
   },
   "systemModules": {
     "title": "Módulos do Sistema",
@@ -592,7 +614,10 @@
     "i18nKey": "Chave de tradução (opcional)",
     "imageIcon": "Ícone (opcional)",
     "position": "Posição",
-    "interfaces": "Telas deste módulo (ordem do menu)"
+    "interfaces": "Telas deste módulo (ordem do menu)",
+    "newTitle": "Novo módulo",
+    "editTitle": "Módulo {}",
+    "screenCount": "{} telas"
   },
   "users": {
     "title": "Usuários",
@@ -602,13 +627,17 @@
     "passwordKeepHint": "Deixe vazio para manter a senha atual",
     "active": "Ativo",
     "privilegesOf": "Privilégios de acesso — {}",
-    "grantsSaved": "Privilégios atualizados"
+    "grantsSaved": "Privilégios atualizados",
+    "newTitle": "Novo usuário",
+    "editTitle": "Usuário — {}",
+    "passwordPolicyHint": "De 12 a 72 caracteres"
   },
   "monetization": {
     "title": "Configuração de Monetização",
     "globalDefault": "Padrão global",
     "feePercent": "Taxa %",
     "allowPeerToPeer": "Permitir ponta-a-ponta",
-    "save": "Salvar"
+    "save": "Salvar",
+    "feePercentRange": "Entre 0 e 100."
   }
 }

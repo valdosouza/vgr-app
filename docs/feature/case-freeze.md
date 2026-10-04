@@ -27,8 +27,9 @@ mutation — the app never guesses a transition):
   control, 141d), also with a mandatory reason.
 - **Frozen, pending request** → approve unfreeze (step 2): shows who
   requested and why; the server enforces that the approver is a
-  DIFFERENT user (a same-user attempt renders its 422 verbatim), and the
-  retention clock RESTARTS on approval.
+  DIFFERENT user (a same-user attempt is refused with a 422, which reaches
+  the operator through the feedback bridge — decision 221, since PS3 — with
+  the case kept on screen), and the retention clock RESTARTS on approval.
 
 The reason field mirrors the API's 3-character minimum client-side;
 UPDATE-gated buttons render disabled without the grant (decision 72:

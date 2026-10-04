@@ -296,7 +296,7 @@ void main() {
 
     await tapVisible(tester, 'approve-unfreeze-button');
 
-    expect(find.byKey(const Key('report-action-error')), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget); // through the feedback bridge (221)
     expect(find.byKey(const Key('approve-unfreeze-button')), findsOneWidget);
   });
 
@@ -467,7 +467,7 @@ void main() {
       await pickReason(tester, 'Spam');
       await tapVisible(tester, 'moderation-submit-button');
 
-      expect(find.byKey(const Key('report-action-error')), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget); // through the feedback bridge (221)
       expect(find.text('This value already exists.'), findsOneWidget);
       expect(find.byKey(const Key('hide-button')), findsOneWidget);
     });

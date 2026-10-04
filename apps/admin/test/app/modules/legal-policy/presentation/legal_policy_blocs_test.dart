@@ -10,12 +10,22 @@ import 'package:vgr_admin/app/modules/legal-policy/presentation/bloc/rules_bloc.
 
 class MockLegalPolicyRepository extends Mock implements LegalPolicyRepository {}
 
-const _br = JurisdictionEntity(
+const _brSuspended = JurisdictionEntity(
   code: 'BR',
   name: 'Brazil',
-  operationalState: 'live',
+  operationalState: 'suspended',
   isSandbox: false,
 );
+
+const _brPending = JurisdictionEntity(
+  code: 'BR',
+  name: 'Brazil',
+  operationalState: 'suspended',
+  isSandbox: false,
+  pendingState: 'live',
+  pendingBy: 7,
+);
+
 const _rule = LegalRuleEntity(
   id: 9,
   capability: 'reward.monetary',
@@ -28,136 +38,136 @@ const _rule = LegalRuleEntity(
   proposedBy: 7,
 );
 
+const _proposal = LegalRuleProposal(
+  capability: 'reward.monetary',
+  jurisdictionCode: 'BR',
+  status: 'blocked',
+  reason: 'no_control',
+);
+
+PagedResult<T> _page<T>(List<T> items, {int page = 1}) =>
+    PagedResult(items: items, page: page, pageSize: 20, total: items.length);
+
+const _sameUser = Failure(
+  message: 'The approver must be a different user',
+  statusCode: 422,
+  code: 'BUSINESS_RULE',
+);
+
+/// The Legal Gate blocs on the factory's paged list (PS3 — decision 220):
+/// every action is the server's story — signalled to the bridge, then the
+/// page reloaded quietly.
 void main() {
   late MockLegalPolicyRepository repository;
 
-  setUp(() {
-    repository = MockLegalPolicyRepository();
-    registerFallbackValue(const LegalRuleProposal(
-      capability: 'x.y',
-      jurisdictionCode: 'BR',
-      status: 'allowed',
-    ));
+  setUpAll(() {
+    registerFallbackValue(const PagedQuery());
+    registerFallbackValue(_proposal);
   });
 
-  Future<void> settle() => Future<void>.delayed(Duration.zero);
+  setUp(() => repository = MockLegalPolicyRepository());
 
   group('JurisdictionsBloc', () {
-    test('a state change reloads the LIST — the server owns the semantics '
-        '(107: tighten now, loosen pending)', () async {
-      when(() => repository.listJurisdictions())
-          .thenAnswer((_) async => const Right([_br]));
-      final bloc = JurisdictionsBloc(repository)
-        ..add(const JurisdictionsRequested());
-      await settle();
+    test('a state change reloads the PAGE — the server owns the semantics (107)', () async {
+      var calls = 0;
+      when(() => repository.listJurisdictions(any()))
+          .thenAnswer((_) async => Right(_page([++calls == 1 ? _brSuspended : _brPending])));
+      when(() => repository.requestState('BR', 'live')).thenAnswer((_) async => const Right(_brPending));
+      final bloc = JurisdictionsBloc(repository)..add(const RegisterListRequested());
+      await bloc.stream.firstWhere((s) => s is RegisterListLoaded<JurisdictionEntity>);
 
-      when(() => repository.requestState('BR', 'suspended')).thenAnswer(
-          (_) async => const Right(_br)); // response row is NOT trusted
-      when(() => repository.listJurisdictions()).thenAnswer((_) async =>
-          const Right([
-            JurisdictionEntity(
-                code: 'BR',
-                name: 'Brazil',
-                operationalState: 'suspended',
-                isSandbox: false)
-          ]));
+      bloc.add(const JurisdictionStateRequested('BR', 'live'));
 
-      bloc.add(const JurisdictionStateRequested('BR', 'suspended'));
-      await settle();
-
-      final loaded = bloc.state as JurisdictionsLoaded;
-      expect(loaded.rows.single.operationalState, 'suspended');
+      // Loosening became PENDING — known only from the reloaded page.
+      await expectLater(
+        bloc.stream,
+        emits(RegisterListLoaded<JurisdictionEntity>(const PagedQuery(), _page([_brPending]))),
+      );
+      await bloc.close();
     });
 
-    test('a refused confirm keeps the list with the failure attached', () async {
-      when(() => repository.listJurisdictions())
-          .thenAnswer((_) async => const Right([_br]));
-      final bloc = JurisdictionsBloc(repository)
-        ..add(const JurisdictionsRequested());
-      await settle();
-
-      const failure = Failure(
-          message: 'The confirmer must be a different user',
-          statusCode: 422,
-          code: 'BUSINESS_RULE');
-      when(() => repository.confirmState('BR'))
-          .thenAnswer((_) async => const Left(failure));
+    test('a refused confirm is signalled and the page stays', () async {
+      when(() => repository.listJurisdictions(any())).thenAnswer((_) async => Right(_page([_brPending])));
+      when(() => repository.confirmState('BR')).thenAnswer((_) async => const Left(_sameUser));
+      final bloc = JurisdictionsBloc(repository)..add(const RegisterListRequested());
+      await bloc.stream.firstWhere((s) => s is RegisterListLoaded<JurisdictionEntity>);
 
       bloc.add(const JurisdictionStateConfirmed('BR'));
-      await settle();
 
-      final loaded = bloc.state as JurisdictionsLoaded;
-      expect(loaded.failure, failure);
-      expect(loaded.rows, const [_br]);
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const RegisterActionFailure<JurisdictionEntity>(_sameUser),
+          RegisterListLoaded<JurisdictionEntity>(const PagedQuery(), _page([_brPending])),
+        ]),
+      );
+      await bloc.close();
     });
   });
 
   group('CapabilitiesBloc', () {
-    test('loads the catalog for the requested jurisdiction', () async {
-      when(() => repository.listCapabilities('BR')).thenAnswer((_) async =>
-          const Right([
-            CapabilityOverviewEntity(
-                capability: 'report.anonymous',
-                description: 'Anonymous reporting',
-                module: 'reports',
-                effectiveStatus: 'unreviewed')
-          ]));
+    test('nothing is fetched before a jurisdiction is chosen', () async {
+      final bloc = CapabilitiesBloc(repository);
 
-      final bloc = CapabilitiesBloc(repository)
-        ..add(const CapabilitiesRequested('BR'));
-      await settle();
+      expect(bloc.state, isA<RegisterListLoaded<CapabilityOverviewEntity>>());
+      expect(bloc.jurisdiction, isNull);
+      verifyNever(() => repository.listCapabilities(any(), any()));
+      await bloc.close();
+    });
 
-      final loaded = bloc.state as CapabilitiesLoaded;
-      expect(loaded.jurisdiction, 'BR');
-      expect(loaded.rows.single.effectiveStatus, 'unreviewed');
+    test('choosing a jurisdiction loads page 1 of ITS catalog (103)', () async {
+      const row = CapabilityOverviewEntity(
+        capability: 'report.anonymous',
+        description: 'Anonymous reporting',
+        module: 'reports',
+        effectiveStatus: 'unreviewed',
+      );
+      when(() => repository.listCapabilities('BR', any())).thenAnswer((_) async => Right(_page([row])));
+      final bloc = CapabilitiesBloc(repository)..add(const CapabilitiesJurisdictionChosen('BR'));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(RegisterListLoaded<CapabilityOverviewEntity>(const PagedQuery(), _page([row]))),
+      );
+      expect(bloc.jurisdiction, 'BR');
+      await bloc.close();
     });
   });
 
   group('RulesBloc', () {
-    test('propose reloads under the current filter', () async {
-      when(() => repository.listRules(capability: 'reward.monetary', jurisdiction: 'BR'))
-          .thenAnswer((_) async => const Right(<LegalRuleEntity>[]));
-      final bloc = RulesBloc(repository)
-        ..add(const RulesRequested(
-            capability: 'reward.monetary', jurisdiction: 'BR'));
-      await settle();
+    test('propose is the factory save: signalled, then the page reloads', () async {
+      when(() => repository.listRules(any())).thenAnswer((_) async => Right(_page([_rule])));
+      when(() => repository.proposeRule(_proposal)).thenAnswer((_) async => const Right(_rule));
+      final bloc = RulesBloc(repository)..add(const RegisterListRequested());
+      await bloc.stream.firstWhere((s) => s is RegisterListLoaded<LegalRuleEntity>);
 
-      when(() => repository.proposeRule(any()))
-          .thenAnswer((_) async => const Right(_rule));
-      when(() => repository.listRules(capability: 'reward.monetary', jurisdiction: 'BR'))
-          .thenAnswer((_) async => const Right([_rule]));
+      bloc.add(const RegisterNewPressed());
+      bloc.add(const RegisterSaveRequested(_proposal));
 
-      bloc.add(const RuleProposed(LegalRuleProposal(
-        capability: 'reward.monetary',
-        jurisdictionCode: 'BR',
-        status: 'blocked',
-        reason: 'no_control',
-      )));
-      await settle();
-
-      expect((bloc.state as RulesLoaded).rows.single.ruleState, 'proposed');
+      await expectLater(
+        bloc.stream,
+        emitsThrough(const RegisterActionSuccess<LegalRuleEntity>('register.saved')),
+      );
+      verify(() => repository.proposeRule(_proposal)).called(1);
+      await bloc.close();
     });
 
-    test('a same-user approval keeps the list and carries the refusal (107)',
-        () async {
-      when(() => repository.listRules(capability: null, jurisdiction: null))
-          .thenAnswer((_) async => const Right([_rule]));
-      final bloc = RulesBloc(repository)..add(const RulesRequested());
-      await settle();
-
-      const failure = Failure(
-          message: 'The approver must be a different user',
-          statusCode: 422,
-          code: 'BUSINESS_RULE');
-      when(() => repository.approveRule(9))
-          .thenAnswer((_) async => const Left(failure));
+    test('a same-user approval is signalled and the page stays (107)', () async {
+      when(() => repository.listRules(any())).thenAnswer((_) async => Right(_page([_rule])));
+      when(() => repository.approveRule(9)).thenAnswer((_) async => const Left(_sameUser));
+      final bloc = RulesBloc(repository)..add(const RegisterListRequested());
+      await bloc.stream.firstWhere((s) => s is RegisterListLoaded<LegalRuleEntity>);
 
       bloc.add(const RuleApproved(9));
-      await settle();
 
-      final loaded = bloc.state as RulesLoaded;
-      expect(loaded.failure, failure);
-      expect(loaded.rows.single.id, 9);
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const RegisterActionFailure<LegalRuleEntity>(_sameUser),
+          RegisterListLoaded<LegalRuleEntity>(const PagedQuery(), _page([_rule])),
+        ]),
+      );
+      await bloc.close();
     });
   });
 }

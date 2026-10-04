@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/field_definition_entity.dart';
+import '../../../../shared/feedback/feedback.dart';
 import '../bloc/category_form_bloc.dart';
 import '../bloc/category_form_event.dart';
 import '../bloc/category_form_state.dart';
@@ -19,11 +20,31 @@ class CategoryFormListPage extends StatelessWidget {
     return VgrPage(
       title: 'categoryForms.title'.tr(),
       padded: false,
-      body: BlocBuilder<CategoryFormBloc, CategoryFormState>(
+      body: BlocConsumer<CategoryFormBloc, CategoryFormState>(
+        // Edits answer through the feedback bridge (decision 221); the
+        // list never gives way to an error screen because of one.
+        listenWhen: (_, state) => state is CategoryFormActionFailed || state is CategoryFormActionSucceeded,
+        listener: (context, state) => switch (state) {
+          CategoryFormActionFailed(:final failure) => showFailureFeedback(context, failure),
+          _ => showSuccessFeedback(context, 'register.saved'.tr()),
+        },
+        buildWhen: (_, state) => state is! CategoryFormActionFailed && state is! CategoryFormActionSucceeded,
         builder: (context, state) {
           return switch (state) {
             CategoryFormLoading() => const VgrLoading(),
-            CategoryFormError(:final message) => VgrCenter(child: VgrText.error(message)),
+            CategoryFormError(:final failure) => VgrCenter(
+                child: VgrColumn(children: [
+                  VgrText.error(failureText(failure), key: const Key('catalog-load-error')),
+                  const VgrGap.md(),
+                  VgrSecondaryButton(
+                    key: const Key('catalog-retry-button'),
+                    label: 'register.retry'.tr(),
+                    onPressed: () => context.read<CategoryFormBloc>().add(const FetchRequested()),
+                  ),
+                ]),
+              ),
+            // One-shots never reach the builder (buildWhen).
+            CategoryFormActionFailed() || CategoryFormActionSucceeded() => const VgrLoading(),
             CategoryFormLoaded(:final schemas) => VgrListView(
                 children: [
                   for (final schema in schemas)

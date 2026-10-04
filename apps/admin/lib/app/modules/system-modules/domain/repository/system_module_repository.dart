@@ -1,12 +1,14 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
 
+import '../../../../shared/register/register_repository.dart';
 import '../entity/system_module_entity.dart';
 
-abstract class SystemModuleRepository {
-  Future<Either<Failure, List<SystemModuleEntity>>> list();
+/// Menu modules as the register factory consumes them (PS3): paged list
+/// filtered on description (PS0, decision 220) + writes, plus the screen
+/// catalog the form's ordered checklist offers.
+abstract interface class SystemModuleRepository
+    implements RegisterRepository<SystemModuleEntity, SystemModuleDraft> {
+  /// Every screen (a few dozen rows — the API's unpaged form of the list).
   Future<Either<Failure, List<InterfaceOption>>> listInterfaceOptions();
-  Future<Either<Failure, SystemModuleEntity>> create(SystemModuleEntity input);
-  Future<Either<Failure, SystemModuleEntity>> update(SystemModuleEntity input);
-  Future<Either<Failure, Unit>> delete(int id);
 }

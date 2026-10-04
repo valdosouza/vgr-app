@@ -120,7 +120,9 @@ void main() {
     await tester.tap(find.byKey(const Key('approve-button')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('mediation-action-error')), findsOneWidget);
+    // Through the feedback bridge (221), translated by code; the case stays.
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('The request violates a business rule.'), findsOneWidget);
     expect(find.byKey(const Key('approve-button')), findsOneWidget);
   });
 
@@ -184,6 +186,19 @@ void main() {
     await tester.tap(find.byKey(const Key('criteria-publish-button')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('criteria-published')), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    verify(() => repository.publishCriteria('crit-1', 'The rules.')).called(1);
+  });
+
+  testWidgets('publishing without a body is the form\'s one pendency, never a silent no-op',
+      (tester) async {
+    await pumpPage(tester);
+
+    await tester.enterText(find.byKey(const Key('criteria-version-field')), 'crit-1');
+    await tester.tap(find.byKey(const Key('criteria-publish-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    verifyNever(() => repository.publishCriteria(any(), any()));
   });
 }

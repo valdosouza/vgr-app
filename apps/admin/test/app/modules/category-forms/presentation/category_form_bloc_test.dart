@@ -57,7 +57,10 @@ void main() {
       ],
     );
 
-    expectLater(bloc.stream, emits(const CategoryFormLoaded([expectedSchema])));
+    expectLater(
+      bloc.stream,
+      emitsInOrder([const CategoryFormActionSucceeded(), const CategoryFormLoaded([expectedSchema])]),
+    );
 
     bloc.add(const FieldAdded(category: 'missing_person', field: newField));
 

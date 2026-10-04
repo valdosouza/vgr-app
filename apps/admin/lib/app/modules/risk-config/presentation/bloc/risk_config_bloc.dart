@@ -20,7 +20,7 @@ class RiskConfigBloc extends Bloc<RiskConfigEvent, RiskConfigState> {
     emit(const RiskConfigLoading());
     final result = await _repository.list();
     result.fold(
-      (failure) => emit(RiskConfigError(failure.message)),
+      (failure) => emit(RiskConfigError(failure)),
       (items) => emit(RiskConfigLoaded(items)),
     );
   }
@@ -31,21 +31,24 @@ class RiskConfigBloc extends Bloc<RiskConfigEvent, RiskConfigState> {
     TierEdited event,
     Emitter<RiskConfigState> emit,
   ) async {
+    final current = state;
+    if (current is! RiskConfigLoaded) return;
     final result = await _repository.upsert(event.category, event.tier);
     result.fold(
-      (failure) => emit(RiskConfigError(failure.message)),
+      // Refused: signalled to the bridge (221), the list stays as it was.
+      (failure) {
+        emit(RiskConfigActionFailed(failure));
+        emit(current);
+      },
       (_) {
-        final current = state;
-        if (current is RiskConfigLoaded) {
-          final updated = [
-            for (final item in current.items)
-              if (item.category == event.category)
-                RiskTierConfigEntity(category: item.category, tier: event.tier)
-              else
-                item,
-          ];
-          emit(RiskConfigLoaded(updated));
-        }
+        emit(const RiskConfigActionSucceeded());
+        emit(RiskConfigLoaded([
+          for (final item in current.items)
+            if (item.category == event.category)
+              RiskTierConfigEntity(category: item.category, tier: event.tier)
+            else
+              item,
+        ]));
       },
     );
   }

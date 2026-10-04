@@ -96,6 +96,17 @@ void main() {
     });
   });
 
+  group('VgrValidators.positiveInteger — mirrors z.number().int().positive()', () {
+    test('accepts whole numbers above zero, rejects fractions/zero/signs/garbage', () {
+      expect(VgrValidators.positiveInteger('42'), isNull);
+      expect(VgrValidators.positiveInteger(' 7 '), isNull);
+      expect(VgrValidators.positiveInteger(''), const VgrFieldError(VgrFieldCode.required));
+      for (final bad in ['0', '1.5', '-3', '+3', 'abc', '99999999999999999999999']) {
+        expect(VgrValidators.positiveInteger(bad), const VgrFieldError(VgrFieldCode.invalidValue), reason: bad);
+      }
+    });
+  });
+
   group('VgrValidators.validate (form helper)', () {
     test('returns the first error per field and nothing for valid fields', () {
       final errors = VgrValidators.validate({
@@ -152,6 +163,69 @@ void main() {
 
     test('blank is REQUIRED', () {
       expect(VgrValidators.isoDate(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.upperSnakeCase — mirrors privilegeSaveDto.description regex', () {
+    test('an UPPER_SNAKE_CASE identifier passes', () {
+      for (final value in ['VIEW', 'PRINT', 'EXPORT_CSV', 'A1_B2']) {
+        expect(VgrValidators.upperSnakeCase(value), isNull, reason: value);
+      }
+    });
+
+    test('anything else → INVALID_FORMAT, the way Zod reports a regex miss', () {
+      for (final value in ['view', 'View', '1VIEW', '_VIEW', 'VIEW-ALL', 'VIEW ALL', ' VIEW']) {
+        expect(VgrValidators.upperSnakeCase(value), const VgrFieldError(VgrFieldCode.invalidFormat),
+            reason: value);
+      }
+    });
+
+    test('blank is REQUIRED', () {
+      expect(VgrValidators.upperSnakeCase(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.newPassword — mirrors newPasswordSchema min(12).max(72) (decision 114)', () {
+    test('12 to 72 characters pass, counted untrimmed', () {
+      expect(VgrValidators.newPassword('a' * 11 + ' '), isNull);
+      expect(VgrValidators.newPassword('x' * 72), isNull);
+    });
+
+    test('short → TOO_SHORT {min: 12}, long → TOO_LONG {max: 72}', () {
+      expect(VgrValidators.newPassword('short'), const VgrFieldError(VgrFieldCode.tooShort, {'min': '12'}));
+      expect(VgrValidators.newPassword('x' * 73), const VgrFieldError(VgrFieldCode.tooLong, {'max': '72'}));
+    });
+
+    test('empty is REQUIRED', () {
+      expect(VgrValidators.newPassword(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
+
+  group('VgrValidators.optional — mirrors .optional() (an empty value is an absent field)', () {
+    test('empty passes; anything typed answers to the wrapped rule', () {
+      final rule = VgrValidators.optional(VgrValidators.newPassword);
+      expect(rule(''), isNull);
+      expect(rule('short'), const VgrFieldError(VgrFieldCode.tooShort, {'min': '12'}));
+      expect(rule('long enough password'), isNull);
+    });
+  });
+
+  group('VgrValidators.lowerSnakeCase — mirrors interfaceSaveDto / systemModuleSaveDto i18nKey', () {
+    test('a lower_snake_case key passes', () {
+      for (final value in ['users', 'legal_rules', 'report_stats', 'a1_b2']) {
+        expect(VgrValidators.lowerSnakeCase(value), isNull, reason: value);
+      }
+    });
+
+    test('anything else → INVALID_FORMAT', () {
+      for (final value in ['Users', 'USERS', '1users', '_users', 'legal-rules', 'legal rules']) {
+        expect(VgrValidators.lowerSnakeCase(value), const VgrFieldError(VgrFieldCode.invalidFormat),
+            reason: value);
+      }
+    });
+
+    test('blank is REQUIRED', () {
+      expect(VgrValidators.lowerSnakeCase(''), const VgrFieldError(VgrFieldCode.required));
     });
   });
 }

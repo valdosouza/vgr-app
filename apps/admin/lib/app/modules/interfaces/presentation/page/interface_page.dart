@@ -2,158 +2,98 @@ import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/register/register_field.dart';
+import '../../../../shared/register/register_screen.dart';
+import '../../../../shared/register/register_search_page.dart';
+import '../../../../shared/session/current_interface.dart';
 import '../../domain/entity/interface_entity.dart';
 import '../bloc/interface_bloc.dart';
 
+/// The screen catalog (tb_interface — decision 71) on the register
+/// factory (PS3): paged list filtered by description / key, form validated
+/// as `interfaceSaveDto`, the screen's privileges as a checklist fed by the
+/// privilege catalog.
 class InterfacePage extends StatelessWidget {
   const InterfacePage({super.key});
 
-  Future<void> _openForm(
-    BuildContext context, {
-    required List<PrivilegeOption> options,
-    InterfaceEntity? current,
-  }) async {
-    final bloc = context.read<InterfaceBloc>();
-    final description = TextEditingController(text: current?.description ?? '');
-    final i18nKey = TextEditingController(text: current?.i18nKey ?? '');
-    final groupDefault = TextEditingController(text: current?.groupDefault ?? 'General');
-    final position = TextEditingController(text: '${current?.position ?? 0}');
-    final selected = Set<int>.from(current?.privilegeIds ?? const <int>[]);
-
-    final saved = await showVgrDialog<bool>(
-      context,
-      title: 'interfacesScreen.title'.tr(),
-      confirmLabel: 'crud.save'.tr(),
-      cancelLabel: 'crud.cancel'.tr(),
-      confirmKey: const Key('interface-save-button'),
-      content: VgrStatefulContent(
-        builder: (context, refresh) => VgrScrollView(
-          child: VgrColumn(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              VgrTextField(
-                key: const Key('interface-description-field'),
-                controller: description,
-                label: 'interfacesScreen.description'.tr(),
-              ),
-              VgrTextField(
-                key: const Key('interface-i18nkey-field'),
-                controller: i18nKey,
-                label: 'interfacesScreen.i18nKey'.tr(),
-              ),
-              VgrTextField(
-                key: const Key('interface-group-field'),
-                controller: groupDefault,
-                label: 'interfacesScreen.groupDefault'.tr(),
-              ),
-              VgrTextField(
-                key: const Key('interface-position-field'),
-                controller: position,
-                label: 'interfacesScreen.position'.tr(),
-                keyboard: VgrKeyboard.number,
-              ),
-              const VgrGap.sm(),
-              VgrText('interfacesScreen.privileges'.tr()),
-              for (final option in options)
-                VgrCheckboxTile(
-                  key: Key('interface-privilege-${option.id}'),
-                  value: selected.contains(option.id),
-                  label: trCatalog(
-                    prefix: 'menu.privileges',
-                    key: option.description,
-                    fallback: option.description,
-                  ),
-                  onChanged: (value) => refresh(() {
-                    value ? selected.add(option.id) : selected.remove(option.id);
-                  }),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (saved == true && description.text.trim().isNotEmpty && i18nKey.text.trim().isNotEmpty) {
-      bloc.add(InterfaceSaved(InterfaceEntity(
-        id: current?.id ?? 0,
-        description: description.text.trim(),
-        i18nKey: i18nKey.text.trim(),
-        groupDefault: groupDefault.text.trim().isEmpty ? 'General' : groupDefault.text.trim(),
-        kind: current?.kind ?? 'T',
-        position: int.tryParse(position.text) ?? 0,
-        privilegeIds: selected.toList()..sort(),
-      )));
-    }
-  }
-
-  Future<void> _confirmDelete(BuildContext context, InterfaceEntity item) async {
-    final bloc = context.read<InterfaceBloc>();
-    final confirmed = await showVgrConfirm(
-      context,
-      title: 'crud.confirmDeleteTitle'.tr(),
-      message: 'crud.confirmDeleteMessage'.tr(),
-      confirmLabel: 'crud.delete'.tr(),
-      cancelLabel: 'crud.cancel'.tr(),
-      destructive: true,
-    );
-    if (confirmed) bloc.add(InterfaceDeleted(item.id));
-  }
+  static const screen = CurrentInterface('interfaces');
 
   @override
   Widget build(BuildContext context) {
-    final canInsert = SessionAccess.instance.can('interfaces', Privileges.insert);
-    final canUpdate = SessionAccess.instance.can('interfaces', Privileges.update);
-    final canDelete = SessionAccess.instance.can('interfaces', Privileges.delete);
-
-    return BlocConsumer<InterfaceBloc, InterfaceState>(
-      listenWhen: (_, next) => next is InterfaceLoaded && next.actionError != null,
-      listener: (context, state) {
-        showVgrMessage(context, failureText((state as InterfaceLoaded).actionError!));
-      },
-      builder: (context, state) {
-        return VgrPage(
-          title: 'interfacesScreen.title'.tr(),
-          padded: false,
-          floatingAction: !canInsert || state is! InterfaceLoaded
-              ? null
-              : VgrFloatingAddButton(
-                  key: const Key('interface-new-button'),
-                  onPressed: () => _openForm(context, options: state.privilegeOptions),
-                  tooltip: 'crud.new'.tr(),
+    return BlocBuilder<PrivilegeOptionsCubit, RegisterLookupState<PrivilegeOption>>(
+      builder: (context, lookup) => RegisterScreen<InterfaceEntity, InterfaceDraft>(
+        title: 'interfacesScreen.title'.tr(),
+        screen: screen,
+        rowId: (item) => item.id,
+        rowBuilder: (context, item) => RegisterRow(
+          title: trCatalog(prefix: 'menu.interfaces', key: item.i18nKey, fallback: item.description),
+          subtitle: '${item.i18nKey} · ${item.groupDefault}',
+        ),
+        formTitle: (current) => current == null
+            ? 'interfacesScreen.newTitle'.tr()
+            : 'interfacesScreen.editTitle'.tr(args: [current.i18nKey]),
+        fields: (current) => [
+          RegisterTextField(
+            name: 'description',
+            label: 'interfacesScreen.description'.tr(),
+            initialValue: current?.description ?? '',
+            validators: [VgrValidators.minLength(2), VgrValidators.maxLength(120)],
+          ),
+          RegisterTextField(
+            name: 'i18nKey',
+            label: 'interfacesScreen.i18nKey'.tr(),
+            initialValue: current?.i18nKey ?? '',
+            validators: [
+              VgrValidators.minLength(2),
+              VgrValidators.maxLength(60),
+              VgrValidators.lowerSnakeCase,
+            ],
+          ),
+          RegisterTextField(
+            name: 'groupDefault',
+            label: 'interfacesScreen.groupDefault'.tr(),
+            initialValue: current?.groupDefault ?? 'General',
+            validators: [VgrValidators.required, VgrValidators.maxLength(60)],
+          ),
+          RegisterTextField(
+            name: 'position',
+            label: 'interfacesScreen.position'.tr(),
+            initialValue: '${current?.position ?? 0}',
+            keyboard: VgrKeyboard.number,
+          ),
+          RegisterChecklistField(
+            name: 'privilegeIds',
+            label: 'interfacesScreen.privileges'.tr(),
+            initialValue: current?.privilegeIds ?? const [],
+            loading: lookup is RegisterLookupLoading<PrivilegeOption>,
+            unavailableText: switch (lookup) {
+              RegisterLookupFailed<PrivilegeOption>(:final failure) => failureText(failure),
+              _ => null,
+            },
+            options: [
+              for (final option in lookup.items)
+                VgrOption(
+                  value: option.id,
+                  label: trCatalog(prefix: 'menu.privileges', key: option.description, fallback: option.description),
                 ),
-          body: switch (state) {
-            InterfaceLoading() => const VgrLoading(),
-            InterfaceError(:final message) => VgrCenter(child: VgrText.error(message)),
-            InterfaceLoaded(:final items, :final privilegeOptions) => VgrListView(
-                children: [
-                  for (final item in items)
-                    VgrListTile(
-                      key: Key('interface-${item.id}'),
-                      title: trCatalog(
-                        prefix: 'menu.interfaces',
-                        key: item.i18nKey,
-                        fallback: item.description,
-                      ),
-                      subtitle: '${item.i18nKey} · ${item.groupDefault}',
-                      onTap: !canUpdate
-                          ? null
-                          : () => _openForm(context, options: privilegeOptions, current: item),
-                      trailing: !canDelete
-                          ? null
-                          : VgrIconButton(
-                              key: Key('interface-delete-${item.id}'),
-                              icon: VgrIconName.delete,
-                              tooltip: 'crud.delete'.tr(),
-                              onPressed: () => _confirmDelete(context, item),
-                            ),
-                    ),
-                ],
-              ),
-          },
-        );
-      },
+            ],
+          ),
+        ],
+        draftOf: (current, values) {
+          final group = values.text('groupDefault').trim();
+          return InterfaceDraft(
+            description: values.text('description').trim(),
+            i18nKey: values.text('i18nKey').trim(),
+            groupDefault: group.isEmpty ? 'General' : group,
+            kind: current?.kind ?? 'T',
+            position: int.tryParse(values.text('position').trim()) ?? 0,
+            privilegeIds: values.selection('privilegeIds'),
+          );
+        },
+      ),
     );
   }
 }

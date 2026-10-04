@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart' hide ModularWatchExtension;
 import 'package:vgr_widgets/vgr_widgets.dart';
 
+import '../../../../shared/feedback/feedback.dart';
 import '../bloc/recovery_bloc.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -42,7 +43,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       body: BlocConsumer<RecoveryBloc, RecoveryState>(
         listener: (context, state) {
           if (state is PasswordChanged) {
-            showVgrMessage(context, 'auth.passwordChanged'.tr());
+            showSuccessFeedback(context, 'auth.passwordChanged'.tr());
             Modular.to.navigate('/login');
           }
         },

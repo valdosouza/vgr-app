@@ -65,6 +65,21 @@ abstract final class VgrValidators {
     return n != null && n > 0 ? null : const VgrFieldError(VgrFieldCode.invalidValue);
   }
 
+  /// Mirrors `z.number().int().positive()` — e.g. the
+  /// `accountabilityLogEntryId` of `dualControlCreateDto`
+  /// (`api/src/modules/admin-access/dual-control.dto.ts`, decision 223).
+  /// Blank is `REQUIRED`; a fraction, zero, a sign or garbage is
+  /// `INVALID_VALUE`.
+  static final _positiveInteger = RegExp(r'^[0-9]+$');
+
+  static VgrFieldError? positiveInteger(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return _required;
+    return _positiveInteger.hasMatch(v) && (int.tryParse(v) ?? 0) > 0
+        ? null
+        : const VgrFieldError(VgrFieldCode.invalidValue);
+  }
+
   /// Mirrors `z.string().min(n)` on a free-text field — e.g.
   /// `freezeReasonDto` (`api/src/modules/reports/case-freeze.dto.ts`,
   /// decision 141: the reason is mandatory, at least 3 characters). Blank
@@ -118,6 +133,47 @@ abstract final class VgrValidators {
       {'kind': hit.kind.name, 'match': hit.match},
     );
   }
+
+  /// Mirrors `privilegeSaveDto.description`'s `.regex(/^[A-Z][A-Z0-9_]*$/)`
+  /// (`api/src/modules/privileges/privilege.dto.ts`): a privilege is
+  /// referenced by name in guards and buttons, so it is a code identifier.
+  /// Zod reports a regex miss as `invalid_string` → `INVALID_FORMAT`.
+  static final _upperSnake = RegExp(r'^[A-Z][A-Z0-9_]*$');
+
+  static VgrFieldError? upperSnakeCase(String value) {
+    if (value.trim().isEmpty) return _required;
+    return _upperSnake.hasMatch(value) ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
+  }
+
+  /// Mirrors the `i18nKey` regex `/^[a-z][a-z0-9_]*$/` of
+  /// `interfaceSaveDto` and `systemModuleSaveDto` (the app's route-map key
+  /// discipline). A miss is `INVALID_FORMAT`, like [upperSnakeCase].
+  static final _lowerSnake = RegExp(r'^[a-z][a-z0-9_]*$');
+
+  static VgrFieldError? lowerSnakeCase(String value) {
+    if (value.trim().isEmpty) return _required;
+    return _lowerSnake.hasMatch(value) ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
+  }
+
+  /// Mirrors the LENGTH rules of `newPasswordSchema`
+  /// (`api/src/shared/security/password-policy.ts`, decision 114):
+  /// `.min(12).max(72)` on the raw value — never trimmed, a space is a
+  /// character of the password. The "too common or predictable" refine is
+  /// NOT mirrored on purpose: shipping the banned list to the client buys
+  /// nothing, and the API answers it as a 422 `INVALID_VALUE` on the
+  /// `password` field, which the form anchors like any server field error.
+  static VgrFieldError? newPassword(String value) {
+    if (value.isEmpty) return _required;
+    if (value.length < 12) return const VgrFieldError(VgrFieldCode.tooShort, {'min': '12'});
+    if (value.length > 72) return const VgrFieldError(VgrFieldCode.tooLong, {'max': '72'});
+    return null;
+  }
+
+  /// Mirrors Zod's `.optional()`: a blank value is an ABSENT field and
+  /// passes; anything typed must satisfy [rule] — e.g. the user update's
+  /// `password: newPasswordSchema.optional()` ("empty keeps the current").
+  static VgrValidator optional(VgrValidator rule) =>
+      (String value) => value.isEmpty ? null : rule(value);
 
   /// Runs each field's validators in order and keeps the first error per
   /// field — the shape a screen puts straight into its `errorText` map.

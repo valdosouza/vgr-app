@@ -20,7 +20,7 @@ class CategoryFormBloc extends Bloc<CategoryFormEvent, CategoryFormState> {
     emit(const CategoryFormLoading());
     final result = await _repository.list();
     result.fold(
-      (failure) => emit(CategoryFormError(failure.message)),
+      (failure) => emit(CategoryFormError(failure)),
       (schemas) => emit(CategoryFormLoaded(schemas)),
     );
   }
@@ -42,11 +42,18 @@ class CategoryFormBloc extends Bloc<CategoryFormEvent, CategoryFormState> {
 
     final result = await _repository.upsert(updatedSchema);
     result.fold(
-      (failure) => emit(CategoryFormError(failure.message)),
-      (_) => emit(CategoryFormLoaded([
-        for (final schema in current.schemas)
-          if (schema.category == event.category) updatedSchema else schema,
-      ])),
+      // Refused: signalled to the bridge (221), the schemas stay as they were.
+      (failure) {
+        emit(CategoryFormActionFailed(failure));
+        emit(current);
+      },
+      (_) {
+        emit(const CategoryFormActionSucceeded());
+        emit(CategoryFormLoaded([
+          for (final schema in current.schemas)
+            if (schema.category == event.category) updatedSchema else schema,
+        ]));
+      },
     );
   }
 }

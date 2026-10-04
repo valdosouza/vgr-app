@@ -35,7 +35,7 @@ class AdminAuditRepositoryImpl implements AdminAuditRepository {
             ...filters.toQueryParameters(),
           },
         );
-        return AuditPageEntity.fromJson(await _apiClient.get(uri.toString()));
+        return PagedResult.fromJson(await _apiClient.get(uri.toString()), AuditListItemEntity.fromJson);
       });
 
   @override

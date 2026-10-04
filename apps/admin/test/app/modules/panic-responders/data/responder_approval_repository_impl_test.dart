@@ -16,22 +16,28 @@ void main() {
     repository = ResponderApprovalRepositoryImpl(apiClient);
   });
 
-  test('listPending returns Right(entities) mapped in full from the API response', () async {
-    when(() => apiClient.get('/api/panic/responder-pool')).thenAnswer(
+  test('listPending asks for a page — never a filter, the row has no text (PS0) — and maps it in full',
+      () async {
+    when(() => apiClient.get('/api/panic/responder-pool?page=2&pageSize=10')).thenAnswer(
       (_) async => {
         'ok': true,
-        'data': [
-          {'id': 1, 'userId': 42, 'status': 'pending', 'criteriaNotes': 'Volunteer firefighter, 5 years'},
-          {'id': 2, 'userId': 43, 'status': 'pending', 'criteriaNotes': null},
-        ],
+        'data': {
+          'items': [
+            {'id': 1, 'userId': 42, 'status': 'pending', 'criteriaNotes': 'Volunteer firefighter, 5 years'},
+            {'id': 2, 'userId': 43, 'status': 'pending', 'criteriaNotes': null},
+          ],
+          'page': 2,
+          'pageSize': 10,
+          'total': 12,
+        },
       },
     );
 
-    final result = await repository.listPending();
+    final result = await repository.listPending(const PagedQuery(page: 2, pageSize: 10, filter: 'ignored'));
 
     result.fold(
       (failure) => fail('expected Right, got Left($failure)'),
-      (entities) => expect(entities, [
+      (page) => expect(page.items, [
         const ResponderApprovalEntity(
           id: 1,
           userId: 42,
@@ -53,9 +59,9 @@ void main() {
       const Failure(message: 'No connectivity'),
     );
 
-    final result = await repository.listPending();
+    final result = await repository.listPending(const PagedQuery());
 
-    expect(result, const Left<Failure, List<ResponderApprovalEntity>>(Failure(message: 'No connectivity')));
+    expect(result.fold((failure) => failure, (_) => null), const Failure(message: 'No connectivity'));
   });
 
   test('resolve(approved: true) reaches the resolve endpoint and returns Right(unit)', () async {

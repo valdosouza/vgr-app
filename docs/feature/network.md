@@ -16,7 +16,7 @@ packages/core/lib/src/
 - **Testing note**: dartz's `Right`/`Left` equality does not deep-compare a wrapped `List` — when asserting a `Right<Failure, List<T>>` in a test, `.fold()` and assert on the unwrapped list, not on the `Either` directly (see `risk_config_repository_impl_test.dart` for the pattern).
 
 ## STATUS
-- `get`, `put`, `post` implemented and tested. `post` was added on demand for admin task 06 (`dual-control-access`'s `create`/`addApproval` are the first admin-side calls that need it — `panic-responders`'s `POST /api/panic/responder-pool` is only ever called by the future mobile app, not by admin, so it didn't force this sooner). REQUIRED next: `delete` when a task first needs it (not yet — add on demand, don't pre-build unused methods).
+- `get`, `put`, `post` implemented and tested. `post` was added on demand for admin task 06 (`dual-control-access`'s request and approval — `create`/`addApproval` back then — were the first admin-side calls that need it — `panic-responders`'s `POST /api/panic/responder-pool` is only ever called by the future mobile app, not by admin, so it didn't force this sooner). REQUIRED next: `delete` when a task first needs it (not yet — add on demand, don't pre-build unused methods).
 - `setToken(String?)` (decision 67) — sets a default token used automatically by `get`/`put`/`post` when no explicit `token` argument is passed; an explicit argument still overrides it. Added so admin login could set the session JWT once, without threading it through every existing repository call site (none of which pass a token today).
 
 ## REFERENCES

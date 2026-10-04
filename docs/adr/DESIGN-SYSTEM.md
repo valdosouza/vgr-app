@@ -68,6 +68,20 @@ the outlet), `VgrDrawer` (the mobile form), `VgrScaffold.drawer` /
 `.leading`, `VgrListTile.selected`, `VgrIconName.logout`. `VgrScaffold`
 stays for the screens OUTSIDE the shell (login, 2FA).
 
+## Register widgets (PS2, 2026-10-04 — decisions 217/220/221)
+
+The admin register factory (`apps/admin/lib/app/shared/register/`) is
+built from these, all translation-free (labels arrive translated):
+`VgrFormShell` (back · title · delete · save over a scrolling body, a
+`VgrPage` underneath — a null save/delete is not drawn; `busy` spins save
+and silences both), `VgrPagingBar` (previous · summary · next + page-size
+picker — the one pager of the panel lists), `VgrSearchBar` (filter field
+submitted by Enter or the magnifier, never per keystroke), `VgrEmptyState`,
+`VgrPage.leading`, `VgrTextField.focusNode` / `.readOnly`, and two dialogs
+— `showVgrAlert` (one button) and `showVgrChoice<T>` (N typed answers).
+Screens do not call the dialogs themselves: they go through the admin's
+feedback bridge (decision 221, see TESTS.md).
+
 ## Enforcement
 
 `apps/admin/test/design_system_guard_test.dart` scans screen code for a
@@ -95,6 +109,9 @@ implementation swap — which is the exact coupling this rule removes.
 ## References
 
 - Catalog: `packages/vgr_widgets/lib/vgr_widgets.dart`
-- Guard: `apps/admin/test/design_system_guard_test.dart`
+- Guard: `apps/admin/test/design_system_guard_test.dart` (its companion for
+  feedback, decision 221: `apps/admin/test/feedback_bridge_guard_test.dart`)
+- Where the register widgets are used: `ARCHITECTURE.md` § ADMIN PANEL,
+  `ADMIN-SCREENS.md`
 - Decision 133: `AI/docs/decisions/VGR-plano.md`
 - Origin: `D:\Gestao2027\Infra-IA\setes-app\prompt_fase1_fundacao.md` §B

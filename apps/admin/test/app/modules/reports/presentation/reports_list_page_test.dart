@@ -113,14 +113,14 @@ void main() {
     await pumpPage(tester);
     await search(tester);
 
-    expect(find.text('Page 1 of 3'), findsOneWidget);
-    expect(tester.widget<VgrSecondaryButton>(find.byKey(const Key('reports-prev'))).onPressed,
+    expect(find.textContaining('Page 1 of 3 ·'), findsOneWidget);
+    expect(tester.widget<VgrIconButton>(find.byKey(VgrPagingBar.previousKey)).onPressed,
         isNull);
 
-    await tester.tap(find.byKey(const Key('reports-next')));
+    await tester.tap(find.byKey(VgrPagingBar.nextKey));
     await tester.pumpAndSettle();
 
-    expect(find.text('Page 2 of 3'), findsOneWidget);
+    expect(find.textContaining('Page 2 of 3 ·'), findsOneWidget);
     expect(find.byKey(const Key('report-row-8')), findsOneWidget);
     verify(() => repository.search(any(), 2, 20)).called(1);
   });
