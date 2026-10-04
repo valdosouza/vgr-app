@@ -88,6 +88,18 @@ its entity, a draft class, a repository implementing `RegisterRepository<T, D>` 
   at a time (dialog + focus), server `fields[]` anchored on the field of the same name.
 - Privileges: "new" by INSERT, save by INSERT/UPDATE, delete by DELETE; without UPDATE a
   row opens read-only. Delete always after `askDecision`.
+- Workflow screens that are not CRUDs (PS3 — the Legal Gate kill switch and rule approval,
+  the responder queue) use the factory's LIST half alone: `PagedListBloc<T>` (query, last
+  page, quiet reload, `act()` for a row action → signal to the bridge + quiet reload) and
+  `PagedListScreen<T, B>`; their row actions are `RegisterEvent` subclasses. A CRUD that is
+  only added to (versioned Legal Gate rules) subclasses `RegisterBloc`, is provided under the
+  base type and opens no rows (`openRows: false`).
+- Field kinds: text, flag, choice (dropdown), checklist (ids; `ordered` = click order, e.g. a
+  menu module's screens); `visibleWhen` shows a field only for some values (a rule's reason).
+  Small catalogs a form picks from load once beside the list (`RegisterLookupCubit<O>`).
+- Flow screens with their own blocs (dual-control, case-freeze, reward-mediation, report
+  detail, moderation queue, the fixed catalogs) hand action outcomes to the bridge from a
+  listener; lookup/load errors stay as screen state.
 - Adapted from setes on purpose: `CurrentInterface` is passed by key, not a global written
   by navigation (the shell's `MenuBloc` already owns the selection and a global goes stale
   on refresh/deep link), and page titles stay their own translation keys instead of

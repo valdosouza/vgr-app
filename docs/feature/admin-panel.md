@@ -19,9 +19,16 @@
 ## REGISTER FACTORY (PS2, 2026-10-04 — decisions 217/220/221)
 
 - `app/shared/register/`: `RegisterScreen<T, D>` wires a whole CRUD screen — `RegisterSearchPage` (filter, rows, empty state, `VgrPagingBar`, "new" by INSERT) and `RegisterFormPage` (`VgrFormShell`; one pendency at a time; server `fields[]` anchored; delete by DELETE after `askDecision`; read-only without UPDATE), alternating by the state of a `RegisterBloc<T, D>` on ONE route. Architecture: `docs/adr/ARCHITECTURE.md` § ADMIN REGISTER FACTORY.
-- `app/shared/feedback/`: the bridge — `showSuccessFeedback`, `showFailureFeedback` (no status / 5xx → dialog; 4xx → transient message, translated by code), `showValidationFeedback`, `askDecision` (yes/no[/cancel]). Guarded by `feedback_bridge_guard_test.dart` (decision 221); `interfaces` and `system-modules` are the two screens still pending (PS3).
+- `app/shared/feedback/`: the bridge — `showSuccessFeedback`, `showFailureFeedback` (no status / 5xx → dialog; 4xx → transient message, translated by code), `showValidationFeedback`, `askDecision` (yes/no[/cancel]). Guarded by `feedback_bridge_guard_test.dart` (decision 221) — strict since PS3: no screen of the panel shows a dialog or a snack bar on its own.
 - `app/shared/session/current_interface.dart`: the privileges of the screen being drawn, by `tb_interface.i18n_key`.
 - **Pilots**: `privileges` (paged list filtered by identifier; form validated as `privilegeSaveDto` — 2..60 chars, UPPER_SNAKE_CASE) and `users` (form out of the dialog; `userCreateDto`/`userUpdateDto` mirrors — initial password 12..72 required on create, empty keeps it on edit; `SELF_LOCKOUT` through the bridge; the privilege-matrix button per row by the `user_privileges` grant). The user update now echoes the saved `locale`: the API writes `locale` on every update and nulls an absent one, so editing a user's name used to wipe their language.
+
+## PS3 — every screen on the factory or the bridge (2026-10-04)
+
+- On the register factory (list ↔ form): `privileges`, `users` (PS2), `interfaces` (privileges as a checklist from the catalog lookup), `system-modules` (screens as an ORDERED checklist — check order = menu order).
+- Paged workflow lists (`PagedListScreen`): Legal Gate jurisdictions (kill switch + dual-control confirm per row) and capabilities (per jurisdiction chosen in the header), the responder queue (no filter). Legal Gate rules: factory with a propose-only form (reason shown and required only for a non-allowed status) and approve/reject per row; rows never open.
+- Fixed catalogs (`risk-config`, `category-forms`, `monetization-config` — unpaged by decision 220) and flows (`dual-control-access`, `case-freeze`, `reward-mediation`, report detail, moderation queue): outcomes through the bridge; a refused action keeps the screen as it was (several used to fall into an error screen or drop the work in progress).
+- One paging type (`PagedResult<T>`) and one pager (`VgrPagingBar`) for every paged list, including reports, the moderation queue and the audit trail.
 
 ## STRUCTURE
 ```

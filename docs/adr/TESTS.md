@@ -71,7 +71,7 @@ for `showVgr*`, `showDialog` and `ScaffoldMessenger` outside
 guard. Screens call `showSuccessFeedback` / `showFailureFeedback` /
 `showValidationFeedback` / `askDecision`; the bridge picks the severity
 from the `Failure` (no status or 5xx → dialog; 4xx → transient message).
-Screens not migrated yet sit in the guard's `pendingMigration` set, which
-only shrinks: a second test fails when a listed file no longer offends.
-PS3 empties it.
+PS2 introduced it with a shrinking list of screens pending migration;
+PS3 (2026-10-04) emptied that list, so the rule now holds for the whole
+panel with no exception.
 
