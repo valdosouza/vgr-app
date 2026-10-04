@@ -10,18 +10,21 @@ class ResponderApprovalRepositoryImpl implements ResponderApprovalRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<Either<Failure, List<ResponderApprovalEntity>>> listPending() async {
+  Future<Either<Failure, PagedResult<ResponderApprovalEntity>>> listPending(PagedQuery query) async {
     try {
-      final json = await _apiClient.get('/api/panic/responder-pool');
-      final rows = json['data'] as List<dynamic>;
-      return Right(rows
-          .map((row) => ResponderApprovalEntity(
-                id: row['id'] as int,
-                userId: row['userId'] as int,
-                status: ResponderApprovalStatusJson.fromJson(row['status'] as String),
-                criteriaNotes: row['criteriaNotes'] as String?,
-              ))
-          .toList());
+      // The queue has no text to match: only page and size travel.
+      final json = await _apiClient.get(
+        '/api/panic/responder-pool?${PagedQuery(page: query.page, pageSize: query.pageSize).toQueryString()}',
+      );
+      return Right(PagedResult.fromJson(
+        json['data'] as Map<String, dynamic>,
+        (row) => ResponderApprovalEntity(
+          id: row['id'] as int,
+          userId: row['userId'] as int,
+          status: ResponderApprovalStatusJson.fromJson(row['status'] as String),
+          criteriaNotes: row['criteriaNotes'] as String?,
+        ),
+      ));
     } on Failure catch (f) {
       return Left(f);
     }

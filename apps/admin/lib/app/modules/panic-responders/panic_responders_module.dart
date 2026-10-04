@@ -5,7 +5,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'data/responder_approval_repository_impl.dart';
 import 'domain/repository/responder_approval_repository.dart';
 import 'presentation/bloc/responder_approval_bloc.dart';
-import 'presentation/bloc/responder_approval_event.dart';
 import 'presentation/page/responder_approval_queue_page.dart';
 
 class PanicRespondersModule extends Module {
@@ -25,8 +24,8 @@ class PanicRespondersModule extends Module {
         // so the ROUTE must provide it — the page tests wrap a provider
         // themselves and never caught this (found live 2026-09-21: every
         // phase-1 screen threw ProviderNotFound on open).
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<ResponderApprovalBloc>()..add(const FetchRequested()),
+          child: (_, __) => BlocProvider<ResponderApprovalBloc>(
+            create: (_) => Modular.get<ResponderApprovalBloc>()..add(const RegisterListRequested()),
             child: const ResponderApprovalQueuePage(),
           ),
           guards: [AdminSessionGuard(Modular.get<IdentityBloc>())],

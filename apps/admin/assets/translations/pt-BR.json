@@ -99,7 +99,11 @@
   "panicResponders": {
     "title": "Respondedores de Pânico",
     "noPending": "Nenhuma solicitação pendente",
-    "user": "Usuário nº {}"
+    "user": "Usuário nº {}",
+    "approve": "Aprovar",
+    "deny": "Negar",
+    "approved": "Pedido aprovado.",
+    "denied": "Pedido negado."
   },
   "legal": {
     "blockedTitle": "Indisponível nesta jurisdição",
@@ -645,6 +649,7 @@
     "globalDefault": "Padrão global",
     "feePercent": "Taxa %",
     "allowPeerToPeer": "Permitir ponta-a-ponta",
-    "save": "Salvar"
+    "save": "Salvar",
+    "feePercentRange": "Entre 0 e 100."
   }
 }

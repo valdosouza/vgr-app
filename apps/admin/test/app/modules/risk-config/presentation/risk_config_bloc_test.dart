@@ -50,10 +50,14 @@ void main() {
 
     expectLater(
       bloc.stream,
-      emits(const RiskConfigLoaded([
-        RiskTierConfigEntity(category: 'trafficking', tier: RiskTier.medium),
-        RiskTierConfigEntity(category: 'traffic', tier: RiskTier.low),
-      ])),
+      emitsInOrder([
+        // One-shot for the feedback bridge (decision 221), then the row.
+        const RiskConfigActionSucceeded(),
+        const RiskConfigLoaded([
+          RiskTierConfigEntity(category: 'trafficking', tier: RiskTier.medium),
+          RiskTierConfigEntity(category: 'traffic', tier: RiskTier.low),
+        ]),
+      ]),
     );
 
     bloc.add(const TierEdited(category: 'trafficking', tier: RiskTier.medium));
@@ -63,5 +67,22 @@ void main() {
     // list, which is the "no full page reload" guarantee.
     await Future<void>.delayed(Duration.zero);
     verify(() => repository.list()).called(1);
+  });
+
+  test('a refused edit is signalled and the list stays as it was (it used to become an error screen)',
+      () async {
+    const refused = Failure(message: 'Forbidden', statusCode: 403, code: 'FORBIDDEN');
+    when(() => repository.list()).thenAnswer((_) async => const Right(items));
+    when(() => repository.upsert('trafficking', RiskTier.low)).thenAnswer((_) async => const Left(refused));
+
+    bloc.add(const FetchRequested());
+    await bloc.stream.firstWhere((s) => s is RiskConfigLoaded);
+
+    expectLater(
+      bloc.stream,
+      emitsInOrder([const RiskConfigActionFailed(refused), const RiskConfigLoaded(items)]),
+    );
+
+    bloc.add(const TierEdited(category: 'trafficking', tier: RiskTier.low));
   });
 }

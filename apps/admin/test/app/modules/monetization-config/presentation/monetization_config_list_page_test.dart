@@ -91,4 +91,18 @@ void main() {
     verify(() => feeRuleRepository.upsert('lost_pet', 3, {PaymentMode.intermediated})).called(1);
     verify(() => feeRuleRepository.list()).called(1);
   });
+
+  testWidgets('a fee outside 0..100 is a validation pendency, never a silent no-op', (tester) async {
+    when(() => feeRuleRepository.list()).thenAnswer((_) async => const Right(rules));
+    when(() => riskConfigRepository.list()).thenAnswer((_) async => const Right(riskTiers));
+
+    await pumpPage(tester);
+
+    await tester.enterText(find.byKey(const Key('fee-percent-field-lost_pet')), '150');
+    await tester.tap(find.byKey(const Key('save-button-lost_pet')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    verifyNever(() => feeRuleRepository.upsert(any(), any(), any()));
+  });
 }

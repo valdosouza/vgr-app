@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/fee_rule_entity.dart';
+import '../../../../shared/feedback/feedback.dart';
 import '../bloc/monetization_config_bloc.dart';
 import '../bloc/monetization_config_event.dart';
 import '../bloc/monetization_config_state.dart';
@@ -17,11 +18,31 @@ class MonetizationConfigListPage extends StatelessWidget {
     return VgrPage(
       title: 'monetization.title'.tr(),
       padded: false,
-      body: BlocBuilder<MonetizationConfigBloc, MonetizationConfigState>(
+      body: BlocConsumer<MonetizationConfigBloc, MonetizationConfigState>(
+        // Edits answer through the feedback bridge (decision 221); the
+        // list never gives way to an error screen because of one.
+        listenWhen: (_, state) => state is MonetizationConfigActionFailed || state is MonetizationConfigActionSucceeded,
+        listener: (context, state) => switch (state) {
+          MonetizationConfigActionFailed(:final failure) => showFailureFeedback(context, failure),
+          _ => showSuccessFeedback(context, 'register.saved'.tr()),
+        },
+        buildWhen: (_, state) => state is! MonetizationConfigActionFailed && state is! MonetizationConfigActionSucceeded,
         builder: (context, state) {
           return switch (state) {
             MonetizationConfigLoading() => const VgrLoading(),
-            MonetizationConfigError(:final message) => VgrCenter(child: VgrText.error(message)),
+            MonetizationConfigError(:final failure) => VgrCenter(
+                child: VgrColumn(children: [
+                  VgrText.error(failureText(failure), key: const Key('catalog-load-error')),
+                  const VgrGap.md(),
+                  VgrSecondaryButton(
+                    key: const Key('catalog-retry-button'),
+                    label: 'register.retry'.tr(),
+                    onPressed: () => context.read<MonetizationConfigBloc>().add(const FetchRequested()),
+                  ),
+                ]),
+              ),
+            // One-shots never reach the builder (buildWhen).
+            MonetizationConfigActionFailed() || MonetizationConfigActionSucceeded() => const VgrLoading(),
             MonetizationConfigLoaded(:final rules, :final isHighTier) => VgrListView(
                 children: [
                   for (final rule in rules)
@@ -100,8 +121,16 @@ class _FeeRuleRowState extends State<_FeeRuleRow> {
         onPressed: !SessionAccess.instance.can('monetization_config', Privileges.update)
             ? null
             : () {
-                final feePercent = double.tryParse(_feePercentController.text);
-                if (feePercent == null) return;
+                // Mirrors feeRuleUpdateDto.feePercent (0..100); a wrong value
+                // used to be dropped in silence.
+                final feePercent = double.tryParse(_feePercentController.text.trim().replaceAll(',', '.'));
+                if (feePercent == null || feePercent < 0 || feePercent > 100) {
+                  showValidationFeedback(
+                    context,
+                    '${'monetization.feePercent'.tr()}: ${'monetization.feePercentRange'.tr()}',
+                  );
+                  return;
+                }
                 context.read<MonetizationConfigBloc>().add(RuleEdited(
                       category: widget.rule.category,
                       feePercent: feePercent,

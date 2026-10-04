@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../risk-config/domain/repository/risk_config_repository.dart';
@@ -26,9 +27,9 @@ class MonetizationConfigBloc extends Bloc<MonetizationConfigEvent, MonetizationC
     final riskTiersResult = await _riskConfigRepository.list();
 
     rulesResult.fold(
-      (failure) => emit(MonetizationConfigError(failure.message)),
+      (failure) => emit(MonetizationConfigError(failure)),
       (rules) => riskTiersResult.fold(
-        (failure) => emit(MonetizationConfigError(failure.message)),
+        (failure) => emit(MonetizationConfigError(failure)),
         (riskTiers) => emit(MonetizationConfigLoaded(
           rules,
           {for (final r in riskTiers) r.category: r.tier},
@@ -50,15 +51,23 @@ class MonetizationConfigBloc extends Bloc<MonetizationConfigEvent, MonetizationC
     if (event.category != null &&
         current.isHighTier(event.category!) &&
         event.paymentModeAllowed.contains(PaymentMode.peerToPeer)) {
-      emit(const MonetizationConfigError(
-        'High-tier Categories cannot allow peer_to_peer payment (decision 58)',
-      ));
+      // The same refusal the API gives (422 BUSINESS_RULE), so the bridge
+      // treats it alike; the list stays.
+      emit(const MonetizationConfigActionFailed(Failure(
+        message: 'High-risk categories cannot allow peer_to_peer payment',
+        statusCode: 422,
+        code: 'BUSINESS_RULE',
+      )));
+      emit(current);
       return;
     }
 
     final result = await _feeRuleRepository.upsert(event.category, event.feePercent, event.paymentModeAllowed);
     result.fold(
-      (failure) => emit(MonetizationConfigError(failure.message)),
+      (failure) {
+        emit(MonetizationConfigActionFailed(failure));
+        emit(current);
+      },
       (_) {
         final updated = FeeRuleEntity(
           category: event.category,
@@ -69,6 +78,7 @@ class MonetizationConfigBloc extends Bloc<MonetizationConfigEvent, MonetizationC
         final updatedRules = hadRule
             ? [for (final rule in current.rules) if (rule.category == event.category) updated else rule]
             : [...current.rules, updated];
+        emit(const MonetizationConfigActionSucceeded());
         emit(MonetizationConfigLoaded(updatedRules, current.riskTiers));
       },
     );
