@@ -612,7 +612,9 @@
     "i18nKey": "Stable key (lower_snake_case)",
     "groupDefault": "Default group",
     "position": "Position",
-    "privileges": "Screen privileges"
+    "privileges": "Screen privileges",
+    "newTitle": "New screen",
+    "editTitle": "Screen {}"
   },
   "systemModules": {
     "title": "System Modules",
@@ -620,7 +622,10 @@
     "i18nKey": "Translation key (optional)",
     "imageIcon": "Icon (optional)",
     "position": "Position",
-    "interfaces": "Screens in this module (menu order)"
+    "interfaces": "Screens in this module (menu order)",
+    "newTitle": "New module",
+    "editTitle": "Module {}",
+    "screenCount": "{} screens"
   },
   "users": {
     "title": "Users",

@@ -10,11 +10,10 @@ class SystemModuleRepositoryImpl implements SystemModuleRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<Either<Failure, List<SystemModuleEntity>>> list() async {
+  Future<Either<Failure, PagedResult<SystemModuleEntity>>> list(PagedQuery query) async {
     try {
-      final json = await _apiClient.get('/api/system-modules');
-      final data = json['data'] as List<dynamic>? ?? const [];
-      return Right(data.map((m) => SystemModuleEntity.fromJson(m as Map<String, dynamic>)).toList());
+      final json = await _apiClient.get('/api/system-modules?${query.toQueryString()}');
+      return Right(PagedResult.fromJson(json['data'] as Map<String, dynamic>, SystemModuleEntity.fromJson));
     } on Failure catch (f) {
       return Left(f);
     }
@@ -32,9 +31,9 @@ class SystemModuleRepositoryImpl implements SystemModuleRepository {
   }
 
   @override
-  Future<Either<Failure, SystemModuleEntity>> create(SystemModuleEntity input) async {
+  Future<Either<Failure, SystemModuleEntity>> create(SystemModuleDraft draft) async {
     try {
-      final json = await _apiClient.post('/api/system-modules', input.toJson());
+      final json = await _apiClient.post('/api/system-modules', draft.toJson());
       return Right(SystemModuleEntity.fromJson(json['data'] as Map<String, dynamic>));
     } on Failure catch (f) {
       return Left(f);
@@ -42,9 +41,9 @@ class SystemModuleRepositoryImpl implements SystemModuleRepository {
   }
 
   @override
-  Future<Either<Failure, SystemModuleEntity>> update(SystemModuleEntity input) async {
+  Future<Either<Failure, SystemModuleEntity>> update(SystemModuleEntity current, SystemModuleDraft draft) async {
     try {
-      final json = await _apiClient.put('/api/system-modules/${input.id}', input.toJson());
+      final json = await _apiClient.put('/api/system-modules/${current.id}', draft.toJson());
       return Right(SystemModuleEntity.fromJson(json['data'] as Map<String, dynamic>));
     } on Failure catch (f) {
       return Left(f);
@@ -52,9 +51,9 @@ class SystemModuleRepositoryImpl implements SystemModuleRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> delete(int id) async {
+  Future<Either<Failure, Unit>> delete(SystemModuleEntity item) async {
     try {
-      await _apiClient.delete('/api/system-modules/$id');
+      await _apiClient.delete('/api/system-modules/${item.id}');
       return const Right(unit);
     } on Failure catch (f) {
       return Left(f);

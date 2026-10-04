@@ -8,20 +8,15 @@ import 'package:flutter_test/flutter_test.dart';
 /// mechanics as the design-system guard (decision 133): the bridge decides
 /// severity from the `Failure`, so a screen calling a dialog or a snack bar
 /// directly is a screen deciding severity on its own.
+///
+/// PS2 introduced it with a list of screens pending migration; PS3 emptied
+/// that list, so the rule now holds with no exception.
 void main() {
   /// Calls that belong to the bridge alone.
   final banned = RegExp(r'(?<![A-Za-z0-9_])(showVgr\w*|showDialog|ScaffoldMessenger)\s*[(<.]');
 
-  /// Screens not migrated yet (PS3 of plano-painel-modelo-setes.md moves
-  /// each onto the register factory). This list only SHRINKS: a file that
-  /// no longer offends must leave it, which the second test enforces.
-  const pendingMigration = <String>{
-    'lib/app/modules/interfaces/presentation/page/interface_page.dart',
-    'lib/app/modules/system-modules/presentation/page/system_module_page.dart',
-  };
-
-  Map<String, List<String>> offenders() {
-    final found = <String, List<String>>{};
+  test('no screen shows a dialog or a snack bar outside the feedback bridge (decision 221)', () {
+    final offenders = <String>[];
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       final path = entity.path.replaceAll('\\', '/');
@@ -31,38 +26,16 @@ void main() {
       final lines = entity.readAsLinesSync();
       for (var index = 0; index < lines.length; index++) {
         final code = lines[index].split('//').first;
-        if (banned.hasMatch(code)) {
-          found.putIfAbsent(path, () => []).add('$path:${index + 1}');
-        }
+        if (banned.hasMatch(code)) offenders.add('$path:${index + 1}');
       }
     }
-    return found;
-  }
-
-  test('no screen shows a dialog or a snack bar outside the feedback bridge (decision 221)', () {
-    final unexpected = offenders().entries
-        .where((entry) => !pendingMigration.contains(entry.key))
-        .expand((entry) => entry.value)
-        .toList();
 
     expect(
-      unexpected,
+      offenders,
       isEmpty,
       reason: 'Direct feedback calls found. Decision 221 requires the bridge in '
           'lib/app/shared/feedback/ (showSuccessFeedback / showFailureFeedback / '
-          'showValidationFeedback / askDecision):\n${unexpected.join('\n')}',
-    );
-  });
-
-  test('the pending-migration list holds only files that still offend', () {
-    final stillOffending = offenders().keys.toSet();
-    final stale = pendingMigration.difference(stillOffending);
-
-    expect(
-      stale,
-      isEmpty,
-      reason: 'These files no longer call feedback directly — remove them from '
-          'pendingMigration so the guard covers them:\n${stale.join('\n')}',
+          'showValidationFeedback / askDecision):\n${offenders.join('\n')}',
     );
   });
 }

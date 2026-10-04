@@ -10,11 +10,10 @@ class InterfaceRepositoryImpl implements InterfaceRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<Either<Failure, List<InterfaceEntity>>> list() async {
+  Future<Either<Failure, PagedResult<InterfaceEntity>>> list(PagedQuery query) async {
     try {
-      final json = await _apiClient.get('/api/interfaces');
-      final data = json['data'] as List<dynamic>? ?? const [];
-      return Right(data.map((i) => InterfaceEntity.fromJson(i as Map<String, dynamic>)).toList());
+      final json = await _apiClient.get('/api/interfaces?${query.toQueryString()}');
+      return Right(PagedResult.fromJson(json['data'] as Map<String, dynamic>, InterfaceEntity.fromJson));
     } on Failure catch (f) {
       return Left(f);
     }
@@ -32,9 +31,9 @@ class InterfaceRepositoryImpl implements InterfaceRepository {
   }
 
   @override
-  Future<Either<Failure, InterfaceEntity>> create(InterfaceEntity input) async {
+  Future<Either<Failure, InterfaceEntity>> create(InterfaceDraft draft) async {
     try {
-      final json = await _apiClient.post('/api/interfaces', input.toJson());
+      final json = await _apiClient.post('/api/interfaces', draft.toJson());
       return Right(InterfaceEntity.fromJson(json['data'] as Map<String, dynamic>));
     } on Failure catch (f) {
       return Left(f);
@@ -42,9 +41,9 @@ class InterfaceRepositoryImpl implements InterfaceRepository {
   }
 
   @override
-  Future<Either<Failure, InterfaceEntity>> update(InterfaceEntity input) async {
+  Future<Either<Failure, InterfaceEntity>> update(InterfaceEntity current, InterfaceDraft draft) async {
     try {
-      final json = await _apiClient.put('/api/interfaces/${input.id}', input.toJson());
+      final json = await _apiClient.put('/api/interfaces/${current.id}', draft.toJson());
       return Right(InterfaceEntity.fromJson(json['data'] as Map<String, dynamic>));
     } on Failure catch (f) {
       return Left(f);
@@ -52,9 +51,9 @@ class InterfaceRepositoryImpl implements InterfaceRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> delete(int id) async {
+  Future<Either<Failure, Unit>> delete(InterfaceEntity item) async {
     try {
-      await _apiClient.delete('/api/interfaces/$id');
+      await _apiClient.delete('/api/interfaces/${item.id}');
       return const Right(unit);
     } on Failure catch (f) {
       return Left(f);

@@ -28,6 +28,28 @@ class SystemModuleEntity extends Equatable {
         interfaceIds: (json['interfaceIds'] as List<dynamic>? ?? const []).cast<int>(),
       );
 
+  @override
+  List<Object?> get props => [id, description, i18nKey, imageIcon, position, interfaceIds];
+}
+
+/// What the module form saves (`systemModuleSaveDto`).
+class SystemModuleDraft extends Equatable {
+  const SystemModuleDraft({
+    required this.description,
+    required this.position,
+    required this.interfaceIds,
+    this.i18nKey,
+    this.imageIcon,
+  });
+
+  final String description;
+  final String? i18nKey;
+  final String? imageIcon;
+  final int position;
+
+  /// Menu order = list order.
+  final List<int> interfaceIds;
+
   Map<String, dynamic> toJson() => {
         'description': description,
         'i18nKey': i18nKey,
@@ -37,7 +59,7 @@ class SystemModuleEntity extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, description, i18nKey, imageIcon, position, interfaceIds];
+  List<Object?> get props => [description, i18nKey, imageIcon, position, interfaceIds];
 }
 
 /// Screen option for the module's link list (own lookup — a module never

@@ -34,6 +34,30 @@ class InterfaceEntity extends Equatable {
         privilegeIds: (json['privilegeIds'] as List<dynamic>? ?? const []).cast<int>(),
       );
 
+  @override
+  List<Object?> get props => [id, description, i18nKey, groupDefault, kind, position, privilegeIds];
+}
+
+/// What the interface form saves (`interfaceSaveDto`).
+class InterfaceDraft extends Equatable {
+  const InterfaceDraft({
+    required this.description,
+    required this.i18nKey,
+    required this.groupDefault,
+    required this.kind,
+    required this.position,
+    required this.privilegeIds,
+  });
+
+  final String description;
+  final String i18nKey;
+  final String groupDefault;
+
+  /// Carried, never edited (see [InterfaceEntity.kind]).
+  final String kind;
+  final int position;
+  final List<int> privilegeIds;
+
   Map<String, dynamic> toJson() => {
         'description': description,
         'i18nKey': i18nKey,
@@ -44,7 +68,7 @@ class InterfaceEntity extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, description, i18nKey, groupDefault, kind, position, privilegeIds];
+  List<Object?> get props => [description, i18nKey, groupDefault, kind, position, privilegeIds];
 }
 
 /// Privilege option for the screen's checkbox list. Duplicated from the

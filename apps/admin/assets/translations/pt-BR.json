@@ -612,7 +612,9 @@
     "i18nKey": "Chave estável (minuscula_com_underscore)",
     "groupDefault": "Grupo padrão",
     "position": "Posição",
-    "privileges": "Privilégios da tela"
+    "privileges": "Privilégios da tela",
+    "newTitle": "Nova tela",
+    "editTitle": "Tela {}"
   },
   "systemModules": {
     "title": "Módulos do Sistema",
@@ -620,7 +622,10 @@
     "i18nKey": "Chave de tradução (opcional)",
     "imageIcon": "Ícone (opcional)",
     "position": "Posição",
-    "interfaces": "Telas deste módulo (ordem do menu)"
+    "interfaces": "Telas deste módulo (ordem do menu)",
+    "newTitle": "Novo módulo",
+    "editTitle": "Módulo {}",
+    "screenCount": "{} telas"
   },
   "users": {
     "title": "Usuários",
