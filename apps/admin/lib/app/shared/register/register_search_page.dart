@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
+import 'page_summary.dart';
 
 /// What one list row shows — the factory builds the tile, so every list
 /// taps, keys and spaces its rows the same way.
@@ -144,11 +145,7 @@ class _RegisterSearchPageState<T> extends State<RegisterSearchPage<T>> {
               child: VgrPagingBar(
                 page: page.page,
                 pageCount: page.pageCount,
-                summary: 'register.pageSummary'.tr(namedArgs: {
-                  'page': '${page.page}',
-                  'pages': '${page.pageCount}',
-                  'total': '${page.total}',
-                }),
+                summary: pageSummary(page),
                 onPageChanged: widget.onPageChanged ?? (_) {},
                 previousTooltip: 'register.previousPage'.tr(),
                 nextTooltip: 'register.nextPage'.tr(),

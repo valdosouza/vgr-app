@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -115,6 +116,41 @@ void main() {
     // No module picked yet → no second column.
     expect(find.byKey(const Key('shell-screens-column')), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the menu is in the semantics tree beside the outlet — screen readers reach it '
+      '(browser test of 2026-10-04)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpShell(tester);
+
+    // The outlet's route barrier used to block every sibling painted before
+    // it: the whole menu was missing, only the outlet's content remained.
+    expect(find.semantics.byLabel('Operations'), findsOne);
+    expect(find.semantics.byLabel('Administration'), findsOne);
+    expect(find.semantics.byLabel('Welcome'), findsOne);
+
+    await tester.tap(find.byKey(const Key('menu-module-Operations')));
+    await tester.pumpAndSettle();
+    expect(find.semantics.byLabel('Risk Config'), findsOne);
+    semantics.dispose();
+  });
+
+  testWidgets('switching the language repaints the open screen, not only the selector '
+      '(browser test of 2026-10-04)', (tester) async {
+    await pumpShell(tester);
+    await tester.tap(find.byKey(const Key('menu-module-Operations')));
+    await tester.pumpAndSettle();
+    expect(find.text('Welcome'), findsOneWidget);
+    expect(find.text('Operations'), findsOneWidget);
+
+    await tester.element(find.byKey(const Key('home-welcome'))).setLocale(const Locale('pt', 'BR'));
+    await tester.pumpAndSettle();
+
+    // The outlet's content and the menu, not just the widgets that read the
+    // locale, follow the switch.
+    expect(find.text('Bem-vindo'), findsOneWidget);
+    expect(find.text('Welcome'), findsNothing);
+    expect(find.text('Operações'), findsOneWidget);
   });
 
   testWidgets('clicking a module shows its screens; clicking a screen opens it in the outlet '

@@ -112,12 +112,25 @@ factory screen: `docs/adr/TESTS.md`.
 - 2026-10-04 — round 19 (230–233): every date on the panel (and the mobile app) is shown
   in local time through core's `formatLocalDateTime` instead of a cut of the UTC string;
   the user edit stopped echoing `locale`.
+- 2026-10-04 — first browser test since the PS front (Chromium on the release web build,
+  MariaDB + API, two admins with TOTP): login/2FA, menu, registers, paging/filter, dual
+  control between two people, audit trail, sign-out, drawer and language all worked. Fixed
+  on the way: the whole menu was missing from the semantics tree (the outlet's route barrier
+  blocked it — screen readers could not reach it; `VgrSidebarLayout` now isolates the
+  content), a language switch left the open screen in the old language (`LocaleRefresh`), and
+  the pager said "1 registros" (`pageSummary`, pluralized).
 
 ## OPEN POINTS
 - `category-forms` still appends a placeholder field instead of a field editor, and
   `monetization-config` edits only rows the API already returned (documented gaps of
   phase 1).
 - `IdentityBloc` is bound per app (in `AppModule`) rather than in a shared core module.
+- `reward-mediation` has a route but no way in: `reward_mediation` is cataloged as a kind-'R'
+  resource (migration 035), so it is never on the menu, and no other screen links to it —
+  only the URL reaches it (pending a decision).
+- Date filters (admin audit "from/to", report search) are sent as calendar days the API
+  reads in UTC, while every date on screen is local since decision 232 — near midnight a
+  row can fall outside the day the operator typed (pending a decision).
 
 ## REFERENCES
 - [**README.md**](../README.md): Documentation navigation index.

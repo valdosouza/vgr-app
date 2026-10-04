@@ -22,6 +22,7 @@ export 'src/paging/paged_result.dart';
 export 'src/preference/data/preference_repository_impl.dart';
 export 'src/preference/domain/preference_repository.dart';
 export 'src/preference/presentation/language_selector.dart';
+export 'src/preference/presentation/locale_refresh.dart';
 export 'src/preference/presentation/locale_sync.dart';
 export 'src/risk/risk_tier.dart';
 export 'src/session/data/current_user_repository_impl.dart';

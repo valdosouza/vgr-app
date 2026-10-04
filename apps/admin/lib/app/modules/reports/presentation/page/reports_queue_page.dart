@@ -10,6 +10,7 @@ import '../../domain/entity/report_entities.dart';
 import '../bloc/reports_queue_bloc.dart';
 import '../bloc/reports_queue_event.dart';
 import '../bloc/reports_queue_state.dart';
+import '../../../../shared/register/page_summary.dart';
 
 /// Proactive moderation queue (B3, decision 161): what needs human eyes,
 /// in the SERVER's order — tier high → medium → low, media first inside a
@@ -137,11 +138,7 @@ class _ReportsQueuePageState extends State<ReportsQueuePage> {
     return VgrPagingBar(
       page: page.page,
       pageCount: page.pageCount,
-      summary: 'register.pageSummary'.tr(namedArgs: {
-        'page': '${page.page}',
-        'pages': '${page.pageCount}',
-        'total': '${page.total}',
-      }),
+      summary: pageSummary(page),
       previousTooltip: 'register.previousPage'.tr(),
       nextTooltip: 'register.nextPage'.tr(),
       onPageChanged: (number) => bloc.add(ReportsQueuePageRequested(number)),

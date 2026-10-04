@@ -579,10 +579,15 @@
     "deleted": "Record deleted.",
     "confirmDeleteTitle": "Confirm deletion",
     "confirmDeleteMessage": "This action cannot be undone. Delete this record?",
-    "pageSummary": "Page {page} of {pages} · {total} records",
+    "pageSummary": "Page {page} of {pages} · {records}",
     "previousPage": "Previous page",
     "nextPage": "Next page",
-    "pageSize": "Per page"
+    "pageSize": "Per page",
+    "records": {
+      "zero": "{} records",
+      "one": "{} record",
+      "other": "{} records"
+    }
   },
   "feedback": {
     "ok": "OK",

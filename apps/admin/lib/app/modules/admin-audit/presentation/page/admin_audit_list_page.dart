@@ -10,6 +10,7 @@ import '../../domain/entity/admin_audit_entities.dart';
 import '../bloc/admin_audit_list_bloc.dart';
 import '../bloc/admin_audit_list_event.dart';
 import '../bloc/admin_audit_list_state.dart';
+import '../../../../shared/register/page_summary.dart';
 
 /// Sentinel for "no filter" in the facet dropdowns — the query simply
 /// omits the parameter.
@@ -252,11 +253,7 @@ class _AdminAuditListPageState extends State<AdminAuditListPage> {
     return VgrPagingBar(
       page: page.page,
       pageCount: page.pageCount,
-      summary: 'register.pageSummary'.tr(namedArgs: {
-        'page': '${page.page}',
-        'pages': '${page.pageCount}',
-        'total': '${page.total}',
-      }),
+      summary: pageSummary(page),
       previousTooltip: 'register.previousPage'.tr(),
       nextTooltip: 'register.nextPage'.tr(),
       onPageChanged: (number) => bloc.add(AdminAuditPageRequested(number)),
