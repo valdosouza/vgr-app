@@ -73,6 +73,14 @@ abstract class PagedListBloc<T> extends Bloc<RegisterEvent, RegisterState<T>> {
     );
   }
 
+  /// Back to page 1 of the current filter and fetch — for a subclass whose
+  /// own parameter changed (the capability overview's jurisdiction).
+  @protected
+  Future<void> restart(Emitter<RegisterState<T>> emit) {
+    _query = _query.copyWith(page: 1);
+    return reload(emit);
+  }
+
   /// Runs a row action and reports it: a failure is signalled, a success
   /// too when [successKey] is given (a translation key), and then the list
   /// is reloaded QUIETLY either way — the server owns the semantics (a

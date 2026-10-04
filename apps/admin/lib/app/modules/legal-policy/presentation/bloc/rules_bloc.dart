@@ -1,38 +1,17 @@
 import 'package:core/core.dart';
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../shared/register/register_bloc.dart';
 import '../../domain/entity/legal_policy_entities.dart';
 import '../../domain/repository/legal_policy_repository.dart';
 
-sealed class RulesEvent extends Equatable {
-  const RulesEvent();
+export '../../../../shared/register/register_bloc.dart';
 
-  @override
-  List<Object?> get props => [];
-}
+/// The type the rules screen and its route share (RulesBloc is provided
+/// under it — `RegisterScreen` looks the factory's base type up).
+typedef RulesRegisterBloc = RegisterBloc<LegalRuleEntity, LegalRuleProposal>;
 
-class RulesRequested extends RulesEvent {
-  const RulesRequested({this.capability, this.jurisdiction});
-
-  final String? capability;
-  final String? jurisdiction;
-
-  @override
-  List<Object?> get props => [capability, jurisdiction];
-}
-
-class RuleProposed extends RulesEvent {
-  const RuleProposed(this.proposal);
-
-  final LegalRuleProposal proposal;
-
-  @override
-  List<Object?> get props => [proposal];
-}
-
-class RuleApproved extends RulesEvent {
+class RuleApproved extends RegisterEvent {
   const RuleApproved(this.id);
 
   final int id;
@@ -41,7 +20,7 @@ class RuleApproved extends RulesEvent {
   List<Object?> get props => [id];
 }
 
-class RuleRejected extends RulesEvent {
+class RuleRejected extends RegisterEvent {
   const RuleRejected(this.id);
 
   final int id;
@@ -50,87 +29,40 @@ class RuleRejected extends RulesEvent {
   List<Object?> get props => [id];
 }
 
-sealed class RulesState extends Equatable {
-  const RulesState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class RulesLoading extends RulesState {
-  const RulesLoading();
-}
-
-class RulesLoaded extends RulesState {
-  const RulesLoaded(this.rows, {this.failure});
-
-  /// Version history, newest first per capability×jurisdiction (plan §6).
-  final List<LegalRuleEntity> rows;
-
-  /// Last action failure — the list stays usable.
-  final Failure? failure;
-
-  @override
-  List<Object?> get props => [rows, failure];
-}
-
-class RulesError extends RulesState {
-  const RulesError(this.failure);
-
-  final Failure failure;
-
-  @override
-  List<Object?> get props => [failure];
-}
-
-/// Rule administration (decisions 107/108): propose → a DIFFERENT user
-/// approves (activation supersedes the previous version) or rejects.
-/// Every action reloads under the current filter — versions and states
-/// are the server's story, never assembled client-side.
-class RulesBloc extends Bloc<RulesEvent, RulesState> {
-  RulesBloc(this._repository) : super(const RulesLoading()) {
-    on<RulesRequested>(_onRequested);
-    on<RuleProposed>(
-        (event, emit) => _act(emit, () => _repository.proposeRule(event.proposal)));
-    on<RuleApproved>(
-        (event, emit) => _act(emit, () => _repository.approveRule(event.id)));
-    on<RuleRejected>(
-        (event, emit) => _act(emit, () => _repository.rejectRule(event.id)));
+/// Rule administration (decisions 107/108) on the register factory: the
+/// form only PROPOSES — a rule is versioned, so a change is a new proposal,
+/// never an edit or a delete — and a DIFFERENT user approves (activation
+/// supersedes the previous version) or rejects from the row. Every action
+/// reloads under the current query: versions and states are the server's
+/// story, never assembled client-side.
+class RulesBloc extends RulesRegisterBloc {
+  RulesBloc(LegalPolicyRepository repository) : super(_RuleRegister(repository)) {
+    on<RuleApproved>((event, emit) => act(emit, () => repository.approveRule(event.id)));
+    on<RuleRejected>((event, emit) => act(emit, () => repository.rejectRule(event.id)));
   }
+}
+
+/// The rule screen as the factory sees it: list + propose. Rules have no
+/// edit and no delete (versioned, decision 107) — the screen keeps rows
+/// closed, so the factory never asks for either.
+class _RuleRegister implements RegisterRepository<LegalRuleEntity, LegalRuleProposal> {
+  _RuleRegister(this._repository);
 
   final LegalPolicyRepository _repository;
-  String? _capability;
-  String? _jurisdiction;
 
-  Future<void> _onRequested(RulesRequested event, Emitter<RulesState> emit) async {
-    _capability = event.capability;
-    _jurisdiction = event.jurisdiction;
-    emit(const RulesLoading());
-    await _reload(emit);
-  }
+  @override
+  Future<Either<Failure, PagedResult<LegalRuleEntity>>> list(PagedQuery query) =>
+      _repository.listRules(query);
 
-  Future<void> _reload(Emitter<RulesState> emit, {Failure? failure}) async {
-    final result = await _repository.listRules(
-      capability: _capability,
-      jurisdiction: _jurisdiction,
-    );
-    if (emit.isDone) return;
-    result.fold(
-      (loadFailure) => emit(RulesError(loadFailure)),
-      (rows) => emit(RulesLoaded(rows, failure: failure)),
-    );
-  }
+  @override
+  Future<Either<Failure, LegalRuleEntity>> create(LegalRuleProposal draft) =>
+      _repository.proposeRule(draft);
 
-  Future<void> _act(
-    Emitter<RulesState> emit,
-    Future<Either<Failure, LegalRuleEntity>> Function() action,
-  ) async {
-    if (state is! RulesLoaded) return;
-    final result = await action();
-    if (emit.isDone) return;
-    await result.fold(
-      (failure) => _reload(emit, failure: failure),
-      (_) => _reload(emit),
-    );
-  }
+  @override
+  Future<Either<Failure, LegalRuleEntity>> update(LegalRuleEntity current, LegalRuleProposal draft) =>
+      throw UnsupportedError('A legal rule is versioned: propose a new one (decision 107).');
+
+  @override
+  Future<Either<Failure, Unit>> delete(LegalRuleEntity item) =>
+      throw UnsupportedError('A legal rule is versioned: it is superseded, never deleted (107).');
 }

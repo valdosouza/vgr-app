@@ -10,10 +10,10 @@ class LegalPolicyRepositoryImpl implements LegalPolicyRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<Either<Failure, List<JurisdictionEntity>>> listJurisdictions() async {
+  Future<Either<Failure, PagedResult<JurisdictionEntity>>> listJurisdictions(PagedQuery query) async {
     try {
-      final json = await _apiClient.get('/api/legal-policy/jurisdictions');
-      return Right(_rows(json).map(JurisdictionEntity.fromJson).toList());
+      final json = await _apiClient.get('/api/legal-policy/jurisdictions?${query.toQueryString()}');
+      return Right(PagedResult.fromJson(_row(json), JurisdictionEntity.fromJson));
     } on Failure catch (f) {
       return Left(f);
     }
@@ -43,31 +43,26 @@ class LegalPolicyRepositoryImpl implements LegalPolicyRepository {
   }
 
   @override
-  Future<Either<Failure, List<CapabilityOverviewEntity>>> listCapabilities(
-      String jurisdiction) async {
+  Future<Either<Failure, PagedResult<CapabilityOverviewEntity>>> listCapabilities(
+    String jurisdiction,
+    PagedQuery query,
+  ) async {
     try {
-      final json = await _apiClient
-          .get('/api/legal-policy/capabilities?jurisdiction=$jurisdiction');
-      return Right(_rows(json).map(CapabilityOverviewEntity.fromJson).toList());
+      final json = await _apiClient.get(
+        '/api/legal-policy/capabilities'
+        '?jurisdiction=${Uri.encodeQueryComponent(jurisdiction)}&${query.toQueryString()}',
+      );
+      return Right(PagedResult.fromJson(_row(json), CapabilityOverviewEntity.fromJson));
     } on Failure catch (f) {
       return Left(f);
     }
   }
 
   @override
-  Future<Either<Failure, List<LegalRuleEntity>>> listRules({
-    String? capability,
-    String? jurisdiction,
-  }) async {
+  Future<Either<Failure, PagedResult<LegalRuleEntity>>> listRules(PagedQuery query) async {
     try {
-      final query = [
-        if (capability != null && capability.isNotEmpty) 'capability=$capability',
-        if (jurisdiction != null && jurisdiction.isNotEmpty)
-          'jurisdiction=$jurisdiction',
-      ].join('&');
-      final json = await _apiClient
-          .get('/api/legal-policy/rules${query.isEmpty ? '' : '?$query'}');
-      return Right(_rows(json).map(LegalRuleEntity.fromJson).toList());
+      final json = await _apiClient.get('/api/legal-policy/rules?${query.toQueryString()}');
+      return Right(PagedResult.fromJson(_row(json), LegalRuleEntity.fromJson));
     } on Failure catch (f) {
       return Left(f);
     }
@@ -104,11 +99,6 @@ class LegalPolicyRepositoryImpl implements LegalPolicyRepository {
       return Left(f);
     }
   }
-
-  List<Map<String, dynamic>> _rows(Map<String, dynamic> json) =>
-      (json['data'] as List<dynamic>)
-          .map((row) => (row as Map).cast<String, dynamic>())
-          .toList();
 
   Map<String, dynamic> _row(Map<String, dynamic> json) =>
       (json['data'] as Map).cast<String, dynamic>();

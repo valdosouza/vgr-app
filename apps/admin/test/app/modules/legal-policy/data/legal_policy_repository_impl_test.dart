@@ -15,25 +15,27 @@ void main() {
     repository = LegalPolicyRepositoryImpl(apiClient);
   });
 
-  test('lists jurisdictions with pending state (decision 107)', () async {
-    when(() => apiClient.get('/api/legal-policy/jurisdictions'))
-        .thenAnswer((_) async => {
-              'ok': true,
-              'data': [
-                {
-                  'code': 'BR',
-                  'name': 'Brazil',
-                  'operationalState': 'suspended',
-                  'isSandbox': false,
-                  'pendingState': 'live',
-                  'pendingBy': 7,
-                },
-              ],
-            });
+  Map<String, dynamic> paged(List<Map<String, dynamic>> items) => {
+        'ok': true,
+        'data': {'items': items, 'page': 1, 'pageSize': 20, 'total': items.length},
+      };
 
-    final result = await repository.listJurisdictions();
+  test('lists a page of jurisdictions with pending state (decisions 107/220)', () async {
+    when(() => apiClient.get('/api/legal-policy/jurisdictions?page=1&pageSize=20&filter=br'))
+        .thenAnswer((_) async => paged([
+              {
+                'code': 'BR',
+                'name': 'Brazil',
+                'operationalState': 'suspended',
+                'isSandbox': false,
+                'pendingState': 'live',
+                'pendingBy': 7,
+              },
+            ]));
 
-    final rows = result.getOrElse(() => throw StateError('left'));
+    final result = await repository.listJurisdictions(const PagedQuery(filter: 'br'));
+
+    final rows = result.getOrElse(() => throw StateError('left')).items;
     expect(rows.single.pendingState, 'live');
     expect(rows.single.pendingBy, 7);
   });
@@ -63,24 +65,30 @@ void main() {
     expect(body, {'state': 'suspended'});
   });
 
-  test('capabilities are read PER jurisdiction (decision 103)', () async {
-    when(() => apiClient.get('/api/legal-policy/capabilities?jurisdiction=BR'))
-        .thenAnswer((_) async => {
-              'ok': true,
-              'data': [
-                {
-                  'capability': 'report.anonymous',
-                  'description': 'Anonymous reporting',
-                  'module': 'reports',
-                  'effectiveStatus': 'unreviewed',
-                  'activeRule': null,
-                },
-              ],
-            });
+  test('capabilities are read PER jurisdiction, one page at a time (decisions 103/220)', () async {
+    when(() => apiClient.get('/api/legal-policy/capabilities?jurisdiction=BR&page=2&pageSize=20'))
+        .thenAnswer((_) async => paged([
+              {
+                'capability': 'report.anonymous',
+                'description': 'Anonymous reporting',
+                'module': 'reports',
+                'effectiveStatus': 'unreviewed',
+                'activeRule': null,
+              },
+            ]));
 
-    final result = await repository.listCapabilities('BR');
+    final result = await repository.listCapabilities('BR', const PagedQuery(page: 2));
 
-    expect(result.getOrElse(() => []).single.effectiveStatus, 'unreviewed');
+    expect(result.getOrElse(() => throw StateError('left')).items.single.effectiveStatus, 'unreviewed');
+  });
+
+  test('rules are listed by page with the text filter', () async {
+    when(() => apiClient.get('/api/legal-policy/rules?page=1&pageSize=20&filter=reward'))
+        .thenAnswer((_) async => paged([_ruleJson(ruleState: 'active')]));
+
+    final result = await repository.listRules(const PagedQuery(filter: 'reward'));
+
+    expect(result.getOrElse(() => throw StateError('left')).items.single.id, 9);
   });
 
   test('proposeRule posts the body with reason only when not allowed '
