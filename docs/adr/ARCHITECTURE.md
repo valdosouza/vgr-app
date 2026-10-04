@@ -41,18 +41,26 @@ D:\ProjetoVGR\app/
     │                   ├── bloc/               # "Buildable" states (List/Form) + "one-shot" states (ActionSuccess/Failure)
     │                   └── page/               # Widgets — only read state via BlocConsumer
     └── admin/                    # Administrative panel, Flutter WEB only (decision 56)
-        └── lib/app/              # Same module shape as mobile/ (feature = flutter_modular module)
-            └── modules/
-                ├── risk-config/          # Manages RiskTier registry (decision 46)
-                ├── category-forms/       # Manages per-category detail form schema (decision 47)
-                ├── panic-responders/     # Approves/revokes "authorized responder" applications (decisions 51-52)
-                ├── dual-control-access/  # Two-role decryption approval workflow (decision 45)
-                └── monetization-config/  # Fee rules for reward intermediation (decision 39)
+        └── lib/app/
+            ├── app_module.dart           # auth routes (/login, 2FA…) + the shell at '/'
+            ├── shared/                   # Panel code used by 2+ modules (PS2/PS3)
+            │   ├── register/             # The CRUD factory + the paged-list half (decisions 217/220)
+            │   ├── feedback/             # The ONE feedback bridge (decision 221)
+            │   └── session/              # CurrentInterface — privileges of the screen being drawn
+            └── modules/                  # 1 screen = 1 flutter_modular module (no usecase layer — see ADMIN PANEL)
+                ├── home/                 # The shell: app bar + two menu columns + RouterOutlet (215)
+                ├── auth/                 # Login, mandatory TOTP enrollment, recovery (outside the shell)
+                ├── privileges/  users/  interfaces/  system-modules/      # access control — registers
+                ├── legal-policy/         # Legal Gate: jurisdictions, capabilities, rules (paged workflow lists)
+                ├── risk-config/  category-forms/  monetization-config/    # fixed catalogs (unpaged, 220)
+                ├── panic-responders/     # authorized-responder queue (paged workflow list)
+                ├── dual-control-access/  case-freeze/  reward-mediation/  # flows
+                └── reports/  report-stats/  admin-audit/                  # moderation, statistics, audit trail
 </folder_structure>
 
 ## LAYERS
 - **Style** (`packages/vgr_widgets/`): visual tokens and encapsulated `Vgr*` widgets. PROHIBITED: business logic, API calls, `easy_localization`.
-- **Components** (`presentation/page/`, `presentation/bloc/`): screens and local UI state. PROHIBITED: calling the API or storage directly — always through `domain/usecase`.
+- **Components** (`presentation/page/`, `presentation/bloc/`): screens and local UI state. PROHIBITED: calling the API or storage directly — always through `domain/usecase` (mobile) or the repository contract (admin panel, which has no usecase layer — see ADMIN PANEL).
 - **Integration** (`domain/`, `data/`): usecases, repositories, datasources, data mapping. The only layer allowed to talk to `packages/core` (`ApiClient`, storage, session).
 
 ## MODULES
@@ -63,47 +71,102 @@ D:\ProjetoVGR\app/
 | vgr_validators | Shared validators/masks (mirrors the API) | `packages/vgr_validators/` |
 | home | Navigation shell (menu + RouterOutlet) | `apps/mobile/lib/app/modules/home/` |
 | admin/home | The admin SHELL (decision 215): app bar + two menu columns + `RouterOutlet`; every panel screen is a child `ModuleRoute` of `/` (decision 216 — URLs stay at the root). Registering a screen = 1 entry in `interface_routes.dart` + 1 `ModuleRoute` in `home_module.dart` | `apps/admin/lib/app/modules/home/` |
-| admin/shared | Admin business code used by 2+ modules (PS2, decisions 217/220/221): `register/` — the CRUD factory (`RegisterBloc<T, D>`, `RegisterScreen`, `RegisterSearchPage`, `RegisterFormPage`, `RegisterField`, `RegisterRepository`); `feedback/` — the one feedback bridge; `session/` — `CurrentInterface` (privileges of the screen being drawn) | `apps/admin/lib/app/shared/` |
+| admin/shared | Panel code used by 2+ modules: `register/` — the CRUD factory and its paged-list half; `feedback/` — the one feedback bridge; `session/` — `CurrentInterface` (see ADMIN PANEL below) | `apps/admin/lib/app/shared/` |
 | features/* | One business domain per module (denúncia, ajuda, recompensa — to be defined by `scope-refinement`) | `apps/mobile/lib/app/modules/<feature>/` |
-| admin/* | Administrative modules (risk config, category forms, panic responder approval, dual-control decryption access, monetization config — decisions 45, 46, 47, 51-52, 39) | `apps/admin/lib/app/modules/<module>/` |
+| admin/* | One panel screen per module (15 modules, 18 menu screens today — the inventory is in `feature/admin-panel.md`; how to add one: `ADMIN-SCREENS.md`) | `apps/admin/lib/app/modules/<module>/` |
 
 REQUIRED: **A module never imports another module.** Code used by 2+ modules is promoted to `app/shared/` (app-level business code) or to a `package` (infra/design system).
 
-## ADMIN REGISTER FACTORY (PS2 — decisions 217/220/221)
-A simple CRUD screen of the panel is `RegisterScreen<T, D>` plus its configuration
-(title, `CurrentInterface`, row builder, form fields, draft builder). The module keeps
-its entity, a draft class, a repository implementing `RegisterRepository<T, D>` (paged
-`list(PagedQuery)` + create/update/delete) and declares its bloc as an ALIAS —
-`typedef PrivilegeBloc = RegisterBloc<PrivilegeEntity, PrivilegeDraft>` — so the route's
-`BlocProvider` and the screen's lookup are the same type.
+## ADMIN PANEL (decisions 215–222, plano-painel-modelo-setes.md)
+The setes-app `apps/web` model, applied to VGR (decision 15). How to add a
+screen, step by step: [ADMIN-SCREENS.md](./ADMIN-SCREENS.md).
 
-- List ↔ form by STATE on one `ChildRoute('/')` (217): buildable `RegisterView`s
+### Shell (215/216/218)
+`AppModule` keeps the routes OUTSIDE a session (`/login`, `/two-factor-*`,
+password recovery) and mounts `HomeModule` at `/`. `HomeModule` IS the shell:
+`VgrScaffold` app bar (language, user badge with **Sign out**) + two
+`VgrNavColumn`s (modules 200 px, screens of the selected module 240 px) +
+`RouterOutlet`; below 850 px (`VgrResponsive`) the columns become a
+`VgrDrawer`. The menu is `GET /api/core/menus`, already filtered by VIEW
+(71); `MenuBloc` holds the selection. Every screen is a child `ModuleRoute`
+of the shell, so URLs stay at the root (`/users/`, `/reports/`). Pages inside
+the outlet are `VgrPage` (content header), never `VgrScaffold`.
+
+### Registering a screen (setes' contract, kept)
+One `tb_interface` row in the API + one entry in `interface_routes.dart`
+(`i18n_key → '/route/'`) + one `ModuleRoute` among the shell's children. A
+cataloged key without a route falls to `/pending`. The route provides the
+screen's bloc(s) and repeats `AdminSessionGuard`.
+
+### The register factory (`shared/register/`, 217/220)
+A CRUD screen is `RegisterScreen<T, D>` plus configuration (title,
+`CurrentInterface`, row builder, fields, draft builder). The module keeps its
+entity, a draft, a repository implementing `RegisterRepository<T, D>` (paged
+`list(PagedQuery)` + create / update / delete) and declares its bloc as an
+ALIAS — `typedef PrivilegeBloc = RegisterBloc<PrivilegeEntity, PrivilegeDraft>`
+— so the provider and the screen's lookup are one type.
+
+- List ↔ form by STATE on one `ChildRoute('/')`: buildable `RegisterView`s
   (`RegisterListLoading/Loaded/Error`, `RegisterFormState`) and one-shot
-  `RegisterSignal`s (`RegisterActionSuccess/Failure`), the bloc always re-emitting a view
-  after a signal. Exceptions keep their own routes: `reports` (`/:id`, `/queue`) and
-  `admin-audit` (`/:id`).
-- Paginated by default (220): `PagedResult<T>` / `PagedQuery` in `core`, the filter sent
-  only on Enter, a new filter or page size back to page 1.
-- Form: Tab order = declaration order, Enter advances / submits, ONE validation pendency
-  at a time (dialog + focus), server `fields[]` anchored on the field of the same name.
-- Privileges: "new" by INSERT, save by INSERT/UPDATE, delete by DELETE; without UPDATE a
-  row opens read-only. Delete always after `askDecision`.
-- Workflow screens that are not CRUDs (PS3 — the Legal Gate kill switch and rule approval,
-  the responder queue) use the factory's LIST half alone: `PagedListBloc<T>` (query, last
-  page, quiet reload, `act()` for a row action → signal to the bridge + quiet reload) and
-  `PagedListScreen<T, B>`; their row actions are `RegisterEvent` subclasses. A CRUD that is
-  only added to (versioned Legal Gate rules) subclasses `RegisterBloc`, is provided under the
-  base type and opens no rows (`openRows: false`).
-- Field kinds: text, flag, choice (dropdown), checklist (ids; `ordered` = click order, e.g. a
-  menu module's screens); `visibleWhen` shows a field only for some values (a rule's reason).
-  Small catalogs a form picks from load once beside the list (`RegisterLookupCubit<O>`).
-- Flow screens with their own blocs (dual-control, case-freeze, reward-mediation, report
-  detail, moderation queue, the fixed catalogs) hand action outcomes to the bridge from a
-  listener; lookup/load errors stay as screen state.
-- Adapted from setes on purpose: `CurrentInterface` is passed by key, not a global written
-  by navigation (the shell's `MenuBloc` already owns the selection and a global goes stale
-  on refresh/deep link), and page titles stay their own translation keys instead of
-  travelling as route `arguments`.
+  `RegisterSignal`s (`RegisterActionSuccess/Failure`); the bloc always
+  re-emits a view after a signal. The bloc remembers the query and the last
+  page: "back" returns to exactly what was there, a save or a delete refreshes
+  that page (and lands on the real last page when the last row went away).
+- Paged by default (220): `PagedResult<T>` / `PagedQuery` in `core`
+  (mirrors the API's `pagedQueryDto`); the filter is sent on Enter only; a
+  new filter or page size goes back to page 1. One pager: `VgrPagingBar`.
+- Form (`RegisterFormPage` in a `VgrFormShell`): Tab order = declaration
+  order, Enter advances and submits from the last field, ONE validation
+  pendency at a time (dialog + focus, never the whole form painted red),
+  server `fields[]` anchored on the field of the same name. Field kinds:
+  text, flag, choice, checklist (`ordered` = click order); `visibleWhen`
+  hides a field for some values (it is then neither validated nor focused).
+  Small catalogs a form picks from load once beside the list
+  (`RegisterLookupCubit<O>`).
+- Privileges (`CurrentInterface`): "new" by INSERT, save by INSERT/UPDATE,
+  delete by DELETE; without UPDATE a row opens read-only. Delete only after
+  `askDecision`. UX only — the API decides (72).
+
+### Workflow lists (the factory's list half, PS3)
+Screens that are lists the operator ACTS on, not CRUDs (Legal Gate kill
+switch, the responder queue), use `PagedListBloc<T>` + `PagedListScreen<T, B>`
+alone: the module's bloc implements `fetch(query)`, declares its row actions
+as `RegisterEvent` subclasses and runs them through `act()` — signal to the
+bridge, then a QUIET reload (the server's answer replaces the rows, no
+spinner). A register that is only ADDED to (versioned Legal Gate rules)
+subclasses `RegisterBloc`, is provided under the base type and keeps rows
+closed (`openRows: false`). `RegisterBloc` itself extends `PagedListBloc`.
+
+### Feedback bridge (`shared/feedback/`, 221)
+The only way a screen talks back: `showSuccessFeedback` (transient),
+`showFailureFeedback` (severity from the `Failure`: no status or 5xx → dialog
+to acknowledge; 4xx → transient message; always translated by code, 80/83),
+`showValidationFeedback` (the one pendency), `askDecision` (yes / no
+[/ cancel]; dismissal is the cautious answer). `feedback_bridge_guard_test`
+fails the build on any `showVgr*` / `showDialog` / `ScaffoldMessenger`
+outside it. Screens with their own blocs (fixed catalogs, flows, report
+detail) hand action outcomes to the bridge from a listener; a load or lookup
+error stays as screen state.
+
+### Exceptions and deviations, on purpose
+- `reports` (`/:id`, `/queue`) and `admin-audit` (`/:id`) keep their own
+  routes — deep link per record and an audited read per case (217).
+- Fixed catalogs (`risk-config`, `category-forms`, `monetization-config`)
+  stay unpaged (220).
+- `monetization-config` imports `risk-config`'s repository code (and binds
+  its own instance) to apply the peer-to-peer veto of decision 58 — the one
+  module-to-module import of the panel, kept because the veto needs the
+  tiers and the API enforces the same rule anyway.
+- `CurrentInterface` is passed by key, not a global written by navigation
+  (setes): the shell's `MenuBloc` owns the selection and a global goes stale
+  on refresh / deep link. Page titles stay their own translation keys instead
+  of travelling as route `arguments`.
+- **No usecase layer in the panel**: blocs call the repository contract
+  (for registers, `RegisterRepository<T, D>`); the one-usecase-per-operation
+  rule below holds for `apps/mobile`. This predates the factory and is now
+  the documented shape of the panel, not an oversight to copy elsewhere.
+- Setes' ERP engines (configurable fields, interface configuration, theme /
+  logo per institution) are out (219).
 
 ## PATTERNS
 <code_patterns>
@@ -167,5 +230,6 @@ PROHIBITED: Hardcoded natural-language strings inside `presentation/` — always
 
 - [**README.md**](../README.md): Documentation navigation index.
 - [**TESTS.md**](./TESTS.md): Testing strategies and commands.
+- [**ADMIN-SCREENS.md**](./ADMIN-SCREENS.md): checklist to add a screen to the admin panel.
 - [**setes-app**](D:\Gestao2027\setes-app) and Infra-IA's `ARQUITETURA_MODULOS.md`: source of the pattern mirrored here.
 - [**vgr-api ARCHITECTURE.md**](D:\ProjetoVGR\api\docs\adr\ARCHITECTURE.md): server side, same module-to-module symmetry as setes-api/setes-app.

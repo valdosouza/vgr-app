@@ -1,6 +1,6 @@
 # Project Documentation
 
-Index of project technical documentation for **VGR Mobile App**. Use the links below to navigate the available documents.
+Index of project technical documentation for the **VGR apps** (mobile and admin panel). Use the links below to navigate the available documents.
 
 ## Documentation Index
 **RULE:** Only reference documents located in `./docs/adr/` or `./docs/feature/`. No other folders are permitted. Always validate that referenced files exist in one of these directories before finalizing the document.
@@ -10,11 +10,20 @@ Index of project technical documentation for **VGR Mobile App**. Use the links b
 | [**ARCHITECTURE.md**](./adr/ARCHITECTURE.md) | Architecture, folder organization, and code patterns for the project. | **Mandatory** |
 | [**DESIGN-SYSTEM.md**](./adr/DESIGN-SYSTEM.md) | No raw Flutter widget in a screen — everything encapsulated as `Vgr*` (decision 133). | **Mandatory before writing any screen** |
 | [**TESTS.md**](./adr/TESTS.md) | Testing strategies, patterns, and execution commands. | **Mandatory** |
+| [**ADMIN-SCREENS.md**](./adr/ADMIN-SCREENS.md) | Checklist to add a screen to the admin panel — API catalog row, module, factory, shell registration, translations, tests (decisions 215–222). | **Mandatory before adding a panel screen** |
 | [**auth.md**](./feature/auth.md) | Panel login, mandatory TOTP enrollment, silent session renewal, 451 view (decisions 73, 112-117). | Optional |
 | [**identity.md**](./feature/identity.md) | Shared Role/AnonymityMode state (`packages/core`), consumed by mobile and admin. | Optional |
-| [**admin-panel.md**](./feature/admin-panel.md) | `apps/admin` structure and role-gating (decision 56). | Optional |
+| [**admin-panel.md**](./feature/admin-panel.md) | The admin panel: shell, inventory of its 18 screens, access-control screens, open points (decisions 56, 215–222). | Optional |
 | [**network.md**](./feature/network.md) | Shared `ApiClient`/`Failure` (`packages/core`), used by every repository. | Optional |
+| [**validators.md**](./feature/validators.md) | `vgr_validators`: format validators mirroring the API's Zod rules and input masks (decisions 153–157). | Optional |
+| [**risk-config.md**](./feature/risk-config.md) | Admin editor for each Category's RiskTier (decision 46). | Optional |
 | [**category-forms.md**](./feature/category-forms.md) | Admin editor for per-Category detail-field schema (decision 47). | Optional |
+| [**monetization-config.md**](./feature/monetization-config.md) | Admin editor for fee rules and allowed payment modes, high-tier peer-to-peer veto (decisions 39, 58). | Optional |
+| [**panic-responders.md**](./feature/panic-responders.md) | Admin queue approving / denying authorized-responder requests (decisions 51-52, 190). | Optional |
+| [**dual-control-access.md**](./feature/dual-control-access.md) | Admin two-approver flow for decryption access (decision 45) — with an open risk on the approver identity. | Optional |
+| [**app-auth.md**](./feature/app-auth.md) | Mobile sign-up / login / e-mail verification / Google (decisions 119, 122-124, 151-152). | Optional |
+| [**reward-onboarding.md**](./feature/reward-onboarding.md) | Mobile registration of a helper as a reward recipient. | Optional |
+| [**direction-sightings.md**](./feature/direction-sightings.md) | Mobile direction sighting on a report (DS2, decisions 200-207). | Optional |
 | [**report-form.md**](./feature/report-form.md) | Mobile report submission with offline queue and per-photo EXIF choice (A1). | Optional |
 | [**report-feed.md**](./feature/report-feed.md) | Nearby feed (home) and server-resolved report detail (A2). | Optional |
 | [**help-offer.md**](./feature/help-offer.md) | Offering help on a report, self-dealing guard, anonymous notice (A3). | Optional |

@@ -109,6 +109,9 @@ implementation swap — which is the exact coupling this rule removes.
 ## References
 
 - Catalog: `packages/vgr_widgets/lib/vgr_widgets.dart`
-- Guard: `apps/admin/test/design_system_guard_test.dart`
+- Guard: `apps/admin/test/design_system_guard_test.dart` (its companion for
+  feedback, decision 221: `apps/admin/test/feedback_bridge_guard_test.dart`)
+- Where the register widgets are used: `ARCHITECTURE.md` § ADMIN PANEL,
+  `ADMIN-SCREENS.md`
 - Decision 133: `AI/docs/decisions/VGR-plano.md`
 - Origin: `D:\Gestao2027\Infra-IA\setes-app\prompt_fase1_fundacao.md` §B

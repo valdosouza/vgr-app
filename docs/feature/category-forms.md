@@ -17,7 +17,7 @@ apps/admin/lib/app/modules/category-forms/
 ```
 
 ## STATUS
-- Task 04 — DONE. `FieldAdded` persists via `upsert()` and updates local state directly (no re-fetch).
+- Task 04 — DONE. `FieldAdded` persists via `upsert()` and updates local state directly (no re-fetch). Since PS3 (2026-10-04) a saved field is confirmed and a refused one is reported through the feedback bridge (decision 221) with the schemas kept — it used to replace the screen with an error showing the API's raw English text. A fixed catalog: unpaged by decision 220.
 - **Known gap fixed along the way**: neither `risk-config` nor `category-forms` had a `GET` (list) endpoint on the API — the admin repositories were calling `apiClient.get(...)` against a route that didn't exist. Unit tests didn't catch it because they mock `ApiClient`. Added `GET /api/risk-config` and `GET /api/category-forms` (both admin-gated) to close this.
 - **Simplification, not yet a full editor**: "Add field" appends a hardcoded placeholder field (`newField`, string, optional) rather than opening a name/type/required input dialog. Remove/reorder aren't implemented yet either — task 04's description says "add/remove/reorder" but the tactical design's acceptance criterion only requires the integration property (change reaches mobile without an app update), which is satisfied. A real field-editing form is a follow-up refinement, not re-opening this task.
 
