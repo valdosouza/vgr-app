@@ -114,8 +114,8 @@ UPDATE grant (165). API contract: `api/docs/feature/report-moderation.md`
 - Detail page: new **Moderation** section (visible → "Hide report"; hidden → badge + reason
   label + note + "Hidden since … · By user N" + "Unhide"); each media row gets Block/Unblock
   by status (`available`/`blocked` only; nothing on a purged skeleton), with the form rendered
-  right under that row. The last action's refusal renders once (`report-action-error`) above
-  the Moderation section, shared with the freeze block.
+  right under that row. The last action's refusal (moderation or freeze) goes through the
+  feedback bridge (decision 221, since PS3) — translated by code, the case stays on screen.
 - List page: `hidden` tri-state filter (`reports-filter-hidden`) and a `HIDDEN` mark on rows.
 - `presentation/widget/moderation_reason_form.dart`: the reusable form (Components layer only —
   no bloc, no repository; the page maps `onSubmit` to the event).
@@ -176,9 +176,9 @@ reviewed is `reports` UPDATE (165). Route `/reports/queue`, reached from the lis
   `VgrListTile` per row (`queue-row-{id}`): `PRIORITY · #id · taxonomy · subject`, subtitle
   `age · With media · FROZEN · Anonymous` (age = whole hours under a day, whole days from there:
   "12 h" / "3 d"); trailing "Mark reviewed" (`queue-review-{id}`, disabled without UPDATE or
-  while busy); tap → detail; prev/next with "Page X of Y"; empty state "Queue is empty."
-  (`queue-empty`); load refusal `queue-error`, mark refusal `queue-action-error`, both via
-  `failureText`.
+  while busy); tap → detail; the shared `VgrPagingBar` (since PS3); empty state "Queue is
+  empty." (`queue-empty`); load refusal `queue-error` (screen state, `failureText`), mark
+  refusal through the feedback bridge (decision 221).
 - Detail page header: review line — `Reviewed {when} · by user {n}` (`report-reviewed`) or
   "Not reviewed" (`report-not-reviewed`) + "Mark reviewed" (`mark-reviewed-button`, same gating;
   absent on a purged skeleton).
