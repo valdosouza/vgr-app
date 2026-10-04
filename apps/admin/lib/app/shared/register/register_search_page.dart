@@ -6,10 +6,20 @@ import 'package:vgr_widgets/vgr_widgets.dart';
 /// What one list row shows — the factory builds the tile, so every list
 /// taps, keys and spaces its rows the same way.
 class RegisterRow {
-  const RegisterRow({required this.title, this.subtitle, this.leadingIcon, this.trailing});
+  const RegisterRow({
+    required this.title,
+    this.subtitle,
+    this.subtitleWidget,
+    this.leadingIcon,
+    this.trailing,
+  });
 
   final String title;
   final String? subtitle;
+
+  /// A second line that holds controls rather than text — the kill-switch
+  /// state picker, a rule's approve/reject. Wins over [subtitle].
+  final Widget? subtitleWidget;
   final VgrIconName? leadingIcon;
 
   /// Row actions beyond "open" (the user's privilege matrix, for one).
@@ -36,6 +46,9 @@ class RegisterSearchPage<T> extends StatefulWidget {
     this.onPageChanged,
     this.onPageSizeChanged,
     this.actions = const [],
+    this.header,
+    this.filterable = true,
+    this.emptyMessage,
   });
 
   final String title;
@@ -63,6 +76,18 @@ class RegisterSearchPage<T> extends StatefulWidget {
 
   /// Header actions beside the title.
   final List<Widget> actions;
+
+  /// Above the filter — a parameter the list cannot be fetched without
+  /// (the jurisdiction of the capability overview).
+  final Widget? header;
+
+  /// False hides the filter: the resource has no text to match (the
+  /// responder queue carries no name — PS0).
+  final bool filterable;
+
+  /// Replaces the generic empty wording — a list that waits for a
+  /// parameter says which.
+  final String? emptyMessage;
 
   static const newButtonKey = Key('register-new-button');
   static const emptyKey = Key('register-empty');
@@ -102,14 +127,16 @@ class _RegisterSearchPageState<T> extends State<RegisterSearchPage<T>> {
         shrink: false,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          VgrPadding(
-            child: VgrSearchBar(
-              controller: _filter,
-              label: 'register.search'.tr(),
-              searchTooltip: 'register.search'.tr(),
-              onSubmitted: widget.onFilter,
+          if (widget.header != null) VgrPadding(child: widget.header!),
+          if (widget.filterable)
+            VgrPadding(
+              child: VgrSearchBar(
+                controller: _filter,
+                label: 'register.search'.tr(),
+                searchTooltip: 'register.search'.tr(),
+                onSubmitted: widget.onFilter,
+              ),
             ),
-          ),
           VgrExpanded(child: _content(context)),
           if (page != null && page.total > 0)
             VgrPadding(
@@ -161,9 +188,8 @@ class _RegisterSearchPageState<T> extends State<RegisterSearchPage<T>> {
     if (page.items.isEmpty) {
       return VgrEmptyState(
         key: RegisterSearchPage.emptyKey,
-        message: widget.filter.trim().isEmpty
-            ? 'register.empty'.tr()
-            : 'register.emptyFiltered'.tr(),
+        message: widget.emptyMessage ??
+            (widget.filter.trim().isEmpty ? 'register.empty'.tr() : 'register.emptyFiltered'.tr()),
       );
     }
 
@@ -181,6 +207,7 @@ class _RegisterSearchPageState<T> extends State<RegisterSearchPage<T>> {
       key: RegisterSearchPage.rowKey(widget.rowId(item)),
       title: row.title,
       subtitle: row.subtitle,
+      subtitleWidget: row.subtitleWidget,
       leadingIcon: row.leadingIcon,
       trailing: row.trailing,
       onTap: onOpen == null ? null : () => onOpen(item),

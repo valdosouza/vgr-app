@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
+import 'package:vgr_validators/vgr_validators.dart';
 import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../feedback/feedback.dart';
@@ -45,6 +46,8 @@ class RegisterFormPageState extends State<RegisterFormPage> {
   final _controllers = <String, TextEditingController>{};
   final _focusNodes = <String, FocusNode>{};
   final _flags = <String, bool>{};
+  final _choices = <String, String?>{};
+  final _selections = <String, List<int>>{};
 
   /// The one field currently pointed at by a pendency, and its text.
   String? _pendingField;
@@ -52,8 +55,16 @@ class RegisterFormPageState extends State<RegisterFormPage> {
 
   bool get _readOnly => widget.onSave == null;
 
-  List<RegisterTextField> get _textFields =>
-      widget.fields.whereType<RegisterTextField>().toList();
+  bool _locked(RegisterField field) => field.readOnly || _readOnly;
+
+  /// Fields shown right now — [RegisterField.visibleWhen] reads the live
+  /// values, so changing a choice can bring a field in or out.
+  List<RegisterField> get _visible {
+    final values = _values;
+    return widget.fields.where((field) => field.visibleWhen?.call(values) ?? true).toList();
+  }
+
+  List<RegisterTextField> get _visibleTextFields => _visible.whereType<RegisterTextField>().toList();
 
   @override
   void initState() {
@@ -65,6 +76,10 @@ class RegisterFormPageState extends State<RegisterFormPage> {
           _focusNodes[field.name] = FocusNode();
         case RegisterFlagField():
           _flags[field.name] = field.initialValue;
+        case RegisterChoiceField():
+          _choices[field.name] = field.initialValue;
+        case RegisterChecklistField():
+          _selections[field.name] = List.of(field.initialValue);
       }
     }
   }
@@ -83,32 +98,50 @@ class RegisterFormPageState extends State<RegisterFormPage> {
   RegisterValues get _values => RegisterValues(
         texts: {for (final entry in _controllers.entries) entry.key: entry.value.text},
         flags: Map.of(_flags),
+        choices: Map.of(_choices),
+        selections: {
+          for (final field in widget.fields.whereType<RegisterChecklistField>())
+            field.name: field.ordered
+                ? List.of(_selections[field.name]!)
+                : (List.of(_selections[field.name]!)..sort()),
+        },
       );
 
   Future<void> _submit() async {
     if (_readOnly || widget.busy) return;
     setState(() => _pendingField = null);
 
-    for (final field in _textFields) {
+    for (final field in _visible) {
       if (field.readOnly) continue;
-      final value = _controllers[field.name]!.text;
-      for (final rule in field.validators) {
-        final error = rule(value);
-        if (error != null) {
-          await _pend(
-            field.name,
-            fieldFailureText(FieldFailure(
-              field: field.name,
-              message: error.code,
-              code: error.code,
-              params: error.params,
-            )),
-          );
-          return;
-        }
+      final error = switch (field) {
+        RegisterTextField() => _firstError(field),
+        RegisterChoiceField(:final required) =>
+          required && _choices[field.name] == null ? const VgrFieldError(VgrFieldCode.required) : null,
+        RegisterFlagField() || RegisterChecklistField() => null,
+      };
+      if (error != null) {
+        await _pend(
+          field.name,
+          fieldFailureText(FieldFailure(
+            field: field.name,
+            message: error.code,
+            code: error.code,
+            params: error.params,
+          )),
+        );
+        return;
       }
     }
     widget.onSave!(_values);
+  }
+
+  VgrFieldError? _firstError(RegisterTextField field) {
+    final value = _controllers[field.name]!.text;
+    for (final rule in field.validators) {
+      final error = rule(value);
+      if (error != null) return error;
+    }
+    return null;
   }
 
   /// Anchors the first of [failure]'s field errors that names a field of
@@ -136,7 +169,7 @@ class RegisterFormPageState extends State<RegisterFormPage> {
   }
 
   void _advanceFrom(RegisterTextField field) {
-    final editable = _textFields.where((f) => !f.readOnly && !_readOnly).toList();
+    final editable = _visibleTextFields.where((f) => !_locked(f)).toList();
     final index = editable.indexOf(field);
     if (index >= 0 && index < editable.length - 1) {
       _focusNodes[editable[index + 1].name]!.requestFocus();
@@ -158,34 +191,74 @@ class RegisterFormPageState extends State<RegisterFormPage> {
       busy: widget.busy,
       body: VgrColumn(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final field in widget.fields)
-            switch (field) {
-              RegisterTextField() => VgrTextField(
-                  key: Key('register-field-${field.name}'),
-                  controller: _controllers[field.name]!,
-                  focusNode: _focusNodes[field.name],
-                  label: field.label,
-                  keyboard: field.keyboard,
-                  mask: field.mask,
-                  obscure: field.obscure,
-                  helperText: field.hint,
-                  maxLength: field.maxLength,
-                  readOnly: field.readOnly || _readOnly,
-                  errorText: _pendingField == field.name ? _pendingText : null,
-                  onSubmitted: (_) => _advanceFrom(field),
-                ),
-              RegisterFlagField() => VgrSwitchTile(
-                  key: Key('register-field-${field.name}'),
-                  label: field.label,
-                  value: _flags[field.name]!,
-                  onChanged: field.readOnly || _readOnly
-                      ? null
-                      : (value) => setState(() => _flags[field.name] = value),
-                ),
-            },
-        ],
+        children: [for (final field in _visible) _fieldWidget(field)],
       ),
+    );
+  }
+
+  Widget _fieldWidget(RegisterField field) {
+    final key = Key('register-field-${field.name}');
+    return switch (field) {
+      RegisterTextField() => VgrTextField(
+          key: key,
+          controller: _controllers[field.name]!,
+          focusNode: _focusNodes[field.name],
+          label: field.label,
+          keyboard: field.keyboard,
+          mask: field.mask,
+          obscure: field.obscure,
+          helperText: field.hint,
+          maxLength: field.maxLength,
+          readOnly: _locked(field),
+          errorText: _pendingField == field.name ? _pendingText : null,
+          onSubmitted: (_) => _advanceFrom(field),
+        ),
+      RegisterFlagField() => VgrSwitchTile(
+          key: key,
+          label: field.label,
+          value: _flags[field.name]!,
+          onChanged: _locked(field) ? null : (value) => setState(() => _flags[field.name] = value),
+        ),
+      RegisterChoiceField() => VgrDropdownField<String>(
+          key: key,
+          label: field.label,
+          value: _choices[field.name],
+          options: field.options,
+          enabled: !_locked(field),
+          onChanged: (value) => setState(() => _choices[field.name] = value),
+        ),
+      RegisterChecklistField() => _checklist(field, key),
+    };
+  }
+
+  Widget _checklist(RegisterChecklistField field, Key key) {
+    final selected = _selections[field.name]!;
+    return VgrColumn(
+      key: key,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const VgrGap.sm(),
+        VgrText.title(field.label),
+        if (field.loading)
+          const VgrLoading()
+        else if (field.unavailableText != null)
+          VgrText.error(field.unavailableText!)
+        else
+          for (final option in field.options)
+            VgrCheckboxTile(
+              key: Key('register-field-${field.name}-${option.value}'),
+              label: option.label,
+              value: selected.contains(option.value),
+              trailingText: field.ordered && selected.contains(option.value)
+                  ? '${selected.indexOf(option.value) + 1}'
+                  : null,
+              onChanged: _locked(field)
+                  ? null
+                  : (checked) => setState(() {
+                        checked ? selected.add(option.value) : selected.remove(option.value);
+                      }),
+            ),
+      ],
     );
   }
 }

@@ -4,7 +4,10 @@ import 'package:equatable/equatable.dart';
 /// / `EditPressed` / `BackToListPressed` / `SaveRequested` /
 /// `DeleteRequested`, plus the list request). Item- and draft-carrying
 /// events are generic so the bloc only answers its own entity type.
-sealed class RegisterEvent extends Equatable {
+///
+/// Open for extension on purpose: a workflow screen's bloc (a
+/// `PagedListBloc` subclass) declares its row actions as subclasses.
+abstract class RegisterEvent extends Equatable {
   const RegisterEvent();
 
   @override

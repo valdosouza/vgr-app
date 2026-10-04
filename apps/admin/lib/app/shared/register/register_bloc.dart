@@ -1,10 +1,13 @@
 import 'package:core/core.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'paged_list_bloc.dart';
 import 'register_event.dart';
 import 'register_repository.dart';
 import 'register_state.dart';
 
+export 'paged_list_bloc.dart';
 export 'register_event.dart';
 export 'register_repository.dart';
 export 'register_state.dart';
@@ -13,16 +16,15 @@ export 'register_state.dart';
 /// alternates list ↔ form by STATE, on one route — the URL never changes
 /// between them. A module declares its own as a type alias
 /// (`typedef PrivilegeBloc = RegisterBloc<PrivilegeEntity, PrivilegeDraft>`),
-/// so the provider type and `RegisterScreen`'s lookup are the same type.
+/// so the provider type and `RegisterScreen`'s lookup are the same type. A
+/// module that needs row actions on top subclasses it and provides it
+/// under the base type (`BlocProvider<RegisterBloc<T, D>>`).
 ///
-/// Remembers the query (page, size, filter) and the last loaded page, so
-/// "back to the list" returns to exactly what was there, and a save or a
-/// delete refreshes that same page.
-class RegisterBloc<T, D> extends Bloc<RegisterEvent, RegisterState<T>> {
-  RegisterBloc(this._repository, {PagedQuery initialQuery = const PagedQuery()})
-      : _query = initialQuery,
-        super(RegisterListLoading<T>(initialQuery)) {
-    on<RegisterListRequested>(_onListRequested);
+/// The list half (query, last page, reload) is [PagedListBloc]'s; "back
+/// to the list" returns to exactly what was there, and a save or a delete
+/// refreshes that same page.
+class RegisterBloc<T, D> extends PagedListBloc<T> {
+  RegisterBloc(this._repository, {super.initialQuery}) {
     on<RegisterNewPressed>(_onNewPressed);
     on<RegisterEditPressed<T>>(_onEditPressed);
     on<RegisterBackToListPressed>(_onBackToList);
@@ -31,44 +33,12 @@ class RegisterBloc<T, D> extends Bloc<RegisterEvent, RegisterState<T>> {
   }
 
   final RegisterRepository<T, D> _repository;
-  PagedQuery _query;
-  RegisterListLoaded<T>? _lastList;
 
   static const savedKey = 'register.saved';
   static const deletedKey = 'register.deleted';
 
-  Future<void> _onListRequested(
-    RegisterListRequested event,
-    Emitter<RegisterState<T>> emit,
-  ) async {
-    final backToFirst = event.page == null && (event.filter != null || event.pageSize != null);
-    _query = _query.copyWith(
-      page: event.page ?? (backToFirst ? 1 : null),
-      pageSize: event.pageSize,
-      filter: event.filter,
-    );
-    await _load(emit);
-  }
-
-  Future<void> _load(Emitter<RegisterState<T>> emit) async {
-    emit(RegisterListLoading<T>(_query));
-    final result = await _repository.list(_query);
-    await result.fold(
-      (failure) async => emit(RegisterListError<T>(_query, failure)),
-      (page) async {
-        // Past the end — the last row of the last page was just deleted,
-        // or the list shrank under us: land on the real last page instead
-        // of an empty one that still claims records exist.
-        if (page.items.isEmpty && page.total > 0 && _query.page > page.pageCount) {
-          _query = _query.copyWith(page: page.pageCount);
-          return _load(emit);
-        }
-        final loaded = RegisterListLoaded<T>(_query, page);
-        _lastList = loaded;
-        emit(loaded);
-      },
-    );
-  }
+  @override
+  Future<Either<Failure, PagedResult<T>>> fetch(PagedQuery query) => _repository.list(query);
 
   void _onNewPressed(RegisterNewPressed event, Emitter<RegisterState<T>> emit) {
     emit(RegisterFormState<T>(null));
@@ -85,11 +55,11 @@ class RegisterBloc<T, D> extends Bloc<RegisterEvent, RegisterState<T>> {
     final current = state;
     // Leaving mid-save would show a list the save is about to change.
     if (current is RegisterFormState<T> && current.busy) return;
-    final last = _lastList;
+    final last = lastList;
     if (last != null) {
       emit(last);
     } else {
-      await _load(emit);
+      await reload(emit);
     }
   }
 
@@ -113,7 +83,7 @@ class RegisterBloc<T, D> extends Bloc<RegisterEvent, RegisterState<T>> {
       return;
     }
     emit(RegisterActionSuccess<T>(savedKey));
-    await _load(emit);
+    await reload(emit);
   }
 
   Future<void> _onDeleteRequested(
@@ -135,6 +105,6 @@ class RegisterBloc<T, D> extends Bloc<RegisterEvent, RegisterState<T>> {
       return;
     }
     emit(RegisterActionSuccess<T>(deletedKey));
-    await _load(emit);
+    await reload(emit);
   }
 }

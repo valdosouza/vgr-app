@@ -8,6 +8,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:vgr_admin/app/shared/feedback/feedback.dart';
 import 'package:vgr_admin/app/shared/register/register_bloc.dart';
 import 'package:vgr_admin/app/shared/register/register_field.dart';
+import 'package:vgr_admin/app/shared/register/register_form_page.dart';
 import 'package:vgr_admin/app/shared/register/register_screen.dart';
 import 'package:vgr_admin/app/shared/register/register_search_page.dart';
 import 'package:vgr_admin/app/shared/session/current_interface.dart';
@@ -303,6 +304,119 @@ void main() {
       expect(find.byKey(VgrFormShell.deleteKey), findsNothing);
       expect(tester.widget<VgrTextField>(field('name')).readOnly, isTrue);
       expect(tester.widget<VgrSwitchTile>(field('active')).onChanged, isNull);
+    });
+  });
+
+  group('field kinds (PS3)', () {
+    Future<List<Map<String, Object?>>> pumpForm(
+      WidgetTester tester,
+      List<RegisterField> Function() fields, {
+      bool settle = true,
+    }) async {
+      final saved = <Map<String, Object?>>[];
+      tester.view.physicalSize = const Size(1200, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpLocalized(
+        tester,
+        RegisterFormPage(
+          title: 'Form',
+          fields: fields(),
+          onBack: () {},
+          onSave: (values) => saved.add({
+            'status': values.choice('status'),
+            'reason': values.choice('reason'),
+            'ids': values.selection('ids'),
+            'menu': values.selection('menu'),
+          }),
+        ),
+        settle: settle,
+      );
+      return saved;
+    }
+
+    const options = [
+      VgrOption(value: 3, label: 'Three'),
+      VgrOption(value: 1, label: 'One'),
+      VgrOption(value: 2, label: 'Two'),
+    ];
+
+    testWidgets('a field shown only for some values is neither shown nor validated otherwise',
+        (tester) async {
+      final saved = await pumpForm(tester, () => [
+            const RegisterChoiceField(
+              name: 'status',
+              label: 'Status',
+              initialValue: 'allowed',
+              required: true,
+              options: [
+                VgrOption(value: 'allowed', label: 'Allowed'),
+                VgrOption(value: 'blocked', label: 'Blocked'),
+              ],
+            ),
+            RegisterChoiceField(
+              name: 'reason',
+              label: 'Reason',
+              required: true,
+              options: const [VgrOption(value: 'legislation', label: 'Legislation')],
+              visibleWhen: (values) => values.choice('status') != 'allowed',
+            ),
+          ]);
+
+      expect(field('reason'), findsNothing);
+      await tester.tap(find.byKey(VgrFormShell.saveKey));
+      await tester.pumpAndSettle();
+      expect(saved.single['status'], 'allowed');
+
+      await tester.tap(field('status'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Blocked').last);
+      await tester.pumpAndSettle();
+      expect(field('reason'), findsOneWidget);
+
+      await tester.tap(find.byKey(VgrFormShell.saveKey));
+      await tester.pumpAndSettle();
+      expect(find.text('Reason: Required field.'), findsOneWidget);
+      expect(saved, hasLength(1));
+    });
+
+    testWidgets('a checklist comes back sorted; an ordered one in click order with positions',
+        (tester) async {
+      final saved = await pumpForm(tester, () => const [
+            RegisterChecklistField(name: 'ids', label: 'Ids', options: options),
+            RegisterChecklistField(
+              name: 'menu',
+              label: 'Menu',
+              options: options,
+              ordered: true,
+              initialValue: [2],
+            ),
+          ]);
+
+      await tester.tap(find.byKey(const Key('register-field-ids-3')));
+      await tester.tap(find.byKey(const Key('register-field-ids-1')));
+      await tester.tap(find.byKey(const Key('register-field-menu-3')));
+      await tester.pump();
+
+      // Position of each checked screen in the ordered list.
+      expect(tester.widget<VgrCheckboxTile>(find.byKey(const Key('register-field-menu-2'))).trailingText, '1');
+      expect(tester.widget<VgrCheckboxTile>(find.byKey(const Key('register-field-menu-3'))).trailingText, '2');
+
+      await tester.tap(find.byKey(VgrFormShell.saveKey));
+      await tester.pumpAndSettle();
+      expect(saved.single['ids'], [1, 3]);
+      expect(saved.single['menu'], [2, 3]);
+    });
+
+    testWidgets('a checklist still loading or failed says so instead of the options', (tester) async {
+      await pumpForm(tester, () => const [
+            RegisterChecklistField(name: 'ids', label: 'Ids', options: [], loading: true),
+            RegisterChecklistField(name: 'menu', label: 'Menu', options: [], unavailableText: 'Down'),
+          ], settle: false);
+
+      expect(find.byType(VgrLoading), findsOneWidget);
+      expect(find.text('Down'), findsOneWidget);
     });
   });
 }

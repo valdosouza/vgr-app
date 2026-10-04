@@ -8,6 +8,7 @@ import '../feedback/feedback.dart';
 import '../session/current_interface.dart';
 import 'register_bloc.dart';
 import 'register_field.dart';
+import 'paged_list_screen.dart';
 import 'register_form_page.dart';
 import 'register_search_page.dart';
 
@@ -24,7 +25,12 @@ import 'register_search_page.dart';
 ///   anchored on their field first, everything else by severity.
 ///
 /// The bloc is looked up as `RegisterBloc<T, D>` — modules declare theirs
-/// as a type alias of it so the provider matches.
+/// as a type alias of it so the provider matches (a subclass with row
+/// actions is provided under that base type).
+///
+/// [openRows] false keeps rows closed: a register whose records are never
+/// edited, only added (a Legal Gate rule is versioned — a change is a new
+/// proposal, decision 107).
 class RegisterScreen<T, D> extends StatefulWidget {
   const RegisterScreen({
     super.key,
@@ -36,6 +42,7 @@ class RegisterScreen<T, D> extends StatefulWidget {
     required this.fields,
     required this.draftOf,
     this.actions = const [],
+    this.openRows = true,
   });
 
   final String title;
@@ -51,6 +58,8 @@ class RegisterScreen<T, D> extends StatefulWidget {
   /// List header actions.
   final List<Widget> actions;
 
+  final bool openRows;
+
   @override
   State<RegisterScreen<T, D>> createState() => _RegisterScreenState<T, D>();
 }
@@ -60,17 +69,11 @@ class _RegisterScreenState<T, D> extends State<RegisterScreen<T, D>> {
 
   RegisterBloc<T, D> get _bloc => context.read<RegisterBloc<T, D>>();
 
-  void _onSignal(BuildContext context, RegisterState<T> state) {
-    switch (state) {
-      case RegisterActionSuccess<T>(:final messageKey):
-        showSuccessFeedback(context, messageKey.tr());
-      case RegisterActionFailure<T>(:final failure):
-        final anchored = _form.currentState?.showServerFieldError(failure) ?? false;
-        if (!anchored) showFailureFeedback(context, failure);
-      default:
-        break;
-    }
-  }
+  void _onSignal(BuildContext context, RegisterState<T> state) => showRegisterSignal<T>(
+        context,
+        state,
+        anchor: (failure) => _form.currentState?.showServerFieldError(failure) ?? false,
+      );
 
   Future<void> _confirmDelete(T item) async {
     final decision = await askDecision(
@@ -113,7 +116,7 @@ class _RegisterScreenState<T, D> extends State<RegisterScreen<T, D>> {
       rowId: widget.rowId,
       onFilter: (text) => _bloc.add(RegisterListRequested(filter: text)),
       onRetry: () => _bloc.add(const RegisterListRequested()),
-      onOpen: (item) => _bloc.add(RegisterEditPressed<T>(item)),
+      onOpen: widget.openRows ? (item) => _bloc.add(RegisterEditPressed<T>(item)) : null,
       onNew: widget.screen.canInsert ? () => _bloc.add(const RegisterNewPressed()) : null,
       onPageChanged: (number) => _bloc.add(RegisterListRequested(page: number)),
       onPageSizeChanged: (size) => _bloc.add(RegisterListRequested(pageSize: size)),

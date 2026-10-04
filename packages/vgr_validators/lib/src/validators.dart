@@ -130,6 +130,16 @@ abstract final class VgrValidators {
     return _upperSnake.hasMatch(value) ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
   }
 
+  /// Mirrors the `i18nKey` regex `/^[a-z][a-z0-9_]*$/` of
+  /// `interfaceSaveDto` and `systemModuleSaveDto` (the app's route-map key
+  /// discipline). A miss is `INVALID_FORMAT`, like [upperSnakeCase].
+  static final _lowerSnake = RegExp(r'^[a-z][a-z0-9_]*$');
+
+  static VgrFieldError? lowerSnakeCase(String value) {
+    if (value.trim().isEmpty) return _required;
+    return _lowerSnake.hasMatch(value) ? null : const VgrFieldError(VgrFieldCode.invalidFormat);
+  }
+
   /// Mirrors the LENGTH rules of `newPasswordSchema`
   /// (`api/src/shared/security/password-policy.ts`, decision 114):
   /// `.min(12).max(72)` on the raw value — never trimmed, a space is a

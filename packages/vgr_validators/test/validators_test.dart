@@ -198,4 +198,23 @@ void main() {
       expect(rule('long enough password'), isNull);
     });
   });
+
+  group('VgrValidators.lowerSnakeCase — mirrors interfaceSaveDto / systemModuleSaveDto i18nKey', () {
+    test('a lower_snake_case key passes', () {
+      for (final value in ['users', 'legal_rules', 'report_stats', 'a1_b2']) {
+        expect(VgrValidators.lowerSnakeCase(value), isNull, reason: value);
+      }
+    });
+
+    test('anything else → INVALID_FORMAT', () {
+      for (final value in ['Users', 'USERS', '1users', '_users', 'legal-rules', 'legal rules']) {
+        expect(VgrValidators.lowerSnakeCase(value), const VgrFieldError(VgrFieldCode.invalidFormat),
+            reason: value);
+      }
+    });
+
+    test('blank is REQUIRED', () {
+      expect(VgrValidators.lowerSnakeCase(''), const VgrFieldError(VgrFieldCode.required));
+    });
+  });
 }
