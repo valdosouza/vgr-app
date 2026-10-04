@@ -69,7 +69,8 @@ table in `ADMIN-SCREENS.md` §0.
   yourself or revoking your own access is refused (`SELF_LOCKOUT`). Each row offers the
   privilege matrix (`/users/privileges`) with the `user_privileges` grant (93): checking
   any privilege implies VIEW — the API's rule, the page re-fetches to show it. The update
-  echoes the user's saved `locale` (the API nulls an absent one).
+  leaves `locale` out: the API keeps the saved one (decision 230; it used to null it and
+  the panel echoed the value).
 - **privileges** — the catalog, identifier validated as `privilegeSaveDto` (2..60,
   UPPER_SNAKE_CASE); translated through `menu.privileges.<NAME>`.
 - **interfaces** — the screen catalog (`tb_interface`): description 2..120, key 2..60
@@ -108,6 +109,9 @@ factory screen: `docs/adr/TESTS.md`.
   (one admin could grant alone). DC1 fixed the API (requester and approver from the
   session, one approval by another user); DC2 rebuilt the screen as a register — list,
   request form, approve on the row, disabled on your own request.
+- 2026-10-04 — round 19 (230–233): every date on the panel (and the mobile app) is shown
+  in local time through core's `formatLocalDateTime` instead of a cut of the UTC string;
+  the user edit stopped echoing `locale`.
 
 ## OPEN POINTS
 - `category-forms` still appends a placeholder field instead of a field editor, and

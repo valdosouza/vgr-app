@@ -219,6 +219,7 @@ REQUIRED: All source code, identifiers, and comments in English (project-wide st
 REQUIRED: User-facing strings go through `easy_localization` — no hardcoded UI text in widgets.
 REQUIRED: English (`en-US`) is the source/fallback locale; `pt-BR` is the first translated locale (`apps/mobile/assets/translations/`).
 PROHIBITED: Hardcoded natural-language strings inside `presentation/` — always a translation key.
+REQUIRED: Timestamps from the API (UTC, ISO 8601 with `Z`) are shown through `formatLocalDateTime` / `formatLocalDate` (`packages/core/lib/src/format/local_time.dart`) — the device's local time, `yyyy-MM-dd HH:mm` (decision 232). PROHIBITED: cutting the ISO string on a screen (it showed UTC — 3 h ahead in Brazil).
 
 ## INTEGRATIONS
 | External Service / Component | Purpose | Connection / Authentication Method |

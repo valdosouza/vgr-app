@@ -7,7 +7,6 @@ import 'package:vgr_widgets/vgr_widgets.dart';
 
 import '../../domain/entity/chat_entities.dart';
 import '../bloc/chat_conversation_bloc.dart';
-import 'chat_threads_page.dart';
 
 /// Who is on the other side, as SERVED: the owner's list hands the
 /// participant it received; a helper's own thread has the reporter on the
@@ -178,7 +177,7 @@ class _ChatConversationPageState extends State<ChatConversationPage>
                       text: message.purged ? 'chat.purged'.tr() : (message.text ?? ''),
                       mine: message.mine,
                       timeLabel: message.status == ChatMessageStatus.sent
-                          ? formatChatTime(message.createdAt)
+                          ? formatLocalDateTime(message.createdAt)
                           : '',
                       status: switch (message.status) {
                         ChatMessageStatus.sent => VgrChatBubbleStatus.sent,

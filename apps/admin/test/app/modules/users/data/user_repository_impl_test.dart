@@ -59,8 +59,8 @@ void main() {
     verify(() => apiClient.post('/api/users', body)).called(1);
   });
 
-  test('update echoes the saved locale (the API would null it) and omits an empty password', () async {
-    const body = {'name': 'Ana Maria', 'email': 'ana@vgr.com.br', 'active': 'N', 'locale': 'pt-BR'};
+  test('update leaves locale out (the API keeps it, decision 230) and omits an empty password', () async {
+    const body = {'name': 'Ana Maria', 'email': 'ana@vgr.com.br', 'active': 'N'};
     when(() => apiClient.put('/api/users/2', body)).thenAnswer((_) async => echo(body));
 
     await repository.update(ana, const UserDraft(name: 'Ana Maria', email: 'ana@vgr.com.br', active: 'N'));
@@ -73,7 +73,6 @@ void main() {
       'name': 'Ana',
       'email': 'ana@vgr.com.br',
       'active': 'S',
-      'locale': 'pt-BR',
       'password': 'another long one',
     };
     when(() => apiClient.put('/api/users/2', body)).thenAnswer((_) async => echo(body));

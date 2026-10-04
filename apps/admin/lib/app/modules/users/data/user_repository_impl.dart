@@ -41,10 +41,10 @@ class UserRepositoryImpl implements UserRepository {
         'name': draft.name,
         'email': draft.email,
         'active': draft.active,
-        // The API writes `locale` on every update and treats an absent one
-        // as null, which used to wipe the user's saved language whenever an
-        // admin edited their name. The form does not edit it — echo it.
-        'locale': current.locale,
+        // No `locale`: the form does not edit it, and since decision 230 the
+        // API keeps what is saved when the field is absent (it used to null
+        // it, so the panel echoed the value — which could also overwrite a
+        // language the user had just changed).
         if (draft.password != null && draft.password!.isNotEmpty) 'password': draft.password,
       });
       return Right(UserEntity.fromJson(json['data'] as Map<String, dynamic>));

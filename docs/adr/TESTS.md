@@ -39,6 +39,7 @@ REQUIRED: Widget tests verify loading/error/empty states, not only the happy pat
 FORBIDDEN: Business logic inside `setUp()`/`tearDown()`.
 FORBIDDEN: Tests that depend on execution order or shared global state.
 FORBIDDEN: Real network calls in unit/widget tests — real calls only in a controlled `integration_test`.
+REQUIRED: Tests pass in ANY timezone (decision 232) — a displayed time is expected as `formatLocalDateTime(<the fixture's ISO>)`, never a hard-coded `2026-09-02 10:00`. Check with `TZ=America/Sao_Paulo flutter test` before pushing a screen that shows dates.
 
 ## TOOLING
 - **Framework:** `flutter_test` (SDK), `integration_test` (E2E)

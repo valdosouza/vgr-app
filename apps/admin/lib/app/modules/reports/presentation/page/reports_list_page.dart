@@ -304,7 +304,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
       'tier': 'reports.tier.${item.tier}'.tr(),
       'status': 'reports.status.${item.status}'.tr(),
       'media': '${item.mediaCount}',
-      'when': _when(item.createdAt),
+      'when': formatLocalDateTime(item.createdAt),
     });
     return VgrListTile(
       key: Key('report-row-${item.reportId}'),
@@ -337,7 +337,4 @@ class _ReportsListPageState extends State<ReportsListPage> {
     );
   }
 
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

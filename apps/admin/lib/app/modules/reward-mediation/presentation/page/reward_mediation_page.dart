@@ -333,7 +333,7 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
       ),
       if (resolution.windowEndsAt != null)
         VgrText('rewardMediation.windowEnds'
-            .tr(namedArgs: {'when': _when(resolution.windowEndsAt!)})),
+            .tr(namedArgs: {'when': formatLocalDateTime(resolution.windowEndsAt!)})),
       VgrText.caption('rewardMediation.executeHint'.tr()),
       const VgrGap.sm(),
       if (entity.openContests.isNotEmpty) ...[
@@ -413,7 +413,7 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
           subtitle: [
             entry.actorRef,
             if (entry.details != null) entry.details!,
-            if (entry.createdAt != null) _when(entry.createdAt!),
+            if (entry.createdAt != null) formatLocalDateTime(entry.createdAt!),
           ].join(' · '),
         ),
     ];
@@ -423,7 +423,4 @@ class _RewardMediationPageState extends State<RewardMediationPage> {
     final value = (cents / 100).toStringAsFixed(2).replaceFirst('.', ',');
     return 'R\$ $value';
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

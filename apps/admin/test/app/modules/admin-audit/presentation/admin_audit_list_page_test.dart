@@ -85,9 +85,9 @@ void main() {
     verify(() => repository.list(_none, 1, 50)).called(1);
     verify(() => repository.facets()).called(1);
     expect(find.byKey(const Key('audit-row-1')), findsOneWidget);
-    expect(find.text('2026-09-02 10:00 · Ana (#4) · Update'), findsOneWidget);
+    expect(find.text('${formatLocalDateTime('2026-09-02T10:00:00.000Z')} · Ana (#4) · Update'), findsOneWidget);
     expect(find.text('user#12 · {"name":"Ana"}'), findsOneWidget);
-    expect(find.text('2026-09-02 10:00 · Unknown user (#4) · Update'), findsOneWidget);
+    expect(find.text('${formatLocalDateTime('2026-09-02T10:00:00.000Z')} · Unknown user (#4) · Update'), findsOneWidget);
     expect(find.text('user#12 · raw text'), findsOneWidget);
     expect(find.textContaining('IP'), findsNothing);
   });

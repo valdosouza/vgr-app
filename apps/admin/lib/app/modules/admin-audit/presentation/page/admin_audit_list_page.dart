@@ -236,7 +236,7 @@ class _AdminAuditListPageState extends State<AdminAuditListPage> {
       key: Key('audit-row-${item.id}'),
       leadingIcon: item.action == 'read' ? VgrIconName.visibility : VgrIconName.edit,
       title: 'adminAudit.row'.tr(namedArgs: {
-        'when': _when(item.createdAt),
+        'when': formatLocalDateTime(item.createdAt),
         'actor': _actor(item),
         'action': _actionLabel(item.action),
       }),
@@ -279,7 +279,4 @@ class _AdminAuditListPageState extends State<AdminAuditListPage> {
     final translated = key.tr();
     return translated == key ? action : translated;
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

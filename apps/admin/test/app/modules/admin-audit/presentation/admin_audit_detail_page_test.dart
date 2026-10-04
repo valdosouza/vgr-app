@@ -59,7 +59,7 @@ void main() {
     expect(find.text('Ana (#4)'), findsOneWidget);
     expect(find.text('Grant'), findsOneWidget);
     expect(find.text('user_privileges#12'), findsOneWidget);
-    expect(find.text('2026-09-02 10:00'), findsOneWidget);
+    expect(find.text(formatLocalDateTime('2026-09-02T10:00:00.000Z')), findsOneWidget);
     expect(find.byKey(const Key('audit-summary-granted')), findsOneWidget);
     expect(find.text('reports'), findsOneWidget);
     expect(find.byKey(const Key('audit-summary-before')), findsOneWidget);

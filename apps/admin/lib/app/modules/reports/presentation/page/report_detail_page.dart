@@ -152,13 +152,13 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             VgrText.title('$taxonomy · ${'reports.subject.${d.subject}'.tr()}'),
             VgrText.caption('${'reports.tier.${d.tier}'.tr()} · '
                 '${'reports.status.${d.status}'.tr()}'),
-            VgrText.caption('reports.detail.created'.tr(namedArgs: {'when': _when(d.createdAt)})),
+            VgrText.caption('reports.detail.created'.tr(namedArgs: {'when': formatLocalDateTime(d.createdAt)})),
             if (d.resolvedAt != null)
               VgrText.caption(
-                  'reports.detail.resolved'.tr(namedArgs: {'when': _when(d.resolvedAt!)})),
+                  'reports.detail.resolved'.tr(namedArgs: {'when': formatLocalDateTime(d.resolvedAt!)})),
             if (d.expiresAt != null)
               VgrText.caption(
-                  'reports.detail.expires'.tr(namedArgs: {'when': _when(d.expiresAt!)})),
+                  'reports.detail.expires'.tr(namedArgs: {'when': formatLocalDateTime(d.expiresAt!)})),
             if (d.purged) ...[
               const VgrGap.sm(),
               VgrText.error('reports.detail.purged'.tr(), key: const Key('report-purged-badge')),
@@ -181,7 +181,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return [
         VgrText.caption(
           'reports.queue.reviewedAt'.tr(namedArgs: {
-            'when': _when(d.reviewedAt!),
+            'when': formatLocalDateTime(d.reviewedAt!),
             'user': '${d.reviewedBy ?? '—'}',
           }),
           key: const Key('report-reviewed'),
@@ -276,7 +276,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             dense: true,
             leadingIcon: VgrIconName.forward,
             title: _trOr('reports.detail.event.${event.eventType}', event.eventType),
-            subtitle: _when(event.createdAt),
+            subtitle: formatLocalDateTime(event.createdAt),
           ),
       ];
 
@@ -317,7 +317,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         _trOr('reports.moderation.reason.${m.blockedReasonCode}', m.blockedReasonCode!),
       if (m.blockedNote != null) m.blockedNote!,
       if (m.blockedAt != null)
-        'reports.moderation.blockedSince'.tr(namedArgs: {'when': _when(m.blockedAt!)}),
+        'reports.moderation.blockedSince'.tr(namedArgs: {'when': formatLocalDateTime(m.blockedAt!)}),
     ];
     return blocked.isEmpty ? row : '$row · ${blocked.join(' · ')}';
   }
@@ -359,7 +359,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                 // the rest of this line.
                 for (final type in offer.helpTypes)
                   _trOr('reports.detail.helpType.$type', type),
-                _when(offer.createdAt),
+                formatLocalDateTime(offer.createdAt),
               ].join(' · '),
               trailing: _offerRating(offer),
             ),
@@ -423,7 +423,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             VgrText.caption('reports.chat.thread'.tr(namedArgs: {
               'id': '${thread.threadId}',
               'offer': '${thread.helpOfferId}',
-              'when': _when(thread.createdAt),
+              'when': formatLocalDateTime(thread.createdAt),
             })),
             for (final p in thread.participants) VgrText(_chatParticipant(p)),
             if (thread.closed)
@@ -434,7 +434,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               VgrText(
                 'reports.chat.message'.tr(namedArgs: {
                   'role': roleByToken[m.sender] ?? m.sender,
-                  'when': _when(m.createdAt),
+                  'when': formatLocalDateTime(m.createdAt),
                   'text': m.text ?? 'reports.chat.purged'.tr(),
                 }),
                 key: Key('chat-message-${m.messageId}'),
@@ -482,7 +482,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         if (d.hiddenNote != null) VgrText(d.hiddenNote!),
         VgrText.caption([
           if (d.hiddenAt != null)
-            'reports.moderation.hiddenSince'.tr(namedArgs: {'when': _when(d.hiddenAt!)}),
+            'reports.moderation.hiddenSince'.tr(namedArgs: {'when': formatLocalDateTime(d.hiddenAt!)}),
           if (d.hiddenBy != null)
             'reports.moderation.hiddenBy'.tr(namedArgs: {'user': '${d.hiddenBy}'}),
         ].join(' · ')),
@@ -555,7 +555,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           if (freeze.frozenReason != null)
             VgrText('reports.detail.frozenReason'
                 .tr(namedArgs: {'reason': freeze.frozenReason!})),
-          if (freeze.frozenAt != null) VgrText.caption(_when(freeze.frozenAt!)),
+          if (freeze.frozenAt != null) VgrText.caption(formatLocalDateTime(freeze.frozenAt!)),
         ] else
           VgrText('reports.detail.notFrozen'.tr(), key: const Key('report-not-frozen-badge')),
         const VgrGap.sm(),
@@ -627,7 +627,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           dense: true,
           leadingIcon: VgrIconName.person,
           title: 'reports.detail.pendingBy'.tr(namedArgs: {'user': '${pending.requestedBy}'}),
-          subtitle: '${pending.reason} · ${_when(pending.requestedAt)}',
+          subtitle: '${pending.reason} · ${formatLocalDateTime(pending.requestedAt)}',
         ),
         VgrText.caption('reports.detail.approveHint'.tr()),
         const VgrGap.sm(),
@@ -649,7 +649,4 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     final translated = key.tr();
     return translated == key ? fallback : translated;
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

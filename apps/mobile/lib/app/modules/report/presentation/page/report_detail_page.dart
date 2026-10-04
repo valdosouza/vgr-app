@@ -115,7 +115,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             VgrText.headline('detail.summary.resolved'.tr()),
             if (view.resolvedAt != null) ...[
               const VgrGap.sm(),
-              VgrText.caption(_when(view.resolvedAt!)),
+              VgrText.caption(formatLocalDateTime(view.resolvedAt!)),
             ],
           ],
         ),
@@ -146,7 +146,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           VgrText.caption(view.status == 'resolved'
               ? 'detail.status.resolved'.tr()
               : 'detail.status.open'.tr()),
-          if (view.createdAt != null) VgrText.caption(_when(view.createdAt!)),
+          if (view.createdAt != null) VgrText.caption(formatLocalDateTime(view.createdAt!)),
           if (view.position != null) ...[
             const VgrGap.sm(),
             VgrRow(children: [
@@ -193,7 +193,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                 dense: true,
                 leadingIcon: VgrIconName.forward,
                 title: 'detail.event.${event.eventType}'.tr(),
-                subtitle: _when(event.createdAt),
+                subtitle: formatLocalDateTime(event.createdAt),
               ),
           ],
           if (view.offers != null) ...[
@@ -213,7 +213,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                   // Every front of the offer (208), " · "-separated.
                   subtitle: offer.createdAt == null
                       ? _helpTypesLabel(offer.helpTypes)
-                      : '${_helpTypesLabel(offer.helpTypes)} · ${_when(offer.createdAt!)}',
+                      : '${_helpTypesLabel(offer.helpTypes)} · ${formatLocalDateTime(offer.createdAt!)}',
                   trailing: _ratingControl(view, offer, ratingOfferId),
                 ),
           ],
@@ -441,7 +441,4 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     // Unread count changed while reading — reload the facet.
     if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(view.reportId));
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

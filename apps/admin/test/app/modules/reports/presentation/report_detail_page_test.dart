@@ -383,7 +383,7 @@ void main() {
       expect(find.byKey(const Key('report-hidden-badge')), findsOneWidget);
       expect(find.textContaining('Abuse'), findsOneWidget);
       expect(find.text('threats in the free text'), findsOneWidget);
-      expect(find.textContaining('Hidden since 2026-09-02 09:00'), findsOneWidget);
+      expect(find.textContaining('Hidden since ${formatLocalDateTime('2026-09-02T09:00:00.000Z')}'), findsOneWidget);
       expect(find.byKey(const Key('unhide-button')), findsOneWidget);
       expect(find.byKey(const Key('hide-button')), findsNothing);
       expect(find.byKey(const Key('moderation-reason-field')), findsNothing);
@@ -425,7 +425,7 @@ void main() {
       verify(() => repository.blockMedia('abc', 'personal_data', null)).called(1);
       expect(find.byKey(const Key('unblock-media-abc')), findsOneWidget);
       expect(find.byKey(const Key('block-media-abc')), findsNothing);
-      expect(find.textContaining('Blocked since 2026-09-02 09:05'), findsOneWidget);
+      expect(find.textContaining('Blocked since ${formatLocalDateTime('2026-09-02T09:05:00.000Z')}'), findsOneWidget);
       expect(find.textContaining('Illegal content'), findsOneWidget);
     });
 
@@ -488,7 +488,7 @@ void main() {
 
       verify(() => repository.markReviewed(7)).called(1);
       expect(find.byKey(const Key('report-reviewed')), findsOneWidget);
-      expect(find.text('Reviewed 2026-09-02 09:00 · by user 4'), findsOneWidget);
+      expect(find.text('Reviewed ${formatLocalDateTime('2026-09-02T09:00:00.000Z')} · by user 4'), findsOneWidget);
       expect(find.byKey(const Key('mark-reviewed-button')), findsNothing);
     });
 
@@ -600,8 +600,8 @@ void main() {
       expect(find.byKey(const Key('chat-thread-3-closed')), findsOneWidget);
       expect(find.text('Closed'), findsOneWidget);
       // Messages as plain rows: role · time · text; purged → [purged].
-      expect(find.text('Helper · 2026-09-03 10:01 · Where are you?'), findsOneWidget);
-      expect(find.text('Reporter · 2026-09-03 10:02 · [purged]'), findsOneWidget);
+      expect(find.text('Helper · ${formatLocalDateTime('2026-09-03T10:01:02.000Z')} · Where are you?'), findsOneWidget);
+      expect(find.text('Reporter · ${formatLocalDateTime('2026-09-03T10:02:00.000Z')} · [purged]'), findsOneWidget);
       expect(find.byKey(const Key('chat-thread-3-has-more')), findsOneWidget);
       // No composer, no action (175): the ONLY text field on the page is the freeze reason.
       expect(find.byType(VgrChatComposer), findsNothing);

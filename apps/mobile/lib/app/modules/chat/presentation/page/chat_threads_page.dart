@@ -77,7 +77,7 @@ class _ChatThreadsPageState extends State<ChatThreadsPage> {
                       title: participantLabel(thread.other),
                       subtitle: thread.lastMessageAt == null
                           ? 'chat.noMessages'.tr()
-                          : formatChatTime(thread.lastMessageAt!),
+                          : formatLocalDateTime(thread.lastMessageAt!),
                       trailing: VgrRow(children: [
                         if (thread.closed)
                           VgrText.caption(
@@ -105,6 +105,3 @@ class _ChatThreadsPageState extends State<ChatThreadsPage> {
 String participantLabel(ChatParticipantEntity participant) =>
     participant.displayName ?? 'chat.role.${participant.role.name}'.tr();
 
-/// Timestamps are rendered as served — already degraded by tier (174).
-String formatChatTime(String iso) =>
-    iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;

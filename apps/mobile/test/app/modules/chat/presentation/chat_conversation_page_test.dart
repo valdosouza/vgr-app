@@ -80,7 +80,7 @@ void main() {
     );
   }
 
-  testWidgets('renders bubbles by `mine`, times as served, and the ROLE for the reporter — '
+  testWidgets('renders bubbles by `mine`, times in local time (232), and the ROLE for the reporter — '
       'never a name (170)', (tester) async {
     stubPage([_served(1, text: 'hello'), _served(2, mine: true, text: 'hi')]);
 
@@ -89,7 +89,7 @@ void main() {
     expect(find.text('Reporter'), findsOneWidget);
     expect(find.text('hello'), findsOneWidget);
     expect(find.text('hi'), findsOneWidget);
-    expect(find.text('2026-09-03 10:11'), findsOneWidget);
+    expect(find.text(formatLocalDateTime('2026-09-03T10:11:00.000Z')), findsOneWidget);
     expect(tester.widget<VgrChatBubble>(find.byKey(const Key('chat-bubble-ck-2'))).mine, isTrue);
     expect(tester.widget<VgrChatBubble>(find.byKey(const Key('chat-bubble-ck-1'))).mine, isFalse);
   });

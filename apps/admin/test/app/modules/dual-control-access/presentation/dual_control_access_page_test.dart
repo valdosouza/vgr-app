@@ -104,12 +104,12 @@ void main() {
 
     expect(find.text('Request #5 · log entry #1'), findsOneWidget);
     expect(find.text('Court order #7'), findsOneWidget);
-    expect(find.text('Requested by Ana on 2026-10-04 21:38'), findsOneWidget);
+    expect(find.text('Requested by Ana on ${formatLocalDateTime(_byAna.createdAt)}'), findsOneWidget);
     expect(find.text('Awaiting approval'), findsOneWidget);
-    expect(find.text('Approved by Bia on 2026-10-04 21:40'), findsOneWidget);
+    expect(find.text('Approved by Bia on ${formatLocalDateTime(_granted.approvedAt)}'), findsOneWidget);
     expect(find.text('Granted'), findsOneWidget);
     // A voided pre-fix request: no requester, a dash — never an e-mail.
-    expect(find.text('Requested by — on 2026-09-01 10:00'), findsOneWidget);
+    expect(find.text('Requested by — on ${formatLocalDateTime(_voided.createdAt)}'), findsOneWidget);
     expect(find.textContaining('Voided'), findsOneWidget);
     // Only a pending request offers the action.
     expect(find.byKey(const Key('dual-control-approve-5')), findsOneWidget);
@@ -143,7 +143,7 @@ void main() {
 
     verify(() => repository.approve(5)).called(1);
     expect(find.text('Request approved — access granted.'), findsOneWidget);
-    expect(find.text('Approved by Bia on 2026-10-04 21:40'), findsOneWidget);
+    expect(find.text('Approved by Bia on ${formatLocalDateTime(_granted.approvedAt)}'), findsOneWidget);
     expect(find.byKey(const Key('dual-control-approve-5')), findsNothing);
   });
 

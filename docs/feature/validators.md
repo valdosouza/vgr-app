@@ -36,6 +36,7 @@ found by the TDD audit of 2026-08-22.
 | `VgrValidators.brPhone` | `onboardRecipientDto.mobilePhone min(10).max(13)` | on unmasked digits; `TOO_SHORT {min}` / `TOO_LONG {max}` |
 | `VgrValidators.cep` | `onboardRecipientDto.address.postalCode min(8).max(9)` | exactly 8 digits (the app always sends the unmasked form) |
 | `VgrValidators.positiveNumber` | `z.number().positive()` | `INVALID_VALUE` |
+| `VgrValidators.positiveInteger` | `z.number().int().positive()` — `accountabilityLogEntryId` of `dualControlCreateDto` (decision 223) | blank → `REQUIRED`; fraction, zero, sign or garbage → `INVALID_VALUE` |
 | `VgrValidators.minLength(n)` | `z.string().min(n)` — `freezeReasonDto` (case-freeze, decision 141) | returns a validator; blank → `REQUIRED`, shorter → `TOO_SHORT {min}` |
 | `VgrValidators.isoDate` | `from`/`to` of `reports-admin.dto.ts` (B1) | `YYYY-MM-DD` shape AND calendar validity → `INVALID_FORMAT` |
 | `VgrValidators.noDirectContact` | `findContact` in `api/src/shared/chat/contact-filter.ts` (masked chat, decision 171) | `CONTACT_NOT_ALLOWED {kind, match}`; `findContact`/`ContactHit`/`ContactKind` exported; `test/contact_filter_test.dart` carries the API spec fixtures one by one; accents stripped by a Latin table (no NFD in Dart) |
