@@ -54,7 +54,8 @@ D:\ProjetoVGR\app/
                 ├── legal-policy/         # Legal Gate: jurisdictions, capabilities, rules (paged workflow lists)
                 ├── risk-config/  category-forms/  monetization-config/    # fixed catalogs (unpaged, 220)
                 ├── panic-responders/     # authorized-responder queue (paged workflow list)
-                ├── dual-control-access/  case-freeze/  reward-mediation/  # flows
+                ├── dual-control-access/  # decision 45 gate: register, request only (227)
+                ├── case-freeze/  reward-mediation/                        # flows
                 └── reports/  report-stats/  admin-audit/                  # moderation, statistics, audit trail
 </folder_structure>
 

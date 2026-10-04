@@ -17,6 +17,17 @@ Map<String, dynamic>? decodeJwtPayload(String token) {
   }
 }
 
+/// The panel user the API will see as the actor (`req.user.userId`) — the
+/// `userId` claim of the session token the client sends. UX only (e.g.
+/// disabling "approve" on your own dual-control request, decision 227):
+/// the API judges the same claim from the verified token. Null when there
+/// is no token or the claim is missing.
+int? sessionUserIdOf(String? token) {
+  if (token == null) return null;
+  final userId = decodeJwtPayload(token)?['userId'];
+  return userId is num ? userId.toInt() : null;
+}
+
 /// True when the token is malformed or its `exp` has passed (30s slack so a
 /// token about to expire is not restored just to fail on the first call).
 bool isJwtExpired(String token) => _expiresWithin(token, const Duration(seconds: 30));

@@ -250,15 +250,21 @@
   },
   "dualControl": {
     "title": "Dual Control Access",
-    "granted": "Granted",
-    "legalBasis": "Legal basis: {}",
-    "approvers": "Approvers: {}",
-    "logEntryId": "AccountabilityLogEntry id",
-    "legalBasisField": "Legal basis",
-    "startRequest": "Start Request",
-    "approverId": "Approver id",
+    "rowTitle": "Request #{id} · log entry #{entry}",
+    "status": {
+      "pending": "Awaiting approval",
+      "granted": "Granted",
+      "void": "Voided — approved before the fix (never valid)"
+    },
+    "requestedBy": "Requested by {name} on {when}",
+    "approvedBy": "Approved by {name} on {when}",
     "approve": "Approve",
-    "approvals": "{} of 2 approvals"
+    "ownRequest": "You opened this request — another person must approve it.",
+    "requestTitle": "New request",
+    "logEntryId": "Accountability log entry id",
+    "legalBasis": "Legal basis",
+    "legalBasisHint": "Court order, official letter or the documented emergency",
+    "approvedFeedback": "Request approved — access granted."
   },
   "reports": {
     "list": {

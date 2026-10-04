@@ -10,10 +10,10 @@
 | The screen… | Build it with | Example |
 |---|---|---|
 | creates / edits / deletes rows of one resource | **`RegisterScreen<T, D>`** + a `RegisterBloc` alias (list ↔ form on one route, decision 217) | `privileges`, `users`, `interfaces`, `system-modules` |
-| only ADDS rows (the resource is versioned, never edited) | `RegisterScreen(openRows: false)` + a `RegisterBloc` **subclass** for the row actions | Legal Gate rules |
+| only ADDS rows (the resource is versioned or a record, never edited) | `RegisterScreen(openRows: false)` + a `RegisterBloc` **subclass** for the row actions | Legal Gate rules, `dual-control-access` |
 | lists rows the operator ACTS on, without a form | **`PagedListScreen<T, B>`** + a `PagedListBloc` subclass; row actions through `act()` | Legal Gate jurisdictions, responder queue |
 | edits a small FIXED catalog (5–10 rows, decision 220 keeps it unpaged) | own bloc + `VgrPage`; outcomes through the bridge | `risk-config`, `category-forms`, `monetization-config` |
-| runs a multi-step flow on one record | own bloc + `VgrPage`; outcomes through the bridge | `dual-control-access`, `case-freeze`, `reward-mediation` |
+| runs a multi-step flow on one record | own bloc + `VgrPage`; outcomes through the bridge | `case-freeze`, `reward-mediation` |
 | needs a deep link per record, or audits every read | own routes (`/:id`) — the registered exception to 217 | `reports`, `admin-audit` |
 
 When in doubt, it is the first row: most panel screens are registers.

@@ -54,7 +54,7 @@ table in `ADMIN-SCREENS.md` §0.
 | `risk_config` | `/risk-config/` | fixed catalog | unpaged (220) | 46 | `risk-config.md` |
 | `category_forms` | `/category-forms/` | fixed catalog | unpaged (220) | 47 | `category-forms.md` |
 | `monetization_config` | `/monetization-config/` | fixed catalog | unpaged (220) | 39, 58 | `monetization-config.md` |
-| `dual_control_access` | `/dual-control-access/` | flow | — | 45, 93 | `dual-control-access.md` |
+| `dual_control_access` | `/dual-control-access/` | register, request only | paged, filter legal basis | 45, 93, 223–227 | `dual-control-access.md` |
 | `case_freeze` | `/case-freeze/` | flow | — | 141 | `case-freeze.md` |
 | `reward_mediation` | `/reward-mediation/` | flow | — | 148–150 | API `docs/feature/reward.md` |
 | `reports` | `/reports/` (+ `/reports/:id`, `/reports/queue`) | own routes (deep link, audited read) | paged search and queue | 158–167, 175 | `report-moderation.md` |
@@ -104,11 +104,12 @@ factory screen: `docs/adr/TESTS.md`.
   or the bridge with paged lists (220) — four screens that fell into an error screen on a
   refused action and the dual-control flow that dropped a request in progress were fixed
   on the way — and PS4 documentation.
+- 2026-10-04 — round 18 (223–229): PS4 found the dual-control approver was a typed id
+  (one admin could grant alone). DC1 fixed the API (requester and approver from the
+  session, one approval by another user); DC2 rebuilt the screen as a register — list,
+  request form, approve on the row, disabled on your own request.
 
 ## OPEN POINTS
-- ⚠️ `dual-control-access`: the approver is a free-text id taken from the request body,
-  so one admin holding both grants can reach the 2-distinct-approver threshold alone —
-  see `dual-control-access.md`; the fix belongs to the API (pending a decision).
 - `category-forms` still appends a placeholder field instead of a field editor, and
   `monetization-config` edits only rows the API already returned (documented gaps of
   phase 1).

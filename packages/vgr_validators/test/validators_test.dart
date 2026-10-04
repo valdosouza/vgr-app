@@ -96,6 +96,17 @@ void main() {
     });
   });
 
+  group('VgrValidators.positiveInteger — mirrors z.number().int().positive()', () {
+    test('accepts whole numbers above zero, rejects fractions/zero/signs/garbage', () {
+      expect(VgrValidators.positiveInteger('42'), isNull);
+      expect(VgrValidators.positiveInteger(' 7 '), isNull);
+      expect(VgrValidators.positiveInteger(''), const VgrFieldError(VgrFieldCode.required));
+      for (final bad in ['0', '1.5', '-3', '+3', 'abc', '99999999999999999999999']) {
+        expect(VgrValidators.positiveInteger(bad), const VgrFieldError(VgrFieldCode.invalidValue), reason: bad);
+      }
+    });
+  });
+
   group('VgrValidators.validate (form helper)', () {
     test('returns the first error per field and nothing for valid fields', () {
       final errors = VgrValidators.validate({

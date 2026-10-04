@@ -65,6 +65,21 @@ abstract final class VgrValidators {
     return n != null && n > 0 ? null : const VgrFieldError(VgrFieldCode.invalidValue);
   }
 
+  /// Mirrors `z.number().int().positive()` — e.g. the
+  /// `accountabilityLogEntryId` of `dualControlCreateDto`
+  /// (`api/src/modules/admin-access/dual-control.dto.ts`, decision 223).
+  /// Blank is `REQUIRED`; a fraction, zero, a sign or garbage is
+  /// `INVALID_VALUE`.
+  static final _positiveInteger = RegExp(r'^[0-9]+$');
+
+  static VgrFieldError? positiveInteger(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return _required;
+    return _positiveInteger.hasMatch(v) && (int.tryParse(v) ?? 0) > 0
+        ? null
+        : const VgrFieldError(VgrFieldCode.invalidValue);
+  }
+
   /// Mirrors `z.string().min(n)` on a free-text field — e.g.
   /// `freezeReasonDto` (`api/src/modules/reports/case-freeze.dto.ts`,
   /// decision 141: the reason is mandatory, at least 3 characters). Blank

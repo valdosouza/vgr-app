@@ -250,15 +250,21 @@
   },
   "dualControl": {
     "title": "Acesso por Duplo Controle",
-    "granted": "Concedido",
-    "legalBasis": "Base legal: {}",
-    "approvers": "Aprovadores: {}",
-    "logEntryId": "Id do AccountabilityLogEntry",
-    "legalBasisField": "Base legal",
-    "startRequest": "Iniciar Solicitação",
-    "approverId": "Id do aprovador",
+    "rowTitle": "Solicitação #{id} · entrada do log #{entry}",
+    "status": {
+      "pending": "Aguardando aprovação",
+      "granted": "Liberada",
+      "void": "Anulada — aprovada antes da correção (nunca vale)"
+    },
+    "requestedBy": "Pedida por {name} em {when}",
+    "approvedBy": "Aprovada por {name} em {when}",
     "approve": "Aprovar",
-    "approvals": "{} de 2 aprovações"
+    "ownRequest": "Você abriu esta solicitação — outra pessoa precisa aprová-la.",
+    "requestTitle": "Nova solicitação",
+    "logEntryId": "Id da entrada do log de responsabilização",
+    "legalBasis": "Base legal",
+    "legalBasisHint": "Ordem judicial, ofício ou a emergência documentada",
+    "approvedFeedback": "Solicitação aprovada — acesso liberado."
   },
   "reports": {
     "list": {

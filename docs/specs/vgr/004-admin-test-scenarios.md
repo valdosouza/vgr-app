@@ -13,9 +13,14 @@
 - [ ] Should consider two instances equal when category and tier match
 
 **DualControlAccessRequestEntity**
+> **Amended, 2026-10-04** (round 18 — DC2, decisions 223–227): the three
+> items below judged typed approverIds client-side; superseded — the
+> entity is `DualControlRequestEntity` and grantability is the server's
+> answer (one approval by ANOTHER user, 224). Replaced by the `[x]` item.
 - [ ] Should report isGrantable=false with 0 or 1 approverIds, regardless of legalBasis
 - [ ] Should report isGrantable=true only with 2 distinct approverIds and a non-empty legalBasis
 - [ ] Should report isGrantable=false if the same approverId appears twice in approverIds
+- [x] Should map a request with requester/approver NAMES, and a voided pre-fix request with no requester to nulls (`dual_control_access_repository_impl_test`)
 
 **FeeRuleEntity**
 - [ ] Should create successfully with category=null representing the global default rule
@@ -27,9 +32,13 @@
 - [ ] Should return Right(void) when called by an authenticated admin with a valid Category and tier
 
 **AddApprovalUsecase**
+> **Amended, 2026-10-04** (round 18): there is no usecase layer in the
+> panel and no approver argument — the approval posts an EMPTY body; the
+> session is the approver (223). Superseded by the `[x]` item.
 - [ ] Should return Right(entity) with isGrantable=false after the first distinct approval
 - [ ] Should return Right(entity) with isGrantable=true after the second distinct approval
 - [ ] Should return Left(Failure) without persisting when the same approverId is submitted twice
+- [x] Should approve with an empty body and return the server's row, a refusal as Left (`dual_control_access_repository_impl_test`)
 
 ### 1.3 Blocs
 
@@ -38,7 +47,10 @@
 - [ ] Should emit an updated Loaded state after a successful tier edit, without a full page reload
 
 **DualControlAccessBloc**
+> **Amended, 2026-10-04** (round 18): now `DualControlBloc` on the register
+> factory; one approval grants (224). Superseded by the `[x]` items.
 - [ ] Should emit a one-shot ActionSuccess only when the second distinct approval is recorded, not the first
+- [x] Should signal an approval and reload with the server's answer; a refused approval is signalled and the list stays (`dual_control_bloc_test`)
 
 ## 2. Integration Tests
 
@@ -87,6 +99,14 @@
   - When: admin A approves, then admin B approves
   - Then: the request shows Granted only after B's approval, not after A's alone
 
+> **Amended, 2026-10-04** (round 18 — DC2): the scenario above is
+> superseded — A's request IS the first authorization and B's one approval
+> grants (224); the two people are distinct by construction.
+- [x] **Should let only ANOTHER admin approve a dual-control request** (`dual_control_access_page_test`)
+  - Given: DualControlAccessPage lists a pending request opened by admin A
+  - When: admin A looks at it, then admin B approves it
+  - Then: A sees Approve disabled ("another person must approve"); after B's approval the row shows "Approved by B" and no Approve
+
 - [ ] **Should let an admin set a fee rule for a Category**
   - Given: MonetizationConfigPage is open
   - When: the admin sets a feePercent for "robbery" with paymentModeAllowed={intermediated, peer_to_peer}
@@ -96,6 +116,7 @@
 
 - [ ] Should show a validation error, not a raw exception, when a fee rule tries to allow peer_to_peer on a high-tier Category
 - [ ] Should show the current approver count (not just approved/pending) while a dual-control request is in progress
+- [x] Should show who requested and who approved each dual-control request by name, and its status (amended 2026-10-04, decision 227 — supersedes the approver count above; `dual_control_access_page_test`)
 - [ ] Should redirect away from every admin route when the session's Role is not admin
 
 ### 3.3 Security Scenarios

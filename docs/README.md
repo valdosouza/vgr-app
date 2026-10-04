@@ -20,7 +20,7 @@ Index of project technical documentation for the **VGR apps** (mobile and admin 
 | [**category-forms.md**](./feature/category-forms.md) | Admin editor for per-Category detail-field schema (decision 47). | Optional |
 | [**monetization-config.md**](./feature/monetization-config.md) | Admin editor for fee rules and allowed payment modes, high-tier peer-to-peer veto (decisions 39, 58). | Optional |
 | [**panic-responders.md**](./feature/panic-responders.md) | Admin queue approving / denying authorized-responder requests (decisions 51-52, 190). | Optional |
-| [**dual-control-access.md**](./feature/dual-control-access.md) | Admin two-approver flow for decryption access (decision 45) — with an open risk on the approver identity. | Optional |
+| [**dual-control-access.md**](./feature/dual-control-access.md) | Admin two-person gate for decryption access (decisions 45, 223–227): request list, request form, approve on the row by ANOTHER user — both people from the session. | Optional |
 | [**app-auth.md**](./feature/app-auth.md) | Mobile sign-up / login / e-mail verification / Google (decisions 119, 122-124, 151-152). | Optional |
 | [**reward-onboarding.md**](./feature/reward-onboarding.md) | Mobile registration of a helper as a reward recipient. | Optional |
 | [**direction-sightings.md**](./feature/direction-sightings.md) | Mobile direction sighting on a report (DS2, decisions 200-207). | Optional |
