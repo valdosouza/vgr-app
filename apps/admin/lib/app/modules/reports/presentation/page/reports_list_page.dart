@@ -11,6 +11,7 @@ import '../../domain/entity/report_taxonomy.dart';
 import '../bloc/reports_list_bloc.dart';
 import '../bloc/reports_list_event.dart';
 import '../bloc/reports_list_state.dart';
+import '../../../../shared/register/page_summary.dart';
 
 /// Sentinel for "no filter" in the closed-set dropdowns — the query
 /// simply omits the parameter.
@@ -304,7 +305,7 @@ class _ReportsListPageState extends State<ReportsListPage> {
       'tier': 'reports.tier.${item.tier}'.tr(),
       'status': 'reports.status.${item.status}'.tr(),
       'media': '${item.mediaCount}',
-      'when': _when(item.createdAt),
+      'when': formatLocalDateTime(item.createdAt),
     });
     return VgrListTile(
       key: Key('report-row-${item.reportId}'),
@@ -326,18 +327,11 @@ class _ReportsListPageState extends State<ReportsListPage> {
     return VgrPagingBar(
       page: page.page,
       pageCount: page.pageCount,
-      summary: 'register.pageSummary'.tr(namedArgs: {
-        'page': '${page.page}',
-        'pages': '${page.pageCount}',
-        'total': '${page.total}',
-      }),
+      summary: pageSummary(page),
       previousTooltip: 'register.previousPage'.tr(),
       nextTooltip: 'register.nextPage'.tr(),
       onPageChanged: (number) => bloc.add(ReportsPageRequested(number)),
     );
   }
 
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

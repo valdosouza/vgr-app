@@ -579,10 +579,15 @@
     "deleted": "Registro excluído.",
     "confirmDeleteTitle": "Confirmar exclusão",
     "confirmDeleteMessage": "Esta ação não pode ser desfeita. Excluir este registro?",
-    "pageSummary": "Página {page} de {pages} · {total} registros",
+    "pageSummary": "Página {page} de {pages} · {records}",
     "previousPage": "Página anterior",
     "nextPage": "Próxima página",
-    "pageSize": "Por página"
+    "pageSize": "Por página",
+    "records": {
+      "zero": "{} registros",
+      "one": "{} registro",
+      "other": "{} registros"
+    }
   },
   "feedback": {
     "ok": "OK",

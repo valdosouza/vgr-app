@@ -164,8 +164,8 @@ class _ReportStatsPageState extends State<ReportStatsPage> {
 
   List<Widget> _results(ReportStatsEntity stats) {
     final range = VgrText.caption('reportStats.rangeLine'.tr(namedArgs: {
-      'from': _when(stats.range.from),
-      'to': _when(stats.range.to),
+      'from': formatLocalDateTime(stats.range.from),
+      'to': formatLocalDateTime(stats.range.to),
       'granularity': 'reportStats.granularityOptions.${stats.range.granularity}'.tr(),
     }));
     if (stats.totals.allZero) {
@@ -263,7 +263,4 @@ class _ReportStatsPageState extends State<ReportStatsPage> {
 
   String _categoryLabel(String? category) =>
       category == null ? 'reportStats.freeTag'.tr() : 'reports.category.$category'.tr();
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

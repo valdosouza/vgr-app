@@ -134,7 +134,7 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
                   VgrText('caseFreeze.frozenReason'
                       .tr(namedArgs: {'reason': entity.frozenReason!})),
                 if (entity.frozenAt != null)
-                  VgrText.caption(_when(entity.frozenAt!)),
+                  VgrText.caption(formatLocalDateTime(entity.frozenAt!)),
               ] else
                 VgrText('caseFreeze.notFrozen'.tr(),
                     key: const Key('case-not-frozen-badge')),
@@ -226,7 +226,7 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
         leadingIcon: VgrIconName.person,
         title: 'caseFreeze.pendingBy'
             .tr(namedArgs: {'user': '${pending.requestedBy}'}),
-        subtitle: '${pending.reason} · ${_when(pending.requestedAt)}',
+        subtitle: '${pending.reason} · ${formatLocalDateTime(pending.requestedAt)}',
       ),
       VgrText.caption('caseFreeze.approveHint'.tr()),
       const VgrGap.sm(),
@@ -242,7 +242,4 @@ class _CaseFreezePageState extends State<CaseFreezePage> {
       ),
     ];
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

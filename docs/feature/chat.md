@@ -22,9 +22,10 @@ Uncommitted, awaiting review.
   message creates the thread (173). No facet → no button.
 - **Closed (173).** `closed` is served on every page/summary; the page
   replaces the composer with `chat.closedNotice` and keeps reading.
-- **Time (174).** Timestamps are rendered as served (already degraded by
-  tier) with the same `YYYY-MM-DD HH:MM` cut the detail uses. No read
-  receipt exists anywhere.
+- **Time (174, 232).** Timestamps arrive already degraded by tier (1 min /
+  15 min / 1 h buckets of the UTC instant) and are shown in the device's
+  local time by `formatLocalDateTime` (core) — whole-hour zones keep the
+  buckets intact. No read receipt exists anywhere.
 
 ## Module (`app/modules/chat`, mounted at `/chat` BEFORE `/`)
 

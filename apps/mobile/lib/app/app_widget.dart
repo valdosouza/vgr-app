@@ -28,13 +28,17 @@ class _AppWidgetState extends State<AppWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      onGenerateTitle: (context) => 'app_name'.tr(),
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      routeInformationParser: Modular.routeInformationParser,
-      routerDelegate: Modular.routerDelegate,
+    // LocaleRefresh: a language switch repaints the open screen too, not
+    // only the widgets that read the locale (core, locale_refresh.dart).
+    return LocaleRefresh(
+      child: MaterialApp.router(
+        onGenerateTitle: (context) => 'app_name'.tr(),
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        routeInformationParser: Modular.routeInformationParser,
+        routerDelegate: Modular.routerDelegate,
+      ),
     );
   }
 }

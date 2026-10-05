@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,9 +33,6 @@ class DualControlAccessPage extends StatelessWidget {
   static const screen = CurrentInterface('dual_control_access');
   static const approval = CurrentInterface('dual_control_approval');
 
-  static String _when(String? iso) =>
-      iso == null || iso.length < 16 ? (iso ?? '—') : iso.replaceFirst('T', ' ').substring(0, 16);
-
   /// The panel team by name (227); a blank name (the seed bootstrap leaves
   /// it empty) or a voided request with no requester reads as a dash —
   /// never an e-mail.
@@ -68,7 +66,7 @@ class DualControlAccessPage extends StatelessWidget {
               VgrText.caption(
                 'dualControl.requestedBy'.tr(namedArgs: {
                   'name': _name(request.requestedByName),
-                  'when': _when(request.createdAt),
+                  'when': formatLocalDateTime(request.createdAt),
                 }),
                 key: Key('dual-control-requested-${request.id}'),
               ),
@@ -76,7 +74,7 @@ class DualControlAccessPage extends StatelessWidget {
                 VgrText.caption(
                   'dualControl.approvedBy'.tr(namedArgs: {
                     'name': _name(request.approvedByName),
-                    'when': _when(request.approvedAt),
+                    'when': formatLocalDateTime(request.approvedAt),
                   }),
                   key: Key('dual-control-approved-${request.id}'),
                 ),

@@ -62,7 +62,7 @@ void main() {
     expect(find.byKey(const Key('chat-thread-9')), findsOneWidget);
     expect(find.text('Helper'), findsOneWidget);
     expect(find.text('Ana'), findsOneWidget);
-    expect(find.text('2026-09-03 10:15'), findsOneWidget);
+    expect(find.text(formatLocalDateTime('2026-09-03T10:15:00.000Z')), findsOneWidget);
     expect(find.byKey(const Key('chat-thread-10-closed')), findsOneWidget);
     expect(find.byKey(const Key('chat-thread-9-unread')), findsOneWidget);
     expect(find.text('2'), findsOneWidget);

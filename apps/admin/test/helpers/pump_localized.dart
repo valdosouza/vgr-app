@@ -61,7 +61,8 @@ Future<void> pumpLocalizedApp(WidgetTester tester, Widget app) async {
   await EasyLocalization.ensureInitialized();
   await tester.pumpWidget(
     EasyLocalization(
-      supportedLocales: const [Locale('en', 'US')],
+      supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
+      startLocale: const Locale('en', 'US'),
       path: 'assets/translations',
       fallbackLocale: const Locale('en', 'US'),
       assetLoader: const _FileAssetLoader(),

@@ -97,11 +97,8 @@ class _AlertTile extends StatelessWidget {
       leadingIcon: VgrIconName.panic,
       title: 'panic.alerts.template'.tr(namedArgs: {'distance': distance}),
       subtitle: alert.resolved
-          ? '${'panic.alerts.resolved'.tr()} · ${_when(alert.createdAt)}'
-          : _when(alert.createdAt),
+          ? '${'panic.alerts.resolved'.tr()} · ${formatLocalDateTime(alert.createdAt)}'
+          : formatLocalDateTime(alert.createdAt),
     );
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

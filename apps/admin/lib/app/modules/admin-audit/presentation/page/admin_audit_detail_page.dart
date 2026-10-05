@@ -97,7 +97,7 @@ class _AdminAuditDetailPageState extends State<AdminAuditDetailPage> {
           child: VgrColumn(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _field('when', _when(entry.createdAt)),
+              _field('when', formatLocalDateTime(entry.createdAt)),
               _field(
                 'actor',
                 'adminAudit.actor'.tr(namedArgs: {
@@ -168,7 +168,4 @@ class _AdminAuditDetailPageState extends State<AdminAuditDetailPage> {
     final translated = key.tr();
     return translated == key ? action : translated;
   }
-
-  String _when(String iso) =>
-      iso.length >= 16 ? iso.replaceFirst('T', ' ').substring(0, 16) : iso;
 }

@@ -163,7 +163,7 @@ class _FeedTile extends StatelessWidget {
     final what = item.category != null
         ? 'report.category.${item.category}'.tr()
         : (item.freeTag ?? '');
-    final when = item.createdAt.replaceFirst('T', ' ').substring(0, 16);
+    final when = formatLocalDateTime(item.createdAt);
     return VgrListTile(
       key: Key('feed-item-${item.reportId}'),
       leadingIcon: VgrIconName.alert,

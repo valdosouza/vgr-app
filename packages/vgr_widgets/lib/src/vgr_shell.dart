@@ -34,6 +34,13 @@ class VgrNavColumn extends StatelessWidget {
 
 /// The shell body: navigation columns on the left, the content filling
 /// the rest, everything stretched to the full height.
+///
+/// The content is its own semantics container: in the panel it is a nested
+/// Navigator (the shell's `RouterOutlet`), and every route of a Navigator
+/// paints a `ModalBarrier` whose `BlockSemantics` drops the semantics of
+/// whatever was painted before it in the same container — the navigation
+/// columns. Without the boundary the whole menu was invisible to screen
+/// readers (found in the browser test of 2026-10-04).
 class VgrSidebarLayout extends StatelessWidget {
   const VgrSidebarLayout({super.key, required this.sidebars, required this.content});
 
@@ -43,7 +50,10 @@ class VgrSidebarLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [...sidebars, Expanded(child: content)],
+        children: [
+          ...sidebars,
+          Expanded(child: Semantics(container: true, child: content)),
+        ],
       );
 }
 

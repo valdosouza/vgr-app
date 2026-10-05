@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,9 +27,6 @@ class LegalRulesPage extends StatelessWidget {
   static const screen = CurrentInterface('legal_rules');
   static const dualControl = CurrentInterface('dual_control_approval');
 
-  static String _when(String iso) =>
-      iso.length >= 10 ? iso.replaceFirst('T', ' ').substring(0, 10) : iso;
-
   @override
   Widget build(BuildContext context) {
     final canDecide = screen.canUpdate;
@@ -56,8 +54,8 @@ class LegalRulesPage extends StatelessWidget {
             if (rule.legalBasis != null) VgrText.caption(rule.legalBasis!),
             VgrText.caption(
               'legal.rules.window'.tr(namedArgs: {
-                'from': rule.effectiveFrom == null ? '—' : _when(rule.effectiveFrom!),
-                'until': rule.expiresAt == null ? '—' : _when(rule.expiresAt!),
+                'from': formatLocalDate(rule.effectiveFrom),
+                'until': formatLocalDate(rule.expiresAt),
               }),
             ),
             if (rule.ruleState == 'proposed')
