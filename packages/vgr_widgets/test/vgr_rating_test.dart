@@ -4,6 +4,8 @@ import 'package:vgr_widgets/vgr_widgets.dart';
 
 Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
+String _label(int stars) => '$stars estrela${stars == 1 ? '' : 's'}';
+
 /// Helper rating star control (decision 133; RT2 — decisions 182-184). One
 /// widget covers both read and write: [VgrRating.onChanged] null is the
 /// disabled/read-only convention every Vgr* widget already follows
@@ -13,7 +15,7 @@ void main() {
     testWidgets('read-only (onChanged null): every star key exists but tapping never calls back',
         (tester) async {
       var calls = 0;
-      await tester.pumpWidget(host(VgrRating(value: 3, onChanged: null)));
+      await tester.pumpWidget(host(VgrRating(starLabel: _label, value: 3, onChanged: null)));
 
       for (var i = 1; i <= 5; i++) {
         expect(find.byKey(Key('rating-star-$i')), findsOneWidget);
@@ -25,7 +27,7 @@ void main() {
 
     testWidgets('interactive: tapping star i reports exactly i', (tester) async {
       int? reported;
-      await tester.pumpWidget(host(VgrRating(value: null, onChanged: (v) => reported = v)));
+      await tester.pumpWidget(host(VgrRating(starLabel: _label, value: null, onChanged: (v) => reported = v)));
 
       await tester.tap(find.byKey(const Key('rating-star-3')));
       expect(reported, 3);
@@ -36,7 +38,7 @@ void main() {
 
     testWidgets('value paints stars 1..value as filled and the rest as outline',
         (tester) async {
-      await tester.pumpWidget(host(VgrRating(value: 3, onChanged: (_) {})));
+      await tester.pumpWidget(host(VgrRating(starLabel: _label, value: 3, onChanged: (_) {})));
 
       Icon iconAt(int i) =>
           tester.widget<Icon>(find.descendant(of: find.byKey(Key('rating-star-$i')), matching: find.byType(Icon)));
@@ -48,7 +50,7 @@ void main() {
     });
 
     testWidgets('null value paints every star as outline (not yet rated)', (tester) async {
-      await tester.pumpWidget(host(VgrRating(value: null, onChanged: (_) {})));
+      await tester.pumpWidget(host(VgrRating(starLabel: _label, value: null, onChanged: (_) {})));
 
       Icon iconAt(int i) =>
           tester.widget<Icon>(find.descendant(of: find.byKey(Key('rating-star-$i')), matching: find.byType(Icon)));
@@ -56,6 +58,17 @@ void main() {
       for (var i = 1; i <= 5; i++) {
         expect(iconAt(i).icon, Icons.star_border);
       }
+    });
+  
+    testWidgets('each star is announced with the label the app supplies (translated by the app)',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host(VgrRating(starLabel: _label, value: null, onChanged: (_) {})));
+
+      expect(find.bySemanticsLabel('1 estrela'), findsOneWidget);
+      expect(find.bySemanticsLabel('5 estrelas'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp('Rate')), findsNothing);
+      semantics.dispose();
     });
   });
 }

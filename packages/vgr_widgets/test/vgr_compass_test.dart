@@ -70,5 +70,19 @@ void main() {
 
       expect(reported, ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']);
     });
+  
+    testWidgets('each point is announced once, by the caller-provided name — no English prefix',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host(VgrCompass(
+        value: null,
+        onChanged: (_) {},
+        labelOf: (code) => code == 'N' ? 'Norte' : code,
+      )));
+
+      expect(find.semantics.byLabel('Norte'), findsOne);
+      expect(find.semantics.byLabel(RegExp('Direction')), findsNothing);
+      semantics.dispose();
+    });
   });
 }

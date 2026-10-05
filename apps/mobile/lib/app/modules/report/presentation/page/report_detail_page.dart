@@ -355,7 +355,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           VgrText.caption(
             'detail.directionFeedback'.tr(namedArgs: {
               'direction': _compassLabel(sightFeedback!.estimate!),
-              'count': '${sightFeedback.count}',
+              'sightings': 'detail.sightings'.plural(sightFeedback.count),
             }),
             key: const Key('detail-direction-feedback'),
           ),
@@ -380,6 +380,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return VgrRating(
         key: Key('detail-offer-rating-${offer.helpOfferId}'),
         value: null,
+        starLabel: (stars) => 'detail.ratingStars'.plural(stars),
         onChanged: ratingOfferId != null
             ? null
             : (score) => context.read<ReportDetailBloc>().add(
@@ -391,6 +392,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return VgrRating(
         key: Key('detail-offer-rating-${offer.helpOfferId}'),
         value: rating.score,
+        starLabel: (stars) => 'detail.ratingStars'.plural(stars),
         onChanged: null,
       );
     }

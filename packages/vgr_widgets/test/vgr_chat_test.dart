@@ -78,6 +78,7 @@ void main() {
       final sent = <String>[];
       await tester.pumpWidget(host(VgrChatComposer(
         controller: controller,
+        label: 'Message',
         hint: 'No phone numbers',
         sendLabel: 'Send',
         maxLength: 5,
@@ -97,6 +98,7 @@ void main() {
       var sends = 0;
       await tester.pumpWidget(host(VgrChatComposer(
         controller: controller,
+        label: 'Message',
         hint: 'hint',
         sendLabel: 'Send',
         errorText: 'Contact not allowed',
@@ -128,6 +130,26 @@ void main() {
     testWidgets('renders the label', (tester) async {
       await tester.pumpWidget(host(const VgrBadge(label: '3')));
       expect(find.text('3'), findsOneWidget);
+    });
+  
+    testWidgets('the message field has a name a screen reader can announce (mobile browser test of 2026-10-04)',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(host(VgrChatComposer(
+        controller: TextEditingController(),
+        label: 'Mensagem',
+        hint: 'Sem telefone, e-mail ou link',
+        sendLabel: 'Enviar',
+        onSend: (_) {},
+      )));
+
+      expect(
+        find.semantics.byPredicate(
+          (node) => node.label == 'Mensagem' && node.getSemanticsData().flagsCollection.isTextField,
+        ),
+        findsOne,
+      );
+      semantics.dispose();
     });
   });
 }

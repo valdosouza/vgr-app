@@ -58,9 +58,17 @@
     "directionEstimate": "Estimated direction: {direction}",
     "directionPrompt": "Which direction did you see them go?",
     "directionSighted": "You pointed {direction} — thanks!",
-    "directionFeedback": "Current best guess so far: {direction} ({count} sightings).",
+    "directionFeedback": "Current best guess so far: {direction} ({sightings}).",
     "myOffer": "Your offer",
-    "editOfferTypes": "Change help types"
+    "editOfferTypes": "Change help types",
+    "ratingStars": {
+      "one": "{} star",
+      "other": "{} stars"
+    },
+    "sightings": {
+      "one": "{} sighting",
+      "other": "{} sightings"
+    }
   },
   "report": {
     "title": "Report",
@@ -219,7 +227,8 @@
     "send": "Send",
     "composerHint": "No phone numbers, e-mails or links — the chat is masked",
     "purged": "[message removed]",
-    "retry": "Try again"
+    "retry": "Try again",
+    "composerLabel": "Message"
   },
   "rewardOnboarding": {
     "title": "Reward payout registration",
