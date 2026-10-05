@@ -221,6 +221,7 @@ REQUIRED: English (`en-US`) is the source/fallback locale; `pt-BR` is the first 
 PROHIBITED: Hardcoded natural-language strings inside `presentation/` — always a translation key.
 REQUIRED: Each app's `AppWidget` wraps its `MaterialApp.router` in core's `LocaleRefresh`: `.tr()` without a context does not subscribe a widget to the locale, so without it a language switch repainted only the selector and left the open screen in the old language (browser test of 2026-10-04).
 REQUIRED: Timestamps from the API (UTC, ISO 8601 with `Z`) are shown through `formatLocalDateTime` / `formatLocalDate` (`packages/core/lib/src/format/local_time.dart`) — the device's local time, `yyyy-MM-dd HH:mm` (decision 232). PROHIBITED: cutting the ISO string on a screen (it showed UTC — 3 h ahead in Brazil).
+REQUIRED: A day typed in a filter (`YYYY-MM-DD`) is the operator's local day: send it as `localDayStartUtc` / `localDayEndUtc` (core, same file) — never the bare day, which the API reads as a UTC day (decision 235).
 
 ## INTEGRATIONS
 | External Service / Component | Purpose | Connection / Authentication Method |

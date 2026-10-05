@@ -56,7 +56,7 @@ table in `ADMIN-SCREENS.md` §0.
 | `monetization_config` | `/monetization-config/` | fixed catalog | unpaged (220) | 39, 58 | `monetization-config.md` |
 | `dual_control_access` | `/dual-control-access/` | register, request only | paged, filter legal basis | 45, 93, 223–227 | `dual-control-access.md` |
 | `case_freeze` | `/case-freeze/` | flow | — | 141 | `case-freeze.md` |
-| `reward_mediation` | `/reward-mediation/` | flow | — | 148–150 | API `docs/feature/reward.md` |
+| `reward_mediation` | `/reward-mediation/` | flow (on the menu since migration 051 — decision 234) | — | 148–150, 234 | API `docs/feature/reward.md` |
 | `reports` | `/reports/` (+ `/reports/:id`, `/reports/queue`) | own routes (deep link, audited read) | paged search and queue | 158–167, 175 | `report-moderation.md` |
 | `report_stats` | `/report-stats/` | read only | — (k = 5 floor) | 164, 165 | `report-moderation.md` |
 | `admin_audit` | `/admin-audit/` (+ `/admin-audit/:id`) | own routes, read only | paged | 116, 165, 166 | `admin-audit.md` |
@@ -119,18 +119,18 @@ factory screen: `docs/adr/TESTS.md`.
   blocked it — screen readers could not reach it; `VgrSidebarLayout` now isolates the
   content), a language switch left the open screen in the old language (`LocaleRefresh`), and
   the pager said "1 registros" (`pageSummary`, pluralized).
+- 2026-10-04 — round 20 (234–236): reward mediation joined the menu (kind 'T', migration
+  051), and the audit and report-search date filters treat the typed day as the operator's
+  local day, sent as UTC instants (`localDayStartUtc` / `localDayEndUtc`, core).
 
 ## OPEN POINTS
 - `category-forms` still appends a placeholder field instead of a field editor, and
   `monetization-config` edits only rows the API already returned (documented gaps of
   phase 1).
 - `IdentityBloc` is bound per app (in `AppModule`) rather than in a shared core module.
-- `reward-mediation` has a route but no way in: `reward_mediation` is cataloged as a kind-'R'
-  resource (migration 035), so it is never on the menu, and no other screen links to it —
-  only the URL reaches it (pending a decision).
-- Date filters (admin audit "from/to", report search) are sent as calendar days the API
-  reads in UTC, while every date on screen is local since decision 232 — near midnight a
-  row can fall outside the day the operator typed (pending a decision).
+- `report-stats` buckets (day / week / month) are cut in UTC by the API, so near midnight a
+  report counts in the UTC day, not the operator's — showing local buckets would need a
+  time-zone parameter in the API (left out of decision 235, not decided).
 
 ## REFERENCES
 - [**README.md**](../README.md): Documentation navigation index.

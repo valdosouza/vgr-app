@@ -48,8 +48,10 @@ class ReportFiltersEntity extends Equatable {
         if (hasMedia != null) 'hasMedia': '$hasMedia',
         if (hidden != null) 'hidden': '$hidden',
         if (reviewed != null) 'reviewed': '$reviewed',
-        if (from != null) 'from': from!,
-        if (to != null) 'to': to!,
+        // The typed day is the operator's LOCAL day (decision 235): sent as
+        // the UTC instants of its first and last millisecond.
+        if (from != null) 'from': localDayStartUtc(from!) ?? from!,
+        if (to != null) 'to': localDayEndUtc(to!) ?? to!,
       };
 
   @override
