@@ -209,7 +209,11 @@
     "updated": {
       "title": "Tipos atualizados",
       "message": "Quem denunciou verá os novos tipos de ajuda na sua oferta."
-    }
+    },
+    "showName": "Mostrar meu nome a quem denunciou",
+    "showNameWarning": "Na dúvida, deixe desmarcado: uma denúncia pode ser falsa, feita só para descobrir quem ajuda. Sem o nome você continua podendo conversar, ser avaliado e receber recompensa.",
+    "highRiskNameNotice": "Caso de risco alto: seu nome nunca é mostrado a quem denunciou nem a outros helpers, mesmo que você queira. Você continua podendo conversar, ser avaliado e receber recompensa.",
+    "hiddenNameNotice": "Sua oferta vai sem o seu nome. Você continua podendo conversar, ser avaliado e receber recompensa."
   },
   "chat": {
     "threadsTitle": "Conversas",

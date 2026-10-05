@@ -209,7 +209,11 @@
     "updated": {
       "title": "Help types updated",
       "message": "The reporter will see the new help types on your offer."
-    }
+    },
+    "showName": "Show my name to the reporter",
+    "showNameWarning": "If in doubt, leave it unchecked: a report can be fake, made just to find out who helps. Without your name you can still chat, be rated and receive a reward.",
+    "highRiskNameNotice": "High-risk case: your name is never shown to the reporter or to other helpers, even if you want it to be. You can still chat, be rated and receive a reward.",
+    "hiddenNameNotice": "Your offer goes without your name. You can still chat, be rated and receive a reward."
   },
   "chat": {
     "threadsTitle": "Conversations",

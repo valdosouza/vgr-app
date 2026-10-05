@@ -41,8 +41,11 @@ class HelpOfferModule extends Module {
               BlocProvider.value(value: Modular.get<IdentityBloc>()),
               BlocProvider(create: (_) => Modular.get<HelpOfferBloc>()),
             ],
+            // The detail page pushes the case's tier as `arguments`
+            // (decision 238); a bare deep link has none and fails closed.
             child: HelpOfferFormPage(
               reportId: int.parse(args.params['id'] as String),
+              tier: args.data is String ? args.data as String : null,
             ),
           ),
         ),

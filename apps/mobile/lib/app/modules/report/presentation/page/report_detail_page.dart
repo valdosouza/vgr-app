@@ -274,7 +274,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             VgrPrimaryButton(
               key: const Key('detail-offer-help-button'),
               label: 'detail.offerHelp'.tr(),
-              onPressed: () => _offerHelp(view.reportId),
+              onPressed: () => _offerHelp(view.reportId, view.tier),
             ),
           ],
           const VgrGap.lg(),
@@ -401,12 +401,14 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     return null;
   }
 
-  Future<void> _offerHelp(int reportId) async {
+  Future<void> _offerHelp(int reportId, String tier) async {
     if (widget.onOfferHelp != null) {
       widget.onOfferHelp!(reportId);
       return;
     }
-    await Modular.to.pushNamed('/offer/$reportId');
+    // The tier decides whether the form may offer to show the helper's
+    // name at all (decision 238).
+    await Modular.to.pushNamed('/offer/$reportId', arguments: tier);
     // A successful offer changed the case (timeline event) — reload so
     // the view reflects it.
     if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(reportId));
