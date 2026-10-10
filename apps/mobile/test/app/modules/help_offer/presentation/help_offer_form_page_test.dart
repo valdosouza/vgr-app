@@ -33,6 +33,7 @@ void main() {
     required bool owns,
     bool done = false,
     bool identified = false,
+    String? tier = 'low',
     VoidCallback? onDone,
     HelpOfferEdit? editing,
   }) async {
@@ -61,7 +62,12 @@ void main() {
             ),
           ),
         ],
-        child: HelpOfferFormPage(reportId: 5, onDone: onDone, editing: editing),
+        child: HelpOfferFormPage(
+          reportId: 5,
+          tier: tier,
+          onDone: onDone,
+          editing: editing,
+        ),
       ),
     );
   }
@@ -238,6 +244,84 @@ void main() {
     expect(find.byKey(const Key('offer-anonymous-no-rating-notice')), findsNothing);
   });
 
+  group('showing the helper\'s name passes the risk analysis (decisions 237/238)', () {
+    Future<HelpOfferEntity> submitShare(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('offer-type-share')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('offer-submit-button')));
+      await tester.tap(find.byKey(const Key('offer-submit-button')));
+      await tester.pumpAndSettle();
+      return verify(() => repository.submit(captureAny())).captured.single
+          as HelpOfferEntity;
+    }
+
+    bool showNameChecked(WidgetTester tester) => tester
+        .widget<VgrCheckboxTile>(find.byKey(const Key('offer-show-name')))
+        .value;
+
+    testWidgets('a helper with an account is HIDDEN unless they check it — the '
+        'box starts unchecked, with the fake-report warning (237)', (tester) async {
+      when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+      await pumpPage(tester, owns: false, identified: true, tier: 'low');
+
+      expect(find.text('Show my name to the reporter'), findsOneWidget);
+      expect(showNameChecked(tester), isFalse);
+      expect(find.byKey(const Key('offer-show-name-warning')), findsOneWidget);
+      expect(find.textContaining('a report can be fake'), findsOneWidget);
+
+      final sent = await submitShare(tester);
+      expect(sent.anonymous, isTrue);
+      // Hidden is social only: the account still claims a reward (60).
+      expect(find.byKey(const Key('offer-reward-onboarding-link')), findsOneWidget);
+    });
+
+    testWidgets('checking it names the helper on a medium-tier case (237)',
+        (tester) async {
+      when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+      await pumpPage(tester, owns: false, identified: true, tier: 'medium');
+
+      await tester.tap(find.byKey(const Key('offer-show-name')));
+      await tester.pumpAndSettle();
+      expect(showNameChecked(tester), isTrue);
+
+      final sent = await submitShare(tester);
+      expect(sent.anonymous, isFalse);
+    });
+
+    testWidgets('a high-risk case offers NO choice and says the name is never '
+        'shown (238)', (tester) async {
+      when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+      await pumpPage(tester, owns: false, identified: true, tier: 'high');
+
+      expect(find.byKey(const Key('offer-show-name')), findsNothing);
+      expect(find.byKey(const Key('offer-high-risk-name-notice')), findsOneWidget);
+      expect(find.textContaining('High-risk case'), findsOneWidget);
+
+      final sent = await submitShare(tester);
+      expect(sent.anonymous, isTrue);
+    });
+
+    testWidgets('a tier the form was not told (bare deep link) fails closed: no '
+        'choice, the offer goes hidden (238)', (tester) async {
+      when(() => repository.submit(any())).thenAnswer((_) async => const Right(31));
+      await pumpPage(tester, owns: false, identified: true, tier: null);
+
+      expect(find.byKey(const Key('offer-show-name')), findsNothing);
+      expect(find.byKey(const Key('offer-hidden-name-notice')), findsOneWidget);
+
+      final sent = await submitShare(tester);
+      expect(sent.anonymous, isTrue);
+    });
+
+    testWidgets('without an account there is no name to choose (35)', (tester) async {
+      await pumpPage(tester, owns: false, identified: false, tier: 'low');
+
+      expect(find.byKey(const Key('offer-show-name')), findsNothing);
+      expect(find.byKey(const Key('offer-high-risk-name-notice')), findsNothing);
+      expect(find.byKey(const Key('offer-hidden-name-notice')), findsNothing);
+    });
+  });
+
   group('editing the fronts of an existing offer (decision 211)', () {
     const edit = HelpOfferEdit(
       helpOfferId: 31,
@@ -254,6 +338,8 @@ void main() {
       expect(checked(tester, 'physical_presence'), isFalse);
       expect(find.text('Save'), findsOneWidget);
       expect(find.byKey(const Key('offer-anonymous-notice')), findsNothing);
+      // Fronts only (211): the name choice belongs to the new offer.
+      expect(find.byKey(const Key('offer-show-name')), findsNothing);
       expect(submitEnabled(tester), isTrue);
       verifyNever(() => repository.submit(any()));
     });

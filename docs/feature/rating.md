@@ -138,7 +138,12 @@ entity.
 `starCount` (default 5) stars, `value` (1..5 or null) and `onChanged`
 (nullable — null is the read-only/disabled convention every Vgr* widget
 follows). Each star is keyed `rating-star-<i>` and carries its own
-`Semantics(button:, label: 'Rate i stars')` for screen readers. Two new
+`Semantics(button:, label: starLabel(i))` for screen readers — `starLabel`
+is REQUIRED and supplied by the app (`detail.ratingStars` /
+`reports.detail.ratingStars`, plural "1 estrela" / "2 estrelas"): the
+design system has no catalogs, and the hard-coded English "Rate i stars"
+was heard inside the Portuguese UI in the mobile browser test of
+2026-10-04. Two new
 `VgrIconName` values (`starFilled`, `starOutline`) keep icon choice inside
 the design system's "named by meaning" rule rather than a raw
 `Icons.star` reference. `GestureDetector`/`Icon`/`Row`/`Semantics` are

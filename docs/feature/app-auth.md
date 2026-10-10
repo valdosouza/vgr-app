@@ -28,7 +28,8 @@ domain/presentation — only `data/google_sign_in_gateway.dart` imports
 it. `GoogleSignInGatewayImpl.signInWithGoogle()` initializes
 `GoogleSignIn.instance` once (memoized future, same pattern as
 `ApiClient._ensureFreshToken`'s shared in-flight renewal) with the
-**Web-type** OAuth client id as `serverClientId` — that is what makes
+**Web-type** OAuth client id as `serverClientId` (per environment since
+round 22: `--dart-define=GOOGLE_SERVER_CLIENT_ID`, see `release.md`) — that is what makes
 the SDK issue an ID token the API can verify (its `aud` has to be a
 Web client, not the Android/iOS ones registered for the native
 handshake). Returns the raw ID token, or null if the user cancelled

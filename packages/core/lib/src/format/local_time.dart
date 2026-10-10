@@ -30,3 +30,30 @@ String _format(String? iso, {required String empty, required bool withTime}) {
 }
 
 String _two(int n) => n.toString().padLeft(2, '0');
+
+/// Decision 235: a day the operator types in a panel filter (`yyyy-MM-dd`)
+/// is THEIR local day — the dates on screen are local (232) — while the
+/// API filters `created_at` by instant. The start of that day, 00:00 local,
+/// as an ISO instant in UTC; null when [day] is not `yyyy-MM-dd`.
+String? localDayStartUtc(String day) => _localDay(day)?.toUtc().toIso8601String();
+
+/// The last millisecond of the local [day] (23:59:59.999 local) as an ISO
+/// instant in UTC — the API treats a date-time `to` as inclusive. Built
+/// from the NEXT local midnight, so a day with a DST jump still ends right.
+String? localDayEndUtc(String day) {
+  final start = _localDay(day);
+  if (start == null) return null;
+  final nextMidnight = DateTime(start.year, start.month, start.day + 1);
+  return nextMidnight.subtract(const Duration(milliseconds: 1)).toUtc().toIso8601String();
+}
+
+final _dayOnly = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+
+DateTime? _localDay(String day) {
+  final m = _dayOnly.firstMatch(day.trim());
+  if (m == null) return null;
+  final year = int.parse(m.group(1)!), month = int.parse(m.group(2)!), dayOfMonth = int.parse(m.group(3)!);
+  final local = DateTime(year, month, dayOfMonth);
+  // DateTime rolls Feb 30 over to Mar 2 — not a day anyone typed.
+  return local.month == month && local.day == dayOfMonth ? local : null;
+}

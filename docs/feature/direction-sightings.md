@@ -186,8 +186,11 @@ tap fires `onChanged` with the tapped code IMMEDIATELY — no confirm step,
 since a sighting is a low-stakes, append-only contribution, not something
 needing `showVgrConfirm` (same reasoning `VgrRating`'s star tap already
 established). Each point is keyed `direction-<code>` (e.g. `direction-N`)
-and carries its own `Semantics(button:, label: 'Direction <code>')` for
-screen readers.
+and is announced once by the caller's translated name (`labelOf`, e.g.
+"Norte") — `Semantics(button:, label:, excludeSemantics: true)`. It read
+"Direction Norte Norte" (English prefix + the chip's own text) until the
+mobile browser test of 2026-10-04. The write feedback counts sightings with
+plural forms (`detail.sightings`: "1 avistamento" / "2 avistamentos").
 
 **Judgment call — `VgrCompass` uses plain wire strings ('N', 'NE', ...),
 never the `Direction` enum.** `packages/vgr_widgets` depends on nothing

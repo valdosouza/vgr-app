@@ -202,6 +202,7 @@ class _ChatConversationPageState extends State<ChatConversationPage>
           VgrChatComposer(
             key: const Key('chat-composer'),
             controller: _composer,
+            label: 'chat.composerLabel'.tr(),
             hint: 'chat.composerHint'.tr(),
             sendLabel: 'chat.send'.tr(),
             errorText: _composerError,

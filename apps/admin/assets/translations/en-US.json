@@ -371,7 +371,11 @@
       "dualControlHint": "Unfreezing re-arms destruction: the request needs approval from a DIFFERENT user (dual control).",
       "pendingBy": "Requested by user {user}",
       "approveHint": "The approver must be a DIFFERENT user than the requester. Approving restarts the retention clock from zero.",
-      "approveUnfreeze": "Approve unfreeze"
+      "approveUnfreeze": "Approve unfreeze",
+      "ratingStars": {
+        "one": "{} star",
+        "other": "{} stars"
+      }
     },
     "moderation": {
       "title": "Moderation",

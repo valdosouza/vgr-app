@@ -92,8 +92,11 @@ same pattern as the reward notice (34). It never blocks the offer.
 ## Design system additions (133)
 
 `VgrChatBubble` (side by `mine`, `sent|pending|failed` status with a
-translated label, theme colors), `VgrChatComposer` (multi-line field +
-send icon button with required tooltip, `maxLength` enforced at input),
+translated label, theme colors), `VgrChatComposer` (multi-line field with
+a required `label` — the empty field's placeholder and its accessible name,
+`chat.composerLabel` "Mensagem"; it was a nameless field until the mobile
+browser test of 2026-10-04 — plus a send icon button with required tooltip,
+`maxLength` enforced at input),
 `VgrChatMessageList` (bottom-anchored list), `VgrBadge`; icons
 `VgrIconName.chat` / `.send`. Guard test stays green.
 

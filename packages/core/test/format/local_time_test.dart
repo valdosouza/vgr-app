@@ -46,4 +46,26 @@ void main() {
       expect(formatLocalDateTime('soon'), 'soon');
     });
   });
+
+  group('localDayStartUtc / localDayEndUtc — the typed day is the local day (decision 235)', () {
+    test('start is local midnight and end the last millisecond of the local day, both in UTC', () {
+      expect(localDayStartUtc('2026-10-04'), DateTime(2026, 10, 4).toUtc().toIso8601String());
+      expect(localDayEndUtc('2026-10-04'), DateTime(2026, 10, 4, 23, 59, 59, 999).toUtc().toIso8601String());
+      expect(localDayStartUtc('2026-10-04'), endsWith('Z'));
+    });
+
+    test('the two bounds are exactly one local day apart', () {
+      final start = DateTime.parse(localDayStartUtc('2026-03-08')!);
+      final end = DateTime.parse(localDayEndUtc('2026-03-08')!);
+      expect(end.add(const Duration(milliseconds: 1)), DateTime(2026, 3, 9).toUtc());
+      expect(start, DateTime(2026, 3, 8).toUtc());
+    });
+
+    test('not a day — garbage, a date-time, an impossible date — gives null', () {
+      for (final bad in ['', 'soon', '2026-10-04T10:00:00Z', '2026-02-30', '04/10/2026']) {
+        expect(localDayStartUtc(bad), isNull, reason: bad);
+        expect(localDayEndUtc(bad), isNull, reason: bad);
+      }
+    });
+  });
 }

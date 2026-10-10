@@ -274,7 +274,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             VgrPrimaryButton(
               key: const Key('detail-offer-help-button'),
               label: 'detail.offerHelp'.tr(),
-              onPressed: () => _offerHelp(view.reportId),
+              onPressed: () => _offerHelp(view.reportId, view.tier),
             ),
           ],
           const VgrGap.lg(),
@@ -355,7 +355,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
           VgrText.caption(
             'detail.directionFeedback'.tr(namedArgs: {
               'direction': _compassLabel(sightFeedback!.estimate!),
-              'count': '${sightFeedback.count}',
+              'sightings': 'detail.sightings'.plural(sightFeedback.count),
             }),
             key: const Key('detail-direction-feedback'),
           ),
@@ -380,6 +380,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return VgrRating(
         key: Key('detail-offer-rating-${offer.helpOfferId}'),
         value: null,
+        starLabel: (stars) => 'detail.ratingStars'.plural(stars),
         onChanged: ratingOfferId != null
             ? null
             : (score) => context.read<ReportDetailBloc>().add(
@@ -391,6 +392,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return VgrRating(
         key: Key('detail-offer-rating-${offer.helpOfferId}'),
         value: rating.score,
+        starLabel: (stars) => 'detail.ratingStars'.plural(stars),
         onChanged: null,
       );
     }
@@ -399,12 +401,14 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
     return null;
   }
 
-  Future<void> _offerHelp(int reportId) async {
+  Future<void> _offerHelp(int reportId, String tier) async {
     if (widget.onOfferHelp != null) {
       widget.onOfferHelp!(reportId);
       return;
     }
-    await Modular.to.pushNamed('/offer/$reportId');
+    // The tier decides whether the form may offer to show the helper's
+    // name at all (decision 238).
+    await Modular.to.pushNamed('/offer/$reportId', arguments: tier);
     // A successful offer changed the case (timeline event) — reload so
     // the view reflects it.
     if (mounted) context.read<ReportDetailBloc>().add(DetailStarted(reportId));

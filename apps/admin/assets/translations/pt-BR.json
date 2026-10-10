@@ -371,7 +371,11 @@
       "dualControlHint": "Descongelar rearma a destruição: a solicitação precisa da aprovação de OUTRO usuário (duplo controle).",
       "pendingBy": "Solicitado pelo usuário {user}",
       "approveHint": "O aprovador deve ser um usuário DIFERENTE de quem solicitou. Ao aprovar, o prazo de retenção recomeça do zero.",
-      "approveUnfreeze": "Aprovar descongelamento"
+      "approveUnfreeze": "Aprovar descongelamento",
+      "ratingStars": {
+        "one": "{} estrela",
+        "other": "{} estrelas"
+      }
     },
     "moderation": {
       "title": "Moderação",
