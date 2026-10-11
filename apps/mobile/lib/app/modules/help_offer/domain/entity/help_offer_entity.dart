@@ -37,8 +37,9 @@ class HelpOfferEntity extends Equatable {
   final int reportId;
   final Set<HelpType> helpTypes;
 
-  /// Identification is the HELPER's choice (decision 6); without a
-  /// session the offer is anonymous by definition (35).
+  /// Identification is the HELPER's explicit choice and hidden is the
+  /// default (decisions 6/237); without a session the offer is anonymous
+  /// by definition (35), and high tier never names anyone (238).
   final bool anonymous;
 
   @override

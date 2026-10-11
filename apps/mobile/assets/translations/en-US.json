@@ -58,9 +58,17 @@
     "directionEstimate": "Estimated direction: {direction}",
     "directionPrompt": "Which direction did you see them go?",
     "directionSighted": "You pointed {direction} — thanks!",
-    "directionFeedback": "Current best guess so far: {direction} ({count} sightings).",
+    "directionFeedback": "Current best guess so far: {direction} ({sightings}).",
     "myOffer": "Your offer",
-    "editOfferTypes": "Change help types"
+    "editOfferTypes": "Change help types",
+    "ratingStars": {
+      "one": "{} star",
+      "other": "{} stars"
+    },
+    "sightings": {
+      "one": "{} sighting",
+      "other": "{} sightings"
+    }
   },
   "report": {
     "title": "Report",
@@ -201,7 +209,11 @@
     "updated": {
       "title": "Help types updated",
       "message": "The reporter will see the new help types on your offer."
-    }
+    },
+    "showName": "Show my name to the reporter",
+    "showNameWarning": "If in doubt, leave it unchecked: a report can be fake, made just to find out who helps. Without your name you can still chat, be rated and receive a reward.",
+    "highRiskNameNotice": "High-risk case: your name is never shown to the reporter or to other helpers, even if you want it to be. You can still chat, be rated and receive a reward.",
+    "hiddenNameNotice": "Your offer goes without your name. You can still chat, be rated and receive a reward."
   },
   "chat": {
     "threadsTitle": "Conversations",
@@ -219,7 +231,8 @@
     "send": "Send",
     "composerHint": "No phone numbers, e-mails or links — the chat is masked",
     "purged": "[message removed]",
-    "retry": "Try again"
+    "retry": "Try again",
+    "composerLabel": "Message"
   },
   "rewardOnboarding": {
     "title": "Reward payout registration",

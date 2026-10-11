@@ -15,6 +15,7 @@ class VgrRating extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    required this.starLabel,
     this.starCount = 5,
     this.size = 28,
   });
@@ -24,6 +25,12 @@ class VgrRating extends StatelessWidget {
 
   /// Fired with the tapped star's 1-based index. Null disables every star.
   final ValueChanged<int>? onChanged;
+
+  /// What a screen reader says for star N ("3 estrelas") — supplied by the
+  /// app, which owns the translation catalogs; the design system has none.
+  /// It was a hard-coded English "Rate N stars" until the mobile browser
+  /// test of 2026-10-04 heard it inside the Portuguese UI.
+  final String Function(int stars) starLabel;
 
   final int starCount;
   final double size;
@@ -40,6 +47,7 @@ class VgrRating extends StatelessWidget {
             filled: value != null && i <= value!,
             size: size,
             color: value != null && i <= value! ? scheme.primary : scheme.outline,
+            label: starLabel(i),
             onTap: onChanged == null ? null : () => onChanged!(i),
           ),
       ],
@@ -48,14 +56,15 @@ class VgrRating extends StatelessWidget {
 }
 
 /// One star. A 40x40 opaque hit area keeps the tap target usable even at
-/// a small icon [size] — screen-reader users get a spoken "rate N stars"
-/// label instead of a bare icon.
+/// a small icon [size] — screen-reader users get the spoken [label]
+/// instead of a bare icon.
 class _VgrRatingStar extends StatelessWidget {
   const _VgrRatingStar({
     required this.index,
     required this.filled,
     required this.size,
     required this.color,
+    required this.label,
     required this.onTap,
   });
 
@@ -63,12 +72,13 @@ class _VgrRatingStar extends StatelessWidget {
   final bool filled;
   final double size;
   final Color color;
+  final String label;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
         button: onTap != null,
-        label: 'Rate $index star${index == 1 ? '' : 's'}',
+        label: label,
         child: GestureDetector(
           key: Key('rating-star-$index'),
           onTap: onTap,

@@ -119,6 +119,7 @@ class VgrChatComposer extends StatelessWidget {
   const VgrChatComposer({
     super.key,
     required this.controller,
+    required this.label,
     required this.hint,
     required this.sendLabel,
     required this.onSend,
@@ -128,6 +129,11 @@ class VgrChatComposer extends StatelessWidget {
   });
 
   final TextEditingController controller;
+
+  /// Already-translated name of the message field ("Mensagem"): the empty
+  /// field's placeholder and what a screen reader announces. Without it the
+  /// field was a nameless "edit text" (mobile browser test of 2026-10-04).
+  final String label;
 
   /// Already-translated hint under the field.
   final String hint;
@@ -162,6 +168,7 @@ class VgrChatComposer extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _send(),
               decoration: InputDecoration(
+                hintText: label,
                 helperText: hint,
                 helperMaxLines: 3,
                 errorText: errorText,

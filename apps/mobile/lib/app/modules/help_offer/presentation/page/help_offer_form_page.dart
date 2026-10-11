@@ -27,11 +27,17 @@ class HelpOfferFormPage extends StatefulWidget {
   const HelpOfferFormPage({
     super.key,
     required this.reportId,
+    this.tier,
     this.editing,
     this.onDone,
   });
 
   final int reportId;
+
+  /// The case's risk tier as its detail view showed it (decision 238).
+  /// Null when the form was opened without it (a bare deep link) — then
+  /// there is no name choice and the offer goes hidden (fail closed).
+  final String? tier;
 
   /// Non-null → editing an existing offer's fronts instead of creating one.
   final HelpOfferEdit? editing;
@@ -46,6 +52,14 @@ class HelpOfferFormPage extends StatefulWidget {
 class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
   bool get _editing => widget.editing != null;
 
+  /// Decision 237: naming oneself is an explicit opt-in, unchecked.
+  bool _showName = false;
+
+  /// Decision 238: the name passes the category's risk analysis, as the
+  /// reporter's does — only low/medium may offer it; high never shows it
+  /// (40/60, enforced by the server too) and an unknown tier fails closed.
+  bool get _nameAllowed => const {'low', 'medium'}.contains(widget.tier);
+
   @override
   void initState() {
     super.initState();
@@ -59,21 +73,22 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    // No session = anonymous offer (decisions 32/35); with round-6 auth
-    // in place a logged-in helper will get the identification choice (6).
-    // An edit is always identified: the server only serves `myOffer` to
+    // No session = anonymous offer (decisions 32/35). With a session the
+    // helper has an account but is still HIDDEN unless they choose to be
+    // named (237/238) — the account is what chat, rating and reward need.
+    // An edit always has an account: the server only serves `myOffer` to
     // an account-holding participant.
-    final anonymous = !_editing && context.watch<IdentityBloc>().state.token == null;
+    final withoutAccount = !_editing && context.watch<IdentityBloc>().state.token == null;
 
     return VgrScaffold(
       title: (_editing ? 'offer.editTitle' : 'offer.title').tr(),
       body: BlocBuilder<HelpOfferBloc, HelpOfferState>(
         builder: (context, state) => switch (state) {
           HelpOfferBlockedSelfDealing() => _blocked(),
-          HelpOfferSuccess() => _success(anonymous: anonymous),
+          HelpOfferSuccess() => _success(withoutAccount: withoutAccount),
           HelpOfferTypesUpdated() => _updated(),
           HelpOfferReady() || HelpOfferSubmitting() =>
-            _form(state, anonymous: anonymous),
+            _form(state, withoutAccount: withoutAccount),
         },
       ),
     );
@@ -95,7 +110,7 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
     );
   }
 
-  Widget _success({required bool anonymous}) {
+  Widget _success({required bool withoutAccount}) {
     return VgrCenter(
       child: VgrColumn(
         key: const Key('offer-success-view'),
@@ -105,10 +120,10 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
           VgrText.headline('offer.success.title'.tr()),
           const VgrGap.sm(),
           VgrText('offer.success.message'.tr()),
-          // Identified helpers can register to receive a reward payout
-          // (decisions 104/143) — an anonymous offer can never claim one
-          // (34/35), so the link only makes sense here when identified.
-          if (!anonymous) ...[
+          // A helper with an account can register to receive a reward
+          // payout (decisions 104/143) — named or hidden alike (237/60);
+          // an offer without an account can never claim one (34/35).
+          if (!withoutAccount) ...[
             const VgrGap.md(),
             VgrTextButton(
               key: const Key('offer-reward-onboarding-link'),
@@ -150,7 +165,7 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
     );
   }
 
-  Widget _form(HelpOfferState state, {required bool anonymous}) {
+  Widget _form(HelpOfferState state, {required bool withoutAccount}) {
     final selected = switch (state) {
       HelpOfferReady(selected: final s) => s,
       HelpOfferSubmitting(selected: final s) => s,
@@ -178,7 +193,11 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
                       .read<HelpOfferBloc>()
                       .add(HelpOfferTypeToggled(type)),
             ),
-          if (anonymous) ...[
+          if (!withoutAccount && !_editing) ...[
+            const VgrGap.md(),
+            _nameChoice(submitting: submitting),
+          ],
+          if (withoutAccount) ...[
             const VgrGap.md(),
             // Decisions 34/35 (amendment MA9): anonymous help is accepted
             // in full, but can never claim a reward — say so BEFORE the
@@ -227,10 +246,50 @@ class _HelpOfferFormPageState extends State<HelpOfferFormPage> {
                 ? null
                 : () => context
                     .read<HelpOfferBloc>()
-                    .add(HelpOfferSubmitPressed(anonymous: anonymous)),
+                    .add(HelpOfferSubmitPressed(
+                      anonymous: withoutAccount || !_nameAllowed || !_showName,
+                    )),
           ),
           const VgrGap.lg(),
         ],
+      ),
+    );
+  }
+
+  /// Decisions 237/238: the reporter sees the helper's name only when the
+  /// helper checks it AND the case's risk tier allows it. The warning says
+  /// why to leave it unchecked: a report can be fake, made to find out who
+  /// helps. On high tier (or an unknown one) there is nothing to choose.
+  Widget _nameChoice({required bool submitting}) {
+    if (!_nameAllowed) {
+      final high = widget.tier == 'high';
+      return VgrCard(
+        child: VgrPadding(
+          child: VgrText.caption(
+            (high ? 'offer.highRiskNameNotice' : 'offer.hiddenNameNotice').tr(),
+            key: Key(high ? 'offer-high-risk-name-notice' : 'offer-hidden-name-notice'),
+          ),
+        ),
+      );
+    }
+    return VgrCard(
+      child: VgrPadding(
+        child: VgrColumn(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            VgrCheckboxTile(
+              key: const Key('offer-show-name'),
+              label: 'offer.showName'.tr(),
+              value: _showName,
+              onChanged: submitting ? null : (value) => setState(() => _showName = value),
+            ),
+            const VgrGap.sm(),
+            VgrText.caption(
+              'offer.showNameWarning'.tr(),
+              key: const Key('offer-show-name-warning'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -65,8 +65,9 @@ class VgrCompass extends StatelessWidget {
 }
 
 /// One compass point. A generous padded hit area keeps the tap target
-/// usable; screen-reader users get a spoken "Direction N" label instead
-/// of a bare two-letter code.
+/// usable; screen-reader users hear the caller's translated name ("Norte"),
+/// once — it was "Direction Norte Norte" (an English prefix plus the chip's
+/// own text) until the mobile browser test of 2026-10-04.
 class _VgrCompassChip extends StatelessWidget {
   const _VgrCompassChip({
     required this.point,
@@ -86,7 +87,8 @@ class _VgrCompassChip extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         button: onTap != null,
         selected: selected,
-        label: 'Direction $label',
+        label: label,
+        excludeSemantics: true,
         child: GestureDetector(
           key: Key('direction-$point'),
           onTap: onTap,

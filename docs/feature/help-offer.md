@@ -41,11 +41,40 @@ case takes no new offers (18, server answers 422).
 No session = anonymous offer, accepted in full (35). The
 reward-ineligibility notice (34) renders for EVERY anonymous helper
 before submit and never blocks it; it narrows to reward-bearing reports
-when the reward front lands. With round-6 auth in place, a logged-in
-helper will get the identification choice (6) — the bloc already
-carries `anonymous` per submission.
+when the reward front lands. The logged-in helper's identification
+choice (6) arrived in round 21 — see "Showing the helper's name" below.
 
 Since C2 (decision 169) the same card also warns the anonymous helper that without an account there is NO chat with the reporter (`offer-anonymous-no-chat-notice`, `offer.anonymousNoChatNotice`) — before submitting, never blocking; see `chat.md`.
+
+## Showing the helper's name (H2, 2026-10-05 — decisions 237/238)
+
+The browser test of 2026-10-05 found that a logged-in helper was ALWAYS
+named to the reporter: the form sent `anonymous: false` whenever there
+was a session, and the choice decision 170 relies on had never been
+built. Round 21 (`AI/docs/decisions/VGR-plano.md` 237-239) made naming
+oneself an explicit opt-in that first passes the category's risk
+analysis, as the reporter's identity does:
+
+- **Low / medium tier** — the form shows an UNCHECKED
+  `offer-show-name` box ("Show my name to the reporter") with
+  `offer-show-name-warning`: if in doubt leave it unchecked, a report can
+  be fake, made just to find out who helps. Unchecked → the offer goes
+  `anonymous: true`.
+- **High tier** — no box at all: `offer-high-risk-name-notice` says the
+  name is never shown to the reporter or other helpers, even if the
+  helper wants it (40/60). The offer goes `anonymous: true`; the server
+  masks high tier anyway, so the app is only a mirror.
+- **Unknown tier** — the detail page pushes `/offer/:id` with the case's
+  `tier` as `arguments`; a bare deep link has none and fails closed:
+  `offer-hidden-name-notice`, offer hidden.
+- **No account** — no name to choose; the anonymous card above is
+  unchanged. **Editing fronts** (211) never touches the name.
+
+Hidden is social, not forensic: the account stays on the offer, so a
+hidden helper can still chat (173), be rated (180) and receive a reward
+(60) — the success view keeps the reward-onboarding link for every
+helper with an account. The API side (H1) treats an absent `anonymous`
+as hidden too (`api/docs/feature/reports.md`, "Hidden by default").
 
 ## Several fronts per offer (HT2, 2026-09-19 — decisions 208-214)
 
@@ -93,6 +122,13 @@ timeline event (`help_offered`, identity-free) and any state change
 show up.
 
 ## Tests
+
+H2 (2026-10-05): +5 form-page tests (mobile 433 total, all green) — an
+account-holding helper starts hidden with the warning and still gets the
+reward link; checking the box on a medium case sends `anonymous: false`;
+high tier shows only the notice and sends hidden; an unknown tier fails
+closed; no account shows no choice. The first four fail on the previous
+form. Edit mode also asserts there is no name box.
 
 HT2 (2026-09-19): mobile 428 total, all green — bloc (set accumulates,
 toggle removes one, submit posts the whole set, empty set no-op, edit

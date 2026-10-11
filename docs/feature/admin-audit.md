@@ -47,7 +47,8 @@ modules/admin-audit/
 - Filter bar: actor id (`VgrTextField`, number), action (`VgrDropdownField` from
   `facets.actions`, catalog labels `adminAudit.action.*` with raw fallback), entity
   (`VgrDropdownField` from `facets.entities`, raw code names), entity id (`VgrTextField`),
-  from/to (`YYYY-MM-DD`, `isoDate`), Apply. A selected value the facets no longer offer falls
+  from/to (`YYYY-MM-DD`, `isoDate` — the operator's LOCAL day, sent as the UTC instants of
+  its first and last millisecond, decision 235), Apply. A selected value the facets no longer offer falls
   back to "Any" instead of crashing the dropdown.
 - Rows (`VgrListTile`, `audit-row-{id}`): `when · actorName (#actorId) · action label`;
   subtitle `entity#entityId · summary preview`. Eye icon on `read` rows, pencil otherwise.

@@ -26,7 +26,8 @@ class AuditFiltersEntity extends Equatable {
   final String? entity;
   final String? entityId;
 
-  /// `YYYY-MM-DD` on `created_at`, same date-only semantics as B1.
+  /// `YYYY-MM-DD` as typed — the operator's local day; [toQueryParameters]
+  /// turns it into UTC instants (decision 235).
   final String? from;
   final String? to;
 
@@ -35,8 +36,10 @@ class AuditFiltersEntity extends Equatable {
         if (action != null) 'action': action!,
         if (entity != null) 'entity': entity!,
         if (entityId != null) 'entityId': entityId!,
-        if (from != null) 'from': from!,
-        if (to != null) 'to': to!,
+        // The typed day is the operator's LOCAL day (decision 235): sent as
+        // the UTC instants of its first and last millisecond.
+        if (from != null) 'from': localDayStartUtc(from!) ?? from!,
+        if (to != null) 'to': localDayEndUtc(to!) ?? to!,
       };
 
   @override

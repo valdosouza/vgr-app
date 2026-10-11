@@ -42,7 +42,7 @@ modules/reports/
 Filter bar: id, status, category, subject, tier (`VgrDropdownField`, "Any"
 sentinel omits the parameter), frozen / with-media (tri-state dropdown),
 from/to (`YYYY-MM-DD`, validated by `VgrValidators.isoDate` before the
-round trip). Rows: `#id · taxonomy · subject` with tier · status · media
+round trip; the operator's LOCAL day, sent as UTC instants — decision 235). Rows: `#id · taxonomy · subject` with tier · status · media
 count · createdAt and FROZEN / PURGED / Anonymous marks; empty state;
 prev/next with "Page X of Y" (`ReportPageEntity.pageCount`). Tap →
 `Modular.to.pushNamed('/reports/$id')`. Server refusals (403, 422 by field

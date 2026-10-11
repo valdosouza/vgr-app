@@ -14,6 +14,7 @@ Index of project technical documentation for the **VGR apps** (mobile and admin 
 | [**auth.md**](./feature/auth.md) | Panel login, mandatory TOTP enrollment, silent session renewal, 451 view (decisions 73, 112-117). | Optional |
 | [**identity.md**](./feature/identity.md) | Shared Role/AnonymityMode state (`packages/core`), consumed by mobile and admin. | Optional |
 | [**admin-panel.md**](./feature/admin-panel.md) | The admin panel: shell, inventory of its 18 screens, access-control screens, open points (decisions 56, 215–222). | Optional |
+| [**release.md**](./feature/release.md) | Building the panel and the app for an environment (`API_URL`, `GOOGLE_SERVER_CLIENT_ID`) and Android release signing with an external upload key, failing closed (decisions 242, 246). | **Mandatory before a release build** |
 | [**network.md**](./feature/network.md) | Shared `ApiClient`/`Failure` (`packages/core`), used by every repository. | Optional |
 | [**validators.md**](./feature/validators.md) | `vgr_validators`: format validators mirroring the API's Zod rules and input masks (decisions 153–157). | Optional |
 | [**risk-config.md**](./feature/risk-config.md) | Admin editor for each Category's RiskTier (decision 46). | Optional |

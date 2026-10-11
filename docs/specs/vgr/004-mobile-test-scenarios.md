@@ -183,6 +183,11 @@
   - When: the page renders
   - Then: a reward-ineligibility notice is visible, and the submit control remains enabled (decision 34)
 
+- [x] **Should keep a logged-in Helper's name hidden unless they choose it and the risk tier allows it** (added 2026-10-05, H2, decisions 237/238 — `help_offer_form_page_test.dart`)
+  - Given: HelpOfferFormPage is open for a Report, current user has an account
+  - When: the Report's tier is low/medium, high, or unknown (bare deep link)
+  - Then: low/medium shows the UNCHECKED "Show my name to the reporter" box with the fake-report warning and sends `anonymous: true` unless checked; high shows no box, only the notice that the name is never shown; unknown fails closed (no box, hidden)
+
 - [ ] **Should render a Category's detail form dynamically from its schema**
   - Given: CategoryFormSchema for "missing_person" is mocked with fields {name, age, lastSeenLocation}
   - When: CategoryDetailFormPage is opened for that Category

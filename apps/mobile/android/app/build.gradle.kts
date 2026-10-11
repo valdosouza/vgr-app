@@ -1,8 +1,22 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing (decision 246): the upload key lives OUTSIDE the
+// repository. `android/key.properties` (gitignored, like every *.jks and
+// *.keystore) names it — storeFile, storePassword, keyAlias, keyPassword;
+// Play App Signing holds the final app key. See docs/feature/release.md.
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use { load(it) }
+    }
 }
 
 android {
@@ -42,14 +56,37 @@ android {
             keyAlias = "vgrdebugkey"
             keyPassword = "vgrdebug123"
         }
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Never the debug key (decision 246; the Play Store refuses
+            // it). Without key.properties there is no release config, and
+            // the check below stops the build before anything is packaged.
+            signingConfig = signingConfigs.findByName("release")
         }
+    }
+}
+
+// Fail closed: a release APK/AAB without the upload key would come out
+// unsigned. Debug and profile builds never need the key.
+gradle.taskGraph.whenReady {
+    val buildsRelease = allTasks.any {
+        it.project == project && (it.name == "assembleRelease" || it.name == "bundleRelease")
+    }
+    if (buildsRelease && !keystorePropertiesFile.exists()) {
+        throw GradleException(
+            "Release signing needs android/key.properties pointing at the upload key " +
+                "(decision 246, docs/feature/release.md). Use --profile to try a release-like build without it."
+        )
     }
 }
 

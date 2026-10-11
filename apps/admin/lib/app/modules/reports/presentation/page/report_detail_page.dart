@@ -374,6 +374,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       : VgrRating(
           key: Key('report-offer-rating-${offer.helpOfferId}'),
           value: offer.ratingScore,
+          starLabel: (stars) => 'reports.detail.ratingStars'.plural(stars),
           onChanged: null,
         );
 

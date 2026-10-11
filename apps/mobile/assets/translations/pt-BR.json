@@ -58,9 +58,17 @@
     "directionEstimate": "Direção estimada: {direction}",
     "directionPrompt": "Em que direção você viu a pessoa ir?",
     "directionSighted": "Você apontou {direction} — obrigado!",
-    "directionFeedback": "Melhor estimativa até agora: {direction} ({count} avistamentos).",
+    "directionFeedback": "Melhor estimativa até agora: {direction} ({sightings}).",
     "myOffer": "Sua oferta",
-    "editOfferTypes": "Alterar tipos de ajuda"
+    "editOfferTypes": "Alterar tipos de ajuda",
+    "ratingStars": {
+      "one": "{} estrela",
+      "other": "{} estrelas"
+    },
+    "sightings": {
+      "one": "{} avistamento",
+      "other": "{} avistamentos"
+    }
   },
   "report": {
     "title": "Denunciar",
@@ -201,7 +209,11 @@
     "updated": {
       "title": "Tipos atualizados",
       "message": "Quem denunciou verá os novos tipos de ajuda na sua oferta."
-    }
+    },
+    "showName": "Mostrar meu nome a quem denunciou",
+    "showNameWarning": "Na dúvida, deixe desmarcado: uma denúncia pode ser falsa, feita só para descobrir quem ajuda. Sem o nome você continua podendo conversar, ser avaliado e receber recompensa.",
+    "highRiskNameNotice": "Caso de risco alto: seu nome nunca é mostrado a quem denunciou nem a outros helpers, mesmo que você queira. Você continua podendo conversar, ser avaliado e receber recompensa.",
+    "hiddenNameNotice": "Sua oferta vai sem o seu nome. Você continua podendo conversar, ser avaliado e receber recompensa."
   },
   "chat": {
     "threadsTitle": "Conversas",
@@ -219,7 +231,8 @@
     "send": "Enviar",
     "composerHint": "Sem telefone, e-mail ou link — o chat é mascarado",
     "purged": "[mensagem removida]",
-    "retry": "Tentar novamente"
+    "retry": "Tentar novamente",
+    "composerLabel": "Mensagem"
   },
   "rewardOnboarding": {
     "title": "Cadastro para receber recompensa",

@@ -61,8 +61,9 @@ void main() {
         'tier': 'high',
         'frozen': 'true',
         'hasMedia': 'false',
-        'from': '2026-01-01',
-        'to': '2026-09-02',
+        // The typed days are local (decision 235): their UTC instants.
+        'from': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+        'to': DateTime(2026, 9, 2, 23, 59, 59, 999).toUtc().toIso8601String(),
       });
     });
 

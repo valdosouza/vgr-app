@@ -29,10 +29,14 @@ import 'presentation/page/register_page.dart';
 /// Web-type OAuth client id from Google Cloud Console (decision 152) — the
 /// one whose id becomes the ID token's `aud`, which
 /// `GOOGLE_OAUTH_CLIENT_ID` on the API checks against. Public, not a
-/// secret. TODO: env-configurable like `ApiClient`'s baseUrl below, same
-/// treatment once that decision lands.
-const _googleServerClientId =
-    '74577618050-oan6sgm9bi1vsb5ihp5mbcloqiuktgup.apps.googleusercontent.com';
+/// secret. Each environment has its own (decision 242), passed at build
+/// time with `--dart-define=GOOGLE_SERVER_CLIENT_ID=...` next to `API_URL`;
+/// the default is the development client.
+const _googleServerClientId = String.fromEnvironment(
+  'GOOGLE_SERVER_CLIENT_ID',
+  defaultValue:
+      '74577618050-oan6sgm9bi1vsb5ihp5mbcloqiuktgup.apps.googleusercontent.com',
+);
 
 /// Email+password + Google auth for the app plane (decisions 119/122-124/
 /// 151-152). Apple/Facebook and OTP are absent by design — decision 152

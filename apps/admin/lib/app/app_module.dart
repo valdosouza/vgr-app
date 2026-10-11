@@ -19,14 +19,19 @@ class AppModule extends Module {
   List<Bind> get binds => [
         Bind.singleton((i) => IdentityBloc()),
         Bind.singleton((i) => LocalPrefs()),
-        // TODO: base URL must become environment-configurable (dev/staging/prod)
-        // once that decision is made — hardcoded to the local API for now.
+        // The API of each environment (decision 242) comes in at build
+        // time: `--dart-define=API_URL=https://api.<domain>` (production)
+        // or the staging (homologação) one; local development keeps the
+        // default.
         // Silent renewal (decision 112): the 15-minute token is exchanged
         // before expiry, and the fresh one is persisted only under
         // "keep me signed in" (decision 73 — honored by LocalPrefs, which
         // holds no token when the box is unchecked).
         Bind.singleton((i) => ApiClient(
-              baseUrl: 'http://localhost:3002',
+              baseUrl: const String.fromEnvironment(
+                'API_URL',
+                defaultValue: 'http://localhost:3002',
+              ),
               onTokenRenewed: (jwt) async {
                 final prefs = Modular.get<LocalPrefs>();
                 if (await prefs.getKeepConnected()) {
