@@ -63,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
           return VgrColumn(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const VgrLogoHeader(),
               VgrTextField(
                 key: const Key('login-email-field'),
                 controller: _email,

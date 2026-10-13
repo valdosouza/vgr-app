@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'vgr_layout.dart';
+import 'vgr_mark.dart';
 
 /// Encapsulates [Scaffold] + [AppBar] (decision 133).
 ///
@@ -17,9 +18,14 @@ class VgrScaffold extends StatelessWidget {
     this.floatingAction,
     this.drawer,
     this.leading,
+    this.showMark = false,
   });
 
   final String title;
+
+  /// The VGR symbol before the title — on the home screen of each app
+  /// (the mobile feed, the panel shell), never on inner screens.
+  final bool showMark;
   final Widget body;
 
   /// Side navigation for the shell's mobile form (decision 215) — a
@@ -39,7 +45,17 @@ class VgrScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(title), actions: actions, leading: leading),
+        appBar: AppBar(
+          title: showMark
+              ? Row(mainAxisSize: MainAxisSize.min, children: [
+                  const VgrSymbol(height: 22),
+                  const SizedBox(width: 10),
+                  Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
+                ])
+              : Text(title),
+          actions: actions,
+          leading: leading,
+        ),
         drawer: drawer,
         // Bottom safe area: on Android the gesture/3-button bar otherwise
         // covers whatever sits at the foot of the screen (the chat

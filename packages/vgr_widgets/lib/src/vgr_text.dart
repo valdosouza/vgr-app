@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'vgr_theme.dart';
+
 /// Semantic roles a piece of text can play. Screens ask for the ROLE, never
 /// for a font size — that is what lets the look change in one place.
 enum VgrTextRole { headline, title, body, caption, error }
@@ -56,7 +58,7 @@ class VgrText extends StatelessWidget {
           color: Theme.of(context).colorScheme.error,
         ),
     };
-    return monospace ? base?.copyWith(fontFamily: 'monospace', height: 1.6) : base;
+    return monospace ? base?.copyWith(fontFamily: VgrTheme.monoFamily, height: 1.6) : base;
   }
 
   @override
@@ -97,7 +99,7 @@ class VgrSelectableText extends StatelessWidget {
     };
     return SelectableText(
       data,
-      style: monospace ? base?.copyWith(fontFamily: 'monospace', height: 1.6) : base,
+      style: monospace ? base?.copyWith(fontFamily: VgrTheme.monoFamily, height: 1.6) : base,
     );
   }
 }

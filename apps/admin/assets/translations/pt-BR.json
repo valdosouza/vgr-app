@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "VGR Admin",
+    "name": "VGR · Painel",
     "language": "Idioma"
   },
   "auth": {
-    "loginTitle": "VGR Admin — Login",
+    "loginTitle": "VGR · Painel — Entrar",
     "email": "E-mail",
     "password": "Senha",
     "login": "Entrar",
@@ -42,7 +42,7 @@
     }
   },
   "home": {
-    "title": "VGR Admin",
+    "title": "VGR · Painel",
     "retry": "Tentar novamente",
     "emptyMenu": "Nenhuma tela disponível para o seu usuário — peça acesso a um Admin.",
     "pendingTitle": "Em construção",

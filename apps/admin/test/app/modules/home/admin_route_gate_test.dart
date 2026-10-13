@@ -15,7 +15,9 @@ void main() {
       await pumpLocalizedApp(tester, ModularApp(module: AppModule(), child: const AppWidget()));
 
       expect(find.byKey(const Key('login-email-field')), findsOneWidget);
-      expect(find.text('VGR Admin'), findsNothing);
+      // The shell's title, in either language, never shows.
+      expect(find.text('VGR · Painel'), findsNothing);
+      expect(find.text('VGR · Admin'), findsNothing);
     },
   );
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'vgr_colors.dart';
 import 'vgr_icon.dart';
 
 /// Encapsulates [Image.network] for authenticated media streams
@@ -29,15 +30,15 @@ class VgrNetworkImage extends StatelessWidget {
             url,
             headers: headers,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const ColoredBox(
-              color: Color(0xFFE0E0E0),
-              child: Center(child: VgrIcon(VgrIconName.image)),
+            errorBuilder: (context, __, ___) => ColoredBox(
+              color: VgrColors.of(context).divider,
+              child: const Center(child: VgrIcon(VgrIconName.image)),
             ),
-            loadingBuilder: (_, child, progress) => progress == null
+            loadingBuilder: (context, child, progress) => progress == null
                 ? child
-                : const ColoredBox(
-                    color: Color(0xFFF0F0F0),
-                    child: Center(child: SizedBox(
+                : ColoredBox(
+                    color: VgrColors.of(context).bg,
+                    child: const Center(child: SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
@@ -85,9 +86,9 @@ class VgrPhotoThumb extends StatelessWidget {
                   File(imagePath),
                   fit: BoxFit.cover,
                   // A broken path must not take the form down with it.
-                  errorBuilder: (_, __, ___) => const ColoredBox(
-                    color: Color(0xFFE0E0E0),
-                    child: Center(child: VgrIcon(VgrIconName.image)),
+                  errorBuilder: (context, __, ___) => ColoredBox(
+                    color: VgrColors.of(context).divider,
+                    child: const Center(child: VgrIcon(VgrIconName.image)),
                   ),
                 ),
               ),

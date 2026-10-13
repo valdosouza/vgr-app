@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'vgr_colors.dart';
 import 'vgr_icon.dart';
 import 'vgr_progress.dart';
 
-/// Encapsulates [ElevatedButton] — the main action of a screen.
+/// Encapsulates [ElevatedButton] — the main action of a screen, in the
+/// identity's action teal (decision 261).
 ///
 /// [busy] is part of the contract on purpose: every screen used to
 /// hand-roll "spinner instead of label while loading", and each did it
@@ -15,7 +17,12 @@ class VgrPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.busy = false,
     this.icon,
+    this.danger = false,
   });
+
+  /// The panic trigger. Red is kept for panic and errors only (decision
+  /// 253), so no other screen sets this.
+  final bool danger;
 
   final String label;
 
@@ -28,14 +35,19 @@ class VgrPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = busy ? const VgrInlineProgress() : Text(label);
+    final colors = VgrColors.of(context);
+    final style = danger
+        ? ElevatedButton.styleFrom(backgroundColor: colors.danger, foregroundColor: colors.onDanger)
+        : null;
     if (icon != null && !busy) {
       return ElevatedButton.icon(
         onPressed: onPressed,
+        style: style,
         icon: VgrIcon(icon!),
         label: child,
       );
     }
-    return ElevatedButton(onPressed: busy ? null : onPressed, child: child);
+    return ElevatedButton(onPressed: busy ? null : onPressed, style: style, child: child);
   }
 }
 
@@ -91,5 +103,7 @@ class VgrIconButton extends StatelessWidget {
         icon: VgrIcon(icon),
         onPressed: onPressed,
         tooltip: tooltip,
+        // The way into panic is the one red icon (decision 253).
+        color: icon == VgrIconName.panic ? VgrColors.of(context).danger : null,
       );
 }

@@ -82,6 +82,57 @@ submitted by Enter or the magnifier, never per keystroke), `VgrEmptyState`,
 Screens do not call the dialogs themselves: they go through the admin's
 feedback bridge (decision 221, see TESTS.md).
 
+## Visual identity (round 24, decisions 255-264 — V2, 2026-10-13)
+
+The theme lives in the design system too, so one file dresses every screen
+of both apps. Source of every value: `AI/docs/identidade-visual/v1b/`
+(`gerador/tokens.py` for colors, `gerador/mark.py` for the symbol), the
+direction Valdo chose in round 24.
+
+| Piece | Where | What it does |
+|---|---|---|
+| `VgrColors` | `vgr_colors.dart` | The identity's colors by role (`bg`, `surface`, `text`, `muted`, `brand`, `action`, `accent*`, `control`, `danger`, `navStrong`/`navSoft`, `splash`), `light` and `dark`, as a `ThemeExtension`. Widgets read `VgrColors.of(context)`; screens never do. |
+| `VgrTheme` | `vgr_theme.dart` | `light()` / `dark()` → `ThemeData`. Both apps pass them with `ThemeMode.system` (decision 256). Navy `brand` is Material's `primary` (selection, links, focus); the main buttons, the FAB and checkboxes are the teal `action`; `error` is the red. |
+| Fonts | `vgr_widgets/fonts/` | Atkinson Hyperlegible Next (400/600/700/800) and Atkinson Hyperlegible Mono (400), OFL, bundled and **never fetched at run time** (decision 255). `VgrTheme.registerFontLicense()` puts both licenses on the license page; each app's `main` calls it. |
+| `VgrSymbol`, `VgrLogo`, `VgrLogoHeader` | `vgr_mark.dart` | The symbol drawn with a `CustomPainter` (the same geometry as the vector files), the logo, and the logo header of the login screens. |
+| `VgrScaffold.showMark` | `vgr_scaffold.dart` | The symbol before the title — only on each app's home (mobile "Por perto", panel shell). |
+| `VgrPrimaryButton.danger` | `vgr_button.dart` | Red, for the panic trigger only. `VgrIconButton` paints `VgrIconName.panic` red by itself. Red is kept for panic and errors (decision 253). |
+
+Rules that keep it honest:
+
+- **Contrast is tested.** `vgr_widgets/test/vgr_colors_test.dart` checks
+  every token pair and every Material role the theme derives against WCAG
+  AA (decision 257: 4.5:1 text, 3:1 graphics and control borders), in
+  both themes. A color that breaks the floor fails the build.
+- **The gold is not a UI color.** It is the light of the symbol and the
+  reward seal of decision 101; there is no trophy, no points (decision
+  262). In the light theme it is drawn as `accentGraphic` (#BB8329), the
+  only gold that passes 3:1 on white.
+- **No hard-coded colors in widgets.** Placeholders and borders take their
+  color from `VgrColors` or the scheme, so the dark theme needs no
+  per-widget code.
+- **No font from a third party on the web either.** Each app's
+  `web/flutter_bootstrap.js` points the engine's `fontFallbackBaseUrl` at
+  the app's own server, where nothing is published: the engine's default
+  Roboto request is answered 404 by our server instead of reaching
+  fonts.gstatic.com, and every text is drawn with the bundled fonts.
+
+Platform files (icons, opening screens, names) are generated from the same
+vector source by `AI/docs/identidade-visual/v1b/gerador/plataformas.py`
+and are not edited by hand:
+
+- Android: adaptive icon (`mipmap-anydpi-v26/ic_launcher.xml`, navy
+  background, foreground and themed monochrome vector drawables), legacy
+  PNG icons, the opening screen as a layer list (`launch_background.xml`,
+  `splash_symbol.xml`, light and `-night`) and Android 12+'s splash
+  (`values-v31` / `values-night-v31`, `splash_icon.xml`); label "VGR".
+- iOS: `AppIcon.appiconset` (opaque), `LaunchImage` with a dark
+  appearance, `LaunchBackground` (one pixel per appearance, stretched by
+  `LaunchScreen.storyboard`); display name "VGR".
+- Web: `favicon.svg` + `favicon.png`, `icons/` (rounded and maskable),
+  `manifest.json` and `index.html` (title, colors, the page background
+  before Flutter draws, light and dark). The panel is "VGR · Painel".
+
 ## Enforcement
 
 `apps/admin/test/design_system_guard_test.dart` scans screen code for a
@@ -114,4 +165,5 @@ implementation swap — which is the exact coupling this rule removes.
 - Where the register widgets are used: `ARCHITECTURE.md` § ADMIN PANEL,
   `ADMIN-SCREENS.md`
 - Decision 133: `AI/docs/decisions/VGR-plano.md`
+- Visual identity: decisions 250-266 (rounds 23-24), `AI/docs/plans/plano-identidade-visual.md`
 - Origin: `D:\Gestao2027\Infra-IA\setes-app\prompt_fase1_fundacao.md` §B

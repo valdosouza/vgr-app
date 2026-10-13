@@ -113,6 +113,7 @@ class _PanicHubPageState extends State<PanicHubPage> {
         key: const Key('panic-hub-trigger-button'),
         label: 'panic.hub.trigger'.tr(),
         icon: VgrIconName.panic,
+        danger: true,
         busy: busy,
         onPressed: busy ? null : _trigger,
       );
