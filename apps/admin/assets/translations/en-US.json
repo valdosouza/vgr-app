@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "VGR Admin",
+    "name": "VGR · Admin",
     "language": "Language"
   },
   "auth": {
-    "loginTitle": "VGR Admin — Login",
+    "loginTitle": "VGR · Admin — Sign in",
     "email": "Email",
     "password": "Password",
     "login": "Log in",
@@ -42,7 +42,7 @@
     }
   },
   "home": {
-    "title": "VGR Admin",
+    "title": "VGR · Admin",
     "retry": "Try again",
     "emptyMenu": "No screens available for your user — ask an Admin for access.",
     "pendingTitle": "Under construction",

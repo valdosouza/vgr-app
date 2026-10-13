@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The VGR identity (round 24); source: vgr-ai/docs/identidade-visual/v1b/gerador/tokens.py -->
+    <color name="ic_launcher_background">#203B70</color>
+    <color name="splash_background">#203B70</color>
+</resources>

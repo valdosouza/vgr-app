@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'vgr_colors.dart';
+
 /// Building blocks of the admin shell (decision 215 — two navigation
 /// columns beside the content, the setes-app layout).
 
@@ -21,11 +23,11 @@ class VgrNavColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final colors = VgrColors.of(context);
     return SizedBox(
       width: width,
       child: Material(
-        color: level == 0 ? scheme.surfaceContainerHighest : scheme.surfaceContainerHigh,
+        color: level == 0 ? colors.navStrong : colors.navSoft,
         child: ListView(children: children),
       ),
     );

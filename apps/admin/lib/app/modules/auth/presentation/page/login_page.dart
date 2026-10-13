@@ -80,6 +80,7 @@ class _LoginPageState extends State<LoginPage> {
           final twoFactor = state is LoginTwoFactorRequired ? state : null;
           return VgrColumn(
             children: [
+              const VgrLogoHeader(),
               VgrTextField(
                 key: const Key('login-email-field'),
                 controller: _emailController,

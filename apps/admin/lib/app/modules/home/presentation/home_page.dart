@@ -97,6 +97,7 @@ class _HomePageState extends State<HomePage> {
   Widget _desktop(BuildContext context, MenuState state) {
     return VgrScaffold(
       title: 'home.title'.tr(),
+      showMark: true,
       actions: _appBarActions,
       padded: false,
       body: VgrSidebarLayout(
@@ -154,6 +155,7 @@ class _HomePageState extends State<HomePage> {
   Widget _mobile(BuildContext context, MenuState state) {
     return VgrScaffold(
       title: 'home.title'.tr(),
+      showMark: true,
       actions: _appBarActions,
       padded: false,
       drawer: VgrDrawer(

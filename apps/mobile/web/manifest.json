@@ -1,11 +1,11 @@
 {
-    "name": "vgr",
-    "short_name": "vgr",
+    "name": "VGR",
+    "short_name": "VGR",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#203B70",
+    "theme_color": "#203B70",
+    "description": "VGR — Vigilância e Recompensa",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

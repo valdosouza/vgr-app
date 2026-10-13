@@ -54,6 +54,7 @@ class _NearbyFeedPageState extends State<NearbyFeedPage> {
 
     return VgrScaffold(
       title: 'feed.title'.tr(),
+      showMark: true,
       padded: false,
       actions: [
         // The ONE required entry point (decision 62 — "reachable at any
